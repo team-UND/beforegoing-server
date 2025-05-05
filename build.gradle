@@ -1,0 +1,138 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.5'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+	id 'org.sonarqube' version '6.1.0.5360'
+	id 'org.ec4j.editorconfig' version '0.1.0'
+	id 'checkstyle'
+}
+
+group = 'com.und'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+jacoco {
+	toolVersion = '0.8.13'
+}
+
+editorconfig {
+	excludes = ['build']
+}
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+
+tasks.withType(Checkstyle) {
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+checkstyle {
+	maxWarnings = 0
+	configFile = file("checkstyle/naver-checkstyle-rules.xml")
+	configProperties = ["suppressionFile": "checkstyle/naver-checkstyle-suppressions.xml"]
+	toolVersion = "10.23.1"
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'com.h2database:h2'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'com.google.code.gson:gson:2.8.9'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('editorconfigCheck')
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	finalizedBy 'jacocoTestReport'
+}
+
+jacocoTestReport {
+    reports {
+        html.required = true
+        xml.required = true
+    }
+
+    finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			enabled = true // Apply test coverage
+			element = 'CLASS' // Test coverage unit
+
+			// Line coverage
+			// Test coverage must be greater than 80%
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.80
+			}
+
+			// Maximum number of lines in a file
+			limit {
+				counter = 'LINE'
+				value = 'TOTALCOUNT'
+				maximum = 500
+			}
+
+			// Branch coverage
+			// Test coverage must be greater than 70%
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.70
+			}
+		}
+	}
+
+	// Classes exclued from the result report
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, excludes: [
+							'**/*Application*'
+					])
+		}))
+	}
+}
+
+sonar {
+	properties {
+	property 'sonar.projectKey', 'team-UND_before-going-server'
+	property 'sonar.organization', 'team-und'
+	property 'sonar.host.url', 'https://sonarcloud.io'
+	property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
+	property 'sonar.coverage.exclusions', '**/*Application*'
+	property 'sonar.java.checkstyle.reportPaths', 'build/reports/checkstyle/main.xml'
+	}
+}
