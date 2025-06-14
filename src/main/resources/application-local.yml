@@ -1,0 +1,36 @@
+# RDB
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+    username: h2test
+    password: h2test
+
+# JPA
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+# Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# OAuth2
+oauth:
+  kakao:
+    base-url: https://kauth.kakao.com
+    app-key: ${OAUTH_KAKAO_APP_KEY}
+    public-key-url: /.well-known/jwks.json
+
+# JWT
+jwt:
+  header: Authorization
+  type: Bearer
+  issuer: BeforeGoing
+  secret: XU611aitva7JtGDROGqDxB2wXU6tva7JtGDcnVROGqDXU6tva7z9WEJtGDRO
+  access-token-expire-time: 3600
+  refresh-token-expire-time: 604800

@@ -1,0 +1,36 @@
+# RDB
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+# JPA
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+# Redis
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST}
+      port: 6379
+
+# OAuth2
+oauth:
+  kakao:
+    base-url: https://kauth.kakao.com
+    app-key: ${OAUTH_KAKAO_APP_KEY}
+    public-key-url: /.well-known/jwks.json
+
+# JWT
+jwt:
+  header: Authorization
+  type: Bearer
+  issuer: ${ISSUER_NAME}
+  secret: ${JWT_SECRET}
+  access-token-expire-time: ${ACCESS_TOKEN_EXPIRE_TIME}
+  refresh-token-expire-time: ${REFRESH_TOKEN_EXPIRE_TIME}
