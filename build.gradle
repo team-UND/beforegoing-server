@@ -70,6 +70,7 @@ dependencies {
 	implementation platform('org.springframework.cloud:spring-cloud-dependencies:2024.0.1')
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	runtimeOnly 'com.mysql:mysql-connector-j:9.3.0'
 	implementation 'org.flywaydb:flyway-core:11.8.2'
 }
 
