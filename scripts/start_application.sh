@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-export AWS_DEFAULT_REGION="ap-northeast-2"
+export AWS_REGION="ap-northeast-2"
 export ECR_REGISTRY="116541189059.dkr.ecr.ap-northeast-2.amazonaws.com"
 export REPOSITORY_NAME="beforegoing-build"
 export IMAGE_TAG="latest"
