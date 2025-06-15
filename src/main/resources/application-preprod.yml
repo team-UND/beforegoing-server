@@ -1,9 +1,4 @@
-# RDB
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
 
 # JPA
   jpa:
@@ -12,11 +7,17 @@ spring:
       ddl-auto: validate
     open-in-view: false
 
+# RDB
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+
 # Redis
   data:
     redis:
       host: ${SPRING_REDIS_HOST}
-      port: 6379
+      port: ${SPRING_REDIS_PORT}
 
 # OAuth2
 oauth:
