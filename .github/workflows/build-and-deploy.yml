@@ -88,7 +88,9 @@ jobs:
         ENV_PATH: .env
       run: |
         touch $ENV_PATH
-        echo SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }} >> $ENV_PATH
+        echo SPRING_DATASOURCE_ENDPOINT=${{ secrets.SPRING_DATASOURCE_ENDPOINT }} >> $ENV_PATH
+        echo SPRING_DATASOURCE_PORT=${{ secrets.SPRING_DATASOURCE_PORT }} >> $ENV_PATH
+        echo SPRING_DATASOURCE_DATABASE_NAME=${{ secrets.SPRING_DATASOURCE_DATABASE_NAME }} >> $ENV_PATH
         echo SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }} >> $ENV_PATH
         echo SECRETS_MANAGER=${{ secrets.SECRETS_MANAGER }} >> $ENV_PATH
         echo SPRING_REDIS_HOST=${{ secrets.SPRING_REDIS_HOST }} >> $ENV_PATH
@@ -98,7 +100,6 @@ jobs:
         echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> $ENV_PATH
         echo ACCESS_TOKEN_EXPIRE_TIME=${{ secrets.ACCESS_TOKEN_EXPIRE_TIME }} >> $ENV_PATH
         echo REFRESH_TOKEN_EXPIRE_TIME=${{ secrets.REFRESH_TOKEN_EXPIRE_TIME }} >> $ENV_PATH
-        cat $ENV_PATH
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
