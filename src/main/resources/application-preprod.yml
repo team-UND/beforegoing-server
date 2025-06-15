@@ -10,7 +10,7 @@ spring:
 # RDB
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${SPRING_DATASOURCE_URL}
+    url: jdbc:mysql://${SPRING_DATASOURCE_ENDPOINT}:${SPRING_DATASOURCE_PORT}/${SPRING_DATASOURCE_DATABASE_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${SPRING_DATASOURCE_USERNAME}
 
 # Redis
