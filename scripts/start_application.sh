@@ -7,20 +7,23 @@ export REPOSITORY_NAME="beforegoing-build"
 export IMAGE_TAG="latest"
 export CONTAINER_NAME="server"
 export APP_PORT=8080
+export SPRING_PROFILE="preprod"
 
-SPRING_PROFILE="preprod"
-
-SPRING_DATASOURCE_PASSWORD=$(aws secretsmanager get-secret-value \
-  --secret-id 'your-rds-master-user-secret-name-or-arn' \
-  --query SecretString --output text --region ${AWS_REGION} \
-  | jq -r .password)
-
-ENV_FILE="/opt/server/.env"
+export ENV_FILE="/opt/server/.env"
 if [ ! -f "$ENV_FILE" ]; then
     echo "Error: .env file not found at $ENV_FILE"
     echo "Please ensure .env file is deployed with the application"
     exit 1
 fi
+
+set -o allexport
+source $ENV_FILE
+set +o allexport
+
+export SPRING_DATASOURCE_PASSWORD=$(aws secretsmanager get-secret-value \
+  --secret-id "$SECRETS_MANAGER" \
+  --query SecretString --output text --region ${AWS_REGION} \
+  | jq -r .password)
 
 echo "Starting Spring Boot application container..."
 

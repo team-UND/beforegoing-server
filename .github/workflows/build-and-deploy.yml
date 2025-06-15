@@ -90,6 +90,7 @@ jobs:
         touch $ENV_PATH
         echo SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }} >> $ENV_PATH
         echo SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }} >> $ENV_PATH
+        echo SECRETS_MANAGER=${{ secrets.SECRETS_MANAGER }} >> $ENV_PATH
         echo SPRING_REDIS_HOST=${{ secrets.SPRING_REDIS_HOST }} >> $ENV_PATH
         echo SPRING_REDIS_PORT=${{ secrets.SPRING_REDIS_PORT }} >> $ENV_PATH
         echo OAUTH_KAKAO_APP_KEY=${{ secrets.OAUTH_KAKAO_APP_KEY }} >> $ENV_PATH
