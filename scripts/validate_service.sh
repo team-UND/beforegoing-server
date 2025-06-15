@@ -6,13 +6,13 @@ export HEALTH_CHECK_URL="http://localhost:$APP_PORT/actuator/health"
 
 echo "Performing health check on $HEALTH_CHECK_URL..."
 
-for i in $(seq 1 60); do
-  echo "Attempt $i/60..."
+for i in $(seq 1 120); do
+  echo "Attempt $i/120..."
 
   if ! nc -z localhost $APP_PORT 2>/dev/null; then
     echo "Port $APP_PORT is not open yet"
-    echo "Retrying in 1 second..."
-    sleep 1
+    echo "Retrying in 5 second..."
+    sleep 5
     continue
   fi
 
@@ -24,8 +24,8 @@ for i in $(seq 1 60); do
   fi
 
   echo "Health check failed with status $HEALTH_STATUS"
-  echo "Retrying in 1 second..."
-  sleep 1
+  echo "Retrying in 5 second..."
+  sleep 5
 done
 
 echo "Health check failed after multiple retries"
