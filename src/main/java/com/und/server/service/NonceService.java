@@ -24,7 +24,7 @@ public class NonceService {
 
 	public void validateNonce(final String nonceValue, final Provider provider) {
 		nonceRepository.findById(nonceValue)
-			.filter(n -> n.getProvider().equals(provider))
+			.filter(n -> n.getProvider() == provider)
 			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_NONCE));
 
 		nonceRepository.deleteById(nonceValue);
