@@ -6,5 +6,5 @@ import com.und.server.oauth.Provider;
 import jakarta.validation.constraints.NotNull;
 
 public record HandshakeRequest(
-	@NotNull @JsonProperty ("nonce") Provider provider
+	@NotNull @JsonProperty ("provider") Provider provider
 ) { }
