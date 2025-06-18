@@ -16,6 +16,7 @@ public enum ServerErrorResult {
 	INVALID_PUBLIC_KEY(HttpStatus.BAD_REQUEST, "Invalid Public Key"),
 	PUBLIC_KEY_INVALID(HttpStatus.BAD_REQUEST, "Public Key Invalid"),
 	EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "Expired Token"),
+	TOKEN_NOT_EXPIRED(HttpStatus.BAD_REQUEST, "Token Not Expired"),
 	MALFORMED_TOKEN(HttpStatus.BAD_REQUEST, "Malformed Token"),
 	INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "Invalid Signature"),
 	UNSUPPORTED_TOKEN(HttpStatus.BAD_REQUEST, "Unsupported Token"),
