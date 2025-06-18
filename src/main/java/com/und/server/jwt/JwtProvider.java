@@ -21,13 +21,15 @@ import com.und.server.exception.ServerException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtProvider {
@@ -41,6 +43,7 @@ public class JwtProvider {
 			);
 			return new ObjectMapper().readValue(decodedHeader, new TypeReference<>() { });
 		} catch (Exception e) {
+			log.error("Failed to decode JWT header: {}", e.getMessage(), e);
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
 		}
 	}
@@ -52,6 +55,7 @@ public class JwtProvider {
 			final Map<String, Object> claims = new ObjectMapper().readValue(payloadJson, new TypeReference<>() { });
 			return (String) claims.get("nonce");
 		} catch (Exception e) {
+			log.error("Failed to extract nonce: {}", e.getMessage(), e);
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
 		}
 	}
@@ -107,17 +111,18 @@ public class JwtProvider {
 					.parseSignedClaims(token)
 					.getPayload();
 		} catch (ExpiredJwtException e) {
+			log.warn("Expired JWT token - expiration time: {}, current time: {}",
+				e.getClaims().getExpiration(), new Date());
 			throw new ServerException(ServerErrorResult.EXPIRED_TOKEN);
 		} catch (MalformedJwtException e) {
+			log.error("Malformed JWT token: {}", e.getMessage());
 			throw new ServerException(ServerErrorResult.MALFORMED_TOKEN);
 		} catch (SecurityException e) {
+			log.error("JWT signature verification failed: {}", e.getMessage());
 			throw new ServerException(ServerErrorResult.INVALID_SIGNATURE);
-		} catch (UnsupportedJwtException e) {
-			throw new ServerException(ServerErrorResult.UNSUPPORTED_TOKEN);
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
+			log.error("Unexpected error occurred while parsing JWT", e);
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
-		} catch (RuntimeException e) {
-			throw new ServerException(ServerErrorResult.UNKNOWN_EXCEPTION);
 		}
 	}
 
@@ -126,10 +131,15 @@ public class JwtProvider {
 			Jwts.parser()
 				.verifyWith(jwtProperties.secretKey())
 				.build()
-				.parseSignedClaims(token);
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+				.parseSignedClaims(token)
+				.getPayload();
+
+			throw new ServerException(ServerErrorResult.TOKEN_NOT_EXPIRED);
 		} catch (ExpiredJwtException e) {
 			return Long.valueOf(e.getClaims().getSubject());
+		} catch (JwtException e) {
+			log.error("Unexpected error occurred while parsing JWT", e);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
 		}
 	}
 

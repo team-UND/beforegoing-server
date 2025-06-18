@@ -6,6 +6,8 @@ import static org.mockito.Mockito.doReturn;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Map;
 
@@ -163,6 +165,54 @@ class JwtProviderTest {
 	}
 
 	@Test
+	void verifyTokenIssuedAtTimeConversion() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		doReturn(issuer).when(jwtProperties).issuer();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+
+		final Long memberId = 1L;
+		final LocalDateTime beforeGeneration = LocalDateTime.now();
+
+		// when
+		final String token = jwtProvider.generateAccessToken(memberId);
+		final Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+
+		final LocalDateTime afterGeneration = LocalDateTime.now();
+
+		// then
+		final Date issuedAt = claims.getIssuedAt();
+		final LocalDateTime issuedAtDateTime = issuedAt.toInstant()
+			.atZone(ZoneId.systemDefault())
+			.toLocalDateTime();
+
+		assertThat(issuedAtDateTime)
+			.isAfterOrEqualTo(beforeGeneration.minusSeconds(1))
+			.isBeforeOrEqualTo(afterGeneration.plusSeconds(1));
+	}
+
+	@Test
+	void verifyTimeZoneConsistencyInTokenGeneration() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		doReturn(issuer).when(jwtProperties).issuer();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+
+		final Long memberId = 1L;
+
+		// when
+		final String token = jwtProvider.generateAccessToken(memberId);
+		final Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+
+		// then
+		final Date issuedAt = claims.getIssuedAt();
+		final Date expiration = claims.getExpiration();
+
+		final long timeDifferenceInSeconds = (expiration.getTime() - issuedAt.getTime()) / 1000;
+		assertThat(timeDifferenceInSeconds).isEqualTo(3600);
+	}
+
+	@Test
 	void getDecodedHeaderSuccessfully() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
@@ -214,7 +264,7 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void testGetMemberIdFromExpiredAccessToken_NotExpired_Throws() {
+	void throwsTokenNotExpiredException() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
@@ -226,7 +276,7 @@ class JwtProviderTest {
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
 			.isInstanceOf(ServerException.class)
 			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.INVALID_TOKEN);
+			.isEqualTo(ServerErrorResult.TOKEN_NOT_EXPIRED);
 	}
 
 	@Test
