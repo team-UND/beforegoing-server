@@ -24,16 +24,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		getTokensFromHeader(request, jwtProperties.header())
+		Optional.ofNullable(request.getHeader(jwtProperties.header()))
 			.map(this::replaceBearerToBlank)
 			.map(jwtProvider::getAuthentication)
 			.ifPresent(SecurityContextHolder.getContext()::setAuthentication);
 
 		filterChain.doFilter(request, response);
-	}
-
-	private Optional<String> getTokensFromHeader(HttpServletRequest request, String header) {
-		return Optional.ofNullable(request.getHeader(header));
 	}
 
 	private String replaceBearerToBlank(String token) {
