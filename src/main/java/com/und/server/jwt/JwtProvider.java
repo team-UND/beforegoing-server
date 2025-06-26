@@ -39,7 +39,7 @@ public class JwtProvider {
 			String decodedHeader = decodeBase64UrlPart(token.split("\\.")[0]);
 			return new ObjectMapper().readValue(decodedHeader, new TypeReference<>() { });
 		} catch (Exception e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
@@ -49,7 +49,7 @@ public class JwtProvider {
 			final Map<String, Object> claims = new ObjectMapper().readValue(payloadJson, new TypeReference<>() { });
 			return (String) claims.get("nonce");
 		} catch (Exception e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
@@ -104,13 +104,13 @@ public class JwtProvider {
 					.parseSignedClaims(token)
 					.getPayload();
 		} catch (ExpiredJwtException e) {
-			throw new ServerException(ServerErrorResult.EXPIRED_TOKEN);
+			throw new ServerException(ServerErrorResult.EXPIRED_TOKEN, e);
 		} catch (MalformedJwtException e) {
-			throw new ServerException(ServerErrorResult.MALFORMED_TOKEN);
+			throw new ServerException(ServerErrorResult.MALFORMED_TOKEN, e);
 		} catch (SecurityException e) {
-			throw new ServerException(ServerErrorResult.INVALID_SIGNATURE);
+			throw new ServerException(ServerErrorResult.INVALID_SIGNATURE, e);
 		} catch (JwtException e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
@@ -126,7 +126,7 @@ public class JwtProvider {
 		} catch (ExpiredJwtException e) {
 			return Long.valueOf(e.getClaims().getSubject());
 		} catch (JwtException e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 

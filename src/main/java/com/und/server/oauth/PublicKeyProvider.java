@@ -37,7 +37,7 @@ public class PublicKeyProvider {
 
 			return KeyFactory.getInstance(matchingKey.kty()).generatePublic(publicKeySpec);
 		} catch (IllegalArgumentException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-			throw new ServerException(ServerErrorResult.INVALID_PUBLIC_KEY);
+			throw new ServerException(ServerErrorResult.INVALID_PUBLIC_KEY, e);
 		}
 	}
 
