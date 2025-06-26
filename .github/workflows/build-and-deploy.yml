@@ -100,6 +100,7 @@ jobs:
         echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> $ENV_PATH
         echo ACCESS_TOKEN_EXPIRE_TIME=${{ secrets.ACCESS_TOKEN_EXPIRE_TIME }} >> $ENV_PATH
         echo REFRESH_TOKEN_EXPIRE_TIME=${{ secrets.REFRESH_TOKEN_EXPIRE_TIME }} >> $ENV_PATH
+        echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> $ENV_PATH
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4

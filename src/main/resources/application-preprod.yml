@@ -20,19 +20,3 @@ spring:
     redis:
       host: ${SPRING_REDIS_HOST}
       port: ${SPRING_REDIS_PORT}
-
-# OAuth2
-oauth:
-  kakao:
-    base-url: https://kauth.kakao.com
-    app-key: ${OAUTH_KAKAO_APP_KEY}
-    public-key-url: /.well-known/jwks.json
-
-# JWT
-jwt:
-  header: Authorization
-  type: Bearer
-  issuer: ${ISSUER_NAME}
-  secret: ${JWT_SECRET}
-  access-token-expire-time: ${ACCESS_TOKEN_EXPIRE_TIME}
-  refresh-token-expire-time: ${REFRESH_TOKEN_EXPIRE_TIME}
