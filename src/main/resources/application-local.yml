@@ -1,4 +1,9 @@
 spring:
+  config:
+    activate:
+      on-profile: local
+    import:
+    - optional:file:server/.env[.properties]
 
 # JPA
   jpa:
@@ -19,19 +24,3 @@ spring:
     redis:
       host: localhost
       port: 6379
-
-# OAuth2
-oauth:
-  kakao:
-    base-url: https://kauth.kakao.com
-    app-key: ${OAUTH_KAKAO_APP_KEY}
-    public-key-url: /.well-known/jwks.json
-
-# JWT
-jwt:
-  header: Authorization
-  type: Bearer
-  issuer: BeforeGoing
-  secret: XU611aitva7JtGDROGqDxB2wXU6tva7JtGDcnVROGqDXU6tva7z9WEJtGDRO
-  access-token-expire-time: 3600
-  refresh-token-expire-time: 604800

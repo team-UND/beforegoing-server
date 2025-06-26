@@ -73,6 +73,7 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j:9.3.0'
 	implementation 'org.flywaydb:flyway-core:11.8.2'
 	implementation 'org.flywaydb:flyway-mysql:11.8.2'
+	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.14.0'
 }
 
 tasks.named('check') {

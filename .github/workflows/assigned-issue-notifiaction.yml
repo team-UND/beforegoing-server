@@ -2,8 +2,7 @@ name: Assigned Issue Notification
 
 on:
   issues:
-    types:
-      - assigned
+    types: [assigned]
 
 jobs:
   notify:
