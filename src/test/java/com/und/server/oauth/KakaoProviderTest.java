@@ -6,9 +6,9 @@ import static org.mockito.Mockito.when;
 import java.security.PublicKey;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -30,17 +30,24 @@ class KakaoProviderTest {
 	@Mock
 	private PublicKey publicKey;
 
-	@InjectMocks
 	private KakaoProvider kakaoProvider;
 
 	private final String token = "dummyToken";
+
+	private final String kakaoBaseUrl = "https://kauth.kakao.com";
+	private final String kakaoAppKey = "dummyAppKey";
+
+	@BeforeEach
+	void init() {
+		kakaoProvider = new KakaoProvider(jwtProvider, publicKeyProvider, kakaoBaseUrl, kakaoAppKey);
+	}
 
 	@Test
 	void getOidcProviderIdSuccessfully() {
 		final Map<String, String> decodedHeader = Map.of("alg", "RS256", "kid", "key1");
 		final String subject = "166959";
-		final String issuer = "${oauth.kakao.base-url}";
-		final String audience = "${oauth.kakao.app-key}";
+		final String issuer = kakaoBaseUrl;
+		final String audience = kakaoAppKey;
 
 		// given
 		when(jwtProvider.getDecodedHeader(token)).thenReturn(decodedHeader);
