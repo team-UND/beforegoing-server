@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.sentry.Sentry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,12 +25,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		Optional.ofNullable(request.getHeader(jwtProperties.header()))
-			.map(this::replaceBearerToBlank)
-			.map(jwtProvider::getAuthentication)
-			.ifPresent(SecurityContextHolder.getContext()::setAuthentication);
+		try {
+			Optional.ofNullable(request.getHeader(jwtProperties.header()))
+				.map(this::replaceBearerToBlank)
+				.map(jwtProvider::getAuthentication)
+				.ifPresent(SecurityContextHolder.getContext()::setAuthentication);
 
-		filterChain.doFilter(request, response);
+			filterChain.doFilter(request, response);
+		} catch (Exception e) {
+			Sentry.captureException(e);
+			SecurityContextHolder.clearContext();
+			throw e;
+		}
 	}
 
 	private String replaceBearerToBlank(String token) {
