@@ -25,28 +25,33 @@ class OidcProviderFactoryTest {
 
 	private OidcProviderFactory factory;
 
+	private final String token = "dummyToken";
+	private final String providerId = "dummyId";
+	private final String nickname = "dummyNickname";
+
 	@BeforeEach
 	void init() {
 		factory = new OidcProviderFactory(kakaoProvider);
 	}
 
 	@Test
-	void getOidcProviderIdSuccessfully() {
-		final String token = "dummyToken";
-		final String expectedId = "providerId123";
+	void getIdTokenPayloadSuccessfully() {
+		// given
+		final IdTokenPayload expectedPayload = new IdTokenPayload(providerId, nickname);
 
-		when(kakaoProvider.getOidcProviderId(token, oidcPublicKeys)).thenReturn(expectedId);
+		when(kakaoProvider.getIdTokenPayload(token, oidcPublicKeys)).thenReturn(expectedPayload);
 
-		final String actualId = factory.getOidcProviderId(Provider.KAKAO, token, oidcPublicKeys);
+		// when
+		final IdTokenPayload actualPayload = factory.getIdTokenPayload(Provider.KAKAO, token, oidcPublicKeys);
 
-		assertThat(actualId).isEqualTo(expectedId);
+		// then
+		assertThat(actualPayload).isEqualTo(expectedPayload);
 	}
 
 	@Test
 	void throwExceptionWhenProviderNotRegistered() {
-		final String token = "dummyToken";
-
-		assertThatThrownBy(() -> factory.getOidcProviderId(Provider.APPLE, token, oidcPublicKeys))
+		// when & then
+		assertThatThrownBy(() -> factory.getIdTokenPayload(Provider.APPLE, token, oidcPublicKeys))
 			.isInstanceOf(ServerException.class)
 			.extracting("errorResult")
 			.isEqualTo(ServerErrorResult.INVALID_PROVIDER);

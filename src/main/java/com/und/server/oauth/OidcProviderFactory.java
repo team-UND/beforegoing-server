@@ -19,12 +19,12 @@ public class OidcProviderFactory {
 		oidcProviders.put(Provider.KAKAO, kakaoProvider);
 	}
 
-	public String getOidcProviderId(
+	public IdTokenPayload getIdTokenPayload(
 		Provider provider,
 		String token,
 		OidcPublicKeys oidcPublicKeys
 	) {
-		return getOidcProvider(provider).getOidcProviderId(token, oidcPublicKeys);
+		return getOidcProvider(provider).getIdTokenPayload(token, oidcPublicKeys);
 	}
 
 	private OidcProvider getOidcProvider(final Provider provider) {

@@ -30,11 +30,11 @@ public class KakaoProvider implements OidcProvider {
 	}
 
 	@Override
-	public String getOidcProviderId(String token, OidcPublicKeys oidcPublicKeys) {
+	public IdTokenPayload getIdTokenPayload(String token, OidcPublicKeys oidcPublicKeys) {
 		final Map<String, String> decodedHeader = jwtProvider.getDecodedHeader(token);
 		final PublicKey publicKey = publicKeyProvider.generatePublicKey(decodedHeader, oidcPublicKeys);
 
-		return jwtProvider.parseOidcSubjectFromIdToken(
+		return jwtProvider.parseOidcIdToken(
 			token,
 			kakaoBaseUrl,
 			kakaoAppKey,

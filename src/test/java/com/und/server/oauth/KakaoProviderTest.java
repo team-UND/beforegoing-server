@@ -33,9 +33,10 @@ class KakaoProviderTest {
 	private KakaoProvider kakaoProvider;
 
 	private final String token = "dummyToken";
-
 	private final String kakaoBaseUrl = "https://kauth.kakao.com";
 	private final String kakaoAppKey = "dummyAppKey";
+	private final String providerId = "dummyId";
+	private final String nickname = "dummyNickname";
 
 	@BeforeEach
 	void init() {
@@ -43,22 +44,20 @@ class KakaoProviderTest {
 	}
 
 	@Test
-	void getOidcProviderIdSuccessfully() {
-		final Map<String, String> decodedHeader = Map.of("alg", "RS256", "kid", "key1");
-		final String subject = "166959";
-		final String issuer = kakaoBaseUrl;
-		final String audience = kakaoAppKey;
-
+	void getIdTokenPayloadSuccessfully() {
 		// given
+		final Map<String, String> decodedHeader = Map.of("alg", "RS256", "kid", "key1");
+		final IdTokenPayload expectedPayload = new IdTokenPayload(providerId, nickname);
+
 		when(jwtProvider.getDecodedHeader(token)).thenReturn(decodedHeader);
 		when(publicKeyProvider.generatePublicKey(decodedHeader, oidcPublicKeys)).thenReturn(publicKey);
-		when(jwtProvider.parseOidcSubjectFromIdToken(token, issuer, audience, publicKey))
-			.thenReturn(subject);
+		when(jwtProvider.parseOidcIdToken(token, kakaoBaseUrl, kakaoAppKey, publicKey)).thenReturn(expectedPayload);
 
 		// when
-		final String actualSubject = kakaoProvider.getOidcProviderId(token, oidcPublicKeys);
+		final IdTokenPayload actualPayload = kakaoProvider.getIdTokenPayload(token, oidcPublicKeys);
 
 		// then
-		assertThat(actualSubject).isEqualTo(subject);
+		assertThat(actualPayload).isEqualTo(expectedPayload);
 	}
 }
+
