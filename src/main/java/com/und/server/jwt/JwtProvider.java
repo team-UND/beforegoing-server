@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
+import com.und.server.oauth.IdTokenPayload;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -53,7 +54,7 @@ public class JwtProvider {
 		}
 	}
 
-	public String parseOidcSubjectFromIdToken(
+	public IdTokenPayload parseOidcIdToken(
 			final String token,
 			final String iss,
 			final String aud,
@@ -64,7 +65,9 @@ public class JwtProvider {
 				.requireIssuer(iss)
 				.requireAudience(aud);
 
-		return parseClaims(token, builder).getSubject();
+		final Claims claims = parseClaims(token, builder);
+
+		return new IdTokenPayload(claims.getSubject(), claims.get("nickname", String.class));
 	}
 
 	public String generateAccessToken(final Long memberId) {

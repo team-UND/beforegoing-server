@@ -4,6 +4,6 @@ import com.und.server.dto.OidcPublicKeys;
 
 public interface OidcProvider {
 
-	String getOidcProviderId(String token, OidcPublicKeys oidcPublicKeys);
+	IdTokenPayload getIdTokenPayload(String token, OidcPublicKeys oidcPublicKeys);
 
 }

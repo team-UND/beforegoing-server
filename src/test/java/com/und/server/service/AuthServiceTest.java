@@ -29,6 +29,7 @@ import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 import com.und.server.jwt.JwtProperties;
 import com.und.server.jwt.JwtProvider;
+import com.und.server.oauth.IdTokenPayload;
 import com.und.server.oauth.OidcClient;
 import com.und.server.oauth.OidcClientFactory;
 import com.und.server.oauth.OidcProviderFactory;
@@ -62,7 +63,8 @@ class AuthServiceTest {
 	@Mock
 	private NonceService nonceService;
 
-	private final String providerId = "166959";
+	private final String providerId = "dummyId";
+	private final String nickname = "dummyNickname";
 	private final Long memberId = 1L;
 	private final String idToken = "dummy.id.token";
 	private final String accessToken = "dummy.access.token";
@@ -98,13 +100,14 @@ class AuthServiceTest {
 		final AuthRequest authRequest = new AuthRequest(Provider.KAKAO, idToken);
 		final OidcClient oidcClient = mock(OidcClient.class);
 		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
+		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
 		final Member member = Member.builder().id(memberId).kakaoId(providerId).build();
 
 		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
 		doNothing().when(nonceService).validateNonce("nonce", Provider.KAKAO);
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.KAKAO);
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(providerId).when(oidcProviderFactory).getOidcProviderId(Provider.KAKAO, idToken, keys);
+		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.KAKAO, idToken, keys);
 		doReturn(Optional.of(member)).when(memberRepository).findByKakaoId(providerId);
 		doReturn(accessToken).when(jwtProvider).generateAccessToken(memberId);
 		doReturn(refreshToken).when(refreshTokenService).generateRefreshToken();
@@ -132,12 +135,13 @@ class AuthServiceTest {
 		final AuthRequest authRequest = new AuthRequest(Provider.KAKAO, idToken);
 		final OidcClient oidcClient = mock(OidcClient.class);
 		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
+		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
 		final Member newMember = Member.builder().id(memberId).kakaoId(providerId).build();
 
 		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.KAKAO);
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(providerId).when(oidcProviderFactory).getOidcProviderId(Provider.KAKAO, idToken, keys);
+		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.KAKAO, idToken, keys);
 		doReturn(Optional.empty()).when(memberRepository).findByKakaoId(providerId);
 		doReturn(newMember).when(memberRepository).save(any(Member.class));
 		doReturn(accessToken).when(jwtProvider).generateAccessToken(memberId);
@@ -164,11 +168,12 @@ class AuthServiceTest {
 		final AuthRequest authRequest = new AuthRequest(Provider.APPLE, idToken);
 		final OidcClient oidcClient = mock(OidcClient.class);
 		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
+		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
 
 		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.APPLE);
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(providerId).when(oidcProviderFactory).getOidcProviderId(Provider.APPLE, idToken, keys);
+		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.APPLE, idToken, keys);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class, () -> authService.login(authRequest));

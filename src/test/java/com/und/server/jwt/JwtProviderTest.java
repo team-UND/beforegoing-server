@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doReturn;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -22,6 +23,7 @@ import org.springframework.security.core.Authentication;
 
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
+import com.und.server.oauth.IdTokenPayload;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -92,7 +94,7 @@ class JwtProviderTest {
 		// given
 		final String invalidToken = "invalid.token.parts";
 
-		// then
+		// when & then
 		assertThatThrownBy(() -> jwtProvider.extractNonce(invalidToken))
 				.isInstanceOf(ServerException.class)
 				.extracting("errorResult")
@@ -100,50 +102,50 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void parseOidcSubjectFromValidIdToken() throws Exception {
+	void parseOidcIdTokenSuccessfully() throws Exception {
 		// given
-		KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-
-		String token = Jwts.builder()
+		final KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		final String token = Jwts.builder()
 				.subject(subject)
 				.issuer(issuer)
 				.audience()
-					.add("client-id")
+					.add(audience)
 					.and()
+				.claim("nickname", "Chori")
 				.issuedAt(new Date())
 				.signWith(keyPair.getPrivate(), Jwts.SIG.RS256)
 				.compact();
 
 		// when
-		String parsedSubject = jwtProvider.parseOidcSubjectFromIdToken(
+		final IdTokenPayload payload = jwtProvider.parseOidcIdToken(
 			token, issuer, audience, keyPair.getPublic()
 		);
 
 		// then
-		assertThat(parsedSubject).isEqualTo(subject);
+		assertThat(payload.providerId()).isEqualTo(subject);
+		assertThat(payload.nickname()).isEqualTo("Chori");
 	}
 
 	@Test
 	void throwExceptionWhenAudienceDoesNotMatch() throws Exception {
 		// given
 		final String wrongAudience = "wrong-client";
+		final KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		final PublicKey publicKey = keyPair.getPublic();
+		final String token = Jwts.builder()
+			.subject(subject)
+			.issuer(issuer)
+			.audience()
+				.add(audience)
+				.and()
+			.issuedAt(new Date())
+			.signWith(keyPair.getPrivate(), Jwts.SIG.RS256)
+			.compact();
 
-		KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-
-		String token = Jwts.builder()
-				.subject(subject)
-				.issuer(issuer)
-				.audience()
-					.add(audience)
-					.and()
-				.issuedAt(new Date())
-				.signWith(keyPair.getPrivate(), Jwts.SIG.RS256)
-				.compact();
-
-		// expect
-		assertThatThrownBy(() -> jwtProvider.parseOidcSubjectFromIdToken(
-			token, issuer, wrongAudience, keyPair.getPublic()
-		)).isInstanceOf(ServerException.class);
+		// when & then
+		assertThatThrownBy(() -> {
+			jwtProvider.parseOidcIdToken(token, issuer, wrongAudience, publicKey);
+		}).isInstanceOf(ServerException.class);
 	}
 
 	@Test
@@ -177,7 +179,6 @@ class JwtProviderTest {
 		// when
 		final String token = jwtProvider.generateAccessToken(memberId);
 		final Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
-
 		final LocalDateTime afterGeneration = LocalDateTime.now();
 
 		// then
@@ -207,7 +208,6 @@ class JwtProviderTest {
 		// then
 		final Date issuedAt = claims.getIssuedAt();
 		final Date expiration = claims.getExpiration();
-
 		final long timeDifferenceInSeconds = (expiration.getTime() - issuedAt.getTime()) / 1000;
 		assertThat(timeDifferenceInSeconds).isEqualTo(3600);
 	}
@@ -272,7 +272,7 @@ class JwtProviderTest {
 
 		final String token = jwtProvider.generateAccessToken(1L);
 
-		// then
+		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
 			.isInstanceOf(ServerException.class)
 			.extracting("errorResult")
@@ -285,11 +285,9 @@ class JwtProviderTest {
 		doReturn(secretKey).when(jwtProperties).secretKey();
 
 		final Long memberId = 1L;
-
 		final Date now = new Date();
 		final Date issuedAt = new Date(now.getTime() - 10000);
 		final Date expiredAt = new Date(now.getTime() - 5000);
-
 		final String token = Jwts.builder()
 			.subject(memberId.toString())
 			.issuer(issuer)
@@ -314,8 +312,7 @@ class JwtProviderTest {
 		final Date now = new Date();
 		final Date issuedAt = new Date(now.getTime() - 10000);
 		final Date expiredAt = new Date(now.getTime() - 5000);
-
-		String token = Jwts.builder()
+		final String token = Jwts.builder()
 			.subject(memberId.toString())
 			.issuer(issuer)
 			.issuedAt(issuedAt)
@@ -324,7 +321,7 @@ class JwtProviderTest {
 			.compact();
 
 		// when
-		Long extractedId = jwtProvider.getMemberIdFromExpiredAccessToken(token);
+		final Long extractedId = jwtProvider.getMemberIdFromExpiredAccessToken(token);
 
 		// then
 		assertThat(extractedId).isEqualTo(memberId);

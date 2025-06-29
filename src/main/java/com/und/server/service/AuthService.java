@@ -14,6 +14,7 @@ import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 import com.und.server.jwt.JwtProperties;
 import com.und.server.jwt.JwtProvider;
+import com.und.server.oauth.IdTokenPayload;
 import com.und.server.oauth.OidcClient;
 import com.und.server.oauth.OidcClientFactory;
 import com.und.server.oauth.OidcProviderFactory;
@@ -55,11 +56,13 @@ public class AuthService {
 
 		final OidcClient oidcClient = oidcClientFactory.getOidcClient(provider);
 		final OidcPublicKeys oidcPublicKeys = oidcClient.getOidcPublicKeys();
-		final String providerId = oidcProviderFactory.getOidcProviderId(provider, idToken, oidcPublicKeys);
+		final IdTokenPayload idTokenPayload = oidcProviderFactory.getIdTokenPayload(provider, idToken, oidcPublicKeys);
+		final String providerId = idTokenPayload.providerId();
+		final String nickname = idTokenPayload.nickname();
 
 		Member member = findMemberByProviderId(provider, providerId);
 		if (member == null) {
-			member = createMember(provider, providerId);
+			member = createMember(provider, providerId, nickname);
 		}
 
 		final String accessToken = jwtProvider.generateAccessToken(member.getId());
@@ -84,10 +87,11 @@ public class AuthService {
 		};
 	}
 
-	private Member createMember(final Provider provider, final String providerId) {
+	private Member createMember(final Provider provider, final String providerId, final String nickname) {
 		Member newMember = Member.builder()
 			.kakaoId(provider == Provider.KAKAO ? providerId : null)
 			// Add extra providers
+			.nickname(nickname)
 			.build();
 
 		return memberRepository.save(newMember);
