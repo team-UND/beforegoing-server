@@ -103,11 +103,7 @@ public class AuthService {
 		final String requestRefreshToken = refreshTokenRequest.refreshToken();
 
 		Long memberId;
-		try {
-			memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
-		} catch (Exception e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
-		}
+		memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
 
 		final String savedRefreshToken = refreshTokenService.getRefreshToken(memberId);
 		if (!requestRefreshToken.equals(savedRefreshToken)) {

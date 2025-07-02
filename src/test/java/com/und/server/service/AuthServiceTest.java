@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -203,19 +202,6 @@ class AuthServiceTest {
 		assertThat(response.refreshToken()).isEqualTo("new-refresh-token");
 		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
-	}
-
-	@Test
-	@DisplayName("Fail to reissue token when accessToken is invalid")
-	void failToReissueTokenWhenAccessTokenIsInvalid() {
-		// given
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
-		doThrow(new RuntimeException()).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
-
-		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueAccessToken(request));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
