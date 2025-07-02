@@ -7,6 +7,7 @@ export REPOSITORY_NAME="beforegoing-build"
 export IMAGE_TAG="latest"
 export CONTAINER_NAME="server"
 export APP_PORT=8080
+export ACTUATOR_PORT=10090
 export SPRING_PROFILE="preprod"
 
 export ENV_FILE="/opt/server/.env"
@@ -36,6 +37,7 @@ docker run -d \
   --restart unless-stopped \
   --env-file $ENV_FILE \
   -p $APP_PORT:$APP_PORT \
+  -p $ACTUATOR_PORT:$ACTUATOR_PORT \
   -v /var/log/$REPOSITORY_NAME:/app/logs \
   -e SPRING_PROFILES_ACTIVE=$SPRING_PROFILE \
   -e SPRING_DATASOURCE_PASSWORD="${SPRING_DATASOURCE_PASSWORD}" \
