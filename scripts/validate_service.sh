@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-export APP_PORT=8080
+export APP_PORT=10090
 export HEALTH_CHECK_URL="http://localhost:$APP_PORT/actuator/health"
 
 echo "Performing health check on $HEALTH_CHECK_URL..."

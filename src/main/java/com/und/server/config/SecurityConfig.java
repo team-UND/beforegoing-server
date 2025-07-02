@@ -35,7 +35,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers(HttpMethod.POST, "/api/v*/auth/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-				.requestMatchers("/actuator/health/**").permitAll()
+				.requestMatchers("/actuator/**").permitAll()
 				.anyRequest().authenticated())
 			.exceptionHandling(customizer -> customizer.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
