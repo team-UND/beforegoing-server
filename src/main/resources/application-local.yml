@@ -3,7 +3,7 @@ spring:
     activate:
       on-profile: local
     import:
-    - optional:file:server/.env[.properties]
+    - optional:file:beforegoing-server/.env[.properties]
 
 # JPA
   jpa:
