@@ -108,11 +108,7 @@ class AuthServiceTest {
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
 		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.KAKAO, idToken, keys);
 		doReturn(Optional.of(member)).when(memberRepository).findByKakaoId(providerId);
-		doReturn(accessToken).when(jwtProvider).generateAccessToken(memberId);
-		doReturn(refreshToken).when(refreshTokenService).generateRefreshToken();
-		doReturn("Bearer").when(jwtProperties).type();
-		doReturn(accessTokenExpireTime).when(jwtProperties).accessTokenExpireTime();
-		doReturn(refreshTokenExpireTime).when(jwtProperties).refreshTokenExpireTime();
+		setupTokenIssuance(accessToken, refreshToken);
 
 		// when
 		final AuthResponse response = authService.login(authRequest);
@@ -143,11 +139,7 @@ class AuthServiceTest {
 		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.KAKAO, idToken, keys);
 		doReturn(Optional.empty()).when(memberRepository).findByKakaoId(providerId);
 		doReturn(newMember).when(memberRepository).save(any(Member.class));
-		doReturn(accessToken).when(jwtProvider).generateAccessToken(memberId);
-		doReturn(refreshToken).when(refreshTokenService).generateRefreshToken();
-		doReturn("Bearer").when(jwtProperties).type();
-		doReturn(accessTokenExpireTime).when(jwtProperties).accessTokenExpireTime();
-		doReturn(refreshTokenExpireTime).when(jwtProperties).refreshTokenExpireTime();
+		setupTokenIssuance(accessToken, refreshToken);
 
 		// when
 		final AuthResponse response = authService.login(authRequest);
@@ -184,22 +176,20 @@ class AuthServiceTest {
 	void reissueTokensSuccessfully() {
 		// given
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
+		final String newAccessToken = "new-access-token";
+		final String newRefreshToken = "new-refresh-token";
 
 		doReturn(memberId).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
 		doReturn(refreshToken).when(refreshTokenService).getRefreshToken(memberId);
-		doReturn("new-access-token").when(jwtProvider).generateAccessToken(memberId);
-		doReturn("new-refresh-token").when(refreshTokenService).generateRefreshToken();
-		doReturn("Bearer").when(jwtProperties).type();
-		doReturn(accessTokenExpireTime).when(jwtProperties).accessTokenExpireTime();
-		doReturn(refreshTokenExpireTime).when(jwtProperties).refreshTokenExpireTime();
+		setupTokenIssuance(newAccessToken, newRefreshToken);
 
 		// when
-		final AuthResponse response = authService.reissueAccessToken(request);
+		final AuthResponse response = authService.reissueTokens(request);
 
 		// then
-		verify(refreshTokenService).saveRefreshToken(memberId, "new-refresh-token");
-		assertThat(response.accessToken()).isEqualTo("new-access-token");
-		assertThat(response.refreshToken()).isEqualTo("new-refresh-token");
+		verify(refreshTokenService).saveRefreshToken(memberId, newRefreshToken);
+		assertThat(response.accessToken()).isEqualTo(newAccessToken);
+		assertThat(response.refreshToken()).isEqualTo(newRefreshToken);
 		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
 	}
@@ -215,9 +205,17 @@ class AuthServiceTest {
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueAccessToken(request));
+			() -> authService.reissueTokens(request));
 
 		verify(refreshTokenService).deleteRefreshToken(memberId);
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+	}
+
+	private void setupTokenIssuance(final String newAccessToken, final String newRefreshToken) {
+		doReturn(newAccessToken).when(jwtProvider).generateAccessToken(memberId);
+		doReturn(newRefreshToken).when(refreshTokenService).generateRefreshToken();
+		doReturn("Bearer").when(jwtProperties).type();
+		doReturn(accessTokenExpireTime).when(jwtProperties).accessTokenExpireTime();
+		doReturn(refreshTokenExpireTime).when(jwtProperties).refreshTokenExpireTime();
 	}
 }

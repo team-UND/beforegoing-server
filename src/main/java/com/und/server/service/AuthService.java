@@ -65,18 +65,22 @@ public class AuthService {
 			member = createMember(provider, providerId, nickname);
 		}
 
-		final String accessToken = jwtProvider.generateAccessToken(member.getId());
-		final String refreshToken = refreshTokenService.generateRefreshToken();
+		return issueTokens(member.getId());
+	}
 
-		refreshTokenService.saveRefreshToken(member.getId(), refreshToken);
+	@Transactional
+	public AuthResponse reissueTokens(final RefreshTokenRequest refreshTokenRequest) {
+		final String accessToken = refreshTokenRequest.accessToken();
+		final String providedRefreshToken = refreshTokenRequest.refreshToken();
 
-		return new AuthResponse(
-			jwtProperties.type(),
-			accessToken,
-			jwtProperties.accessTokenExpireTime(),
-			refreshToken,
-			jwtProperties.refreshTokenExpireTime()
-		);
+		final Long memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
+		final String savedRefreshToken = refreshTokenService.getRefreshToken(memberId);
+		if (!providedRefreshToken.equals(savedRefreshToken)) {
+			refreshTokenService.deleteRefreshToken(memberId);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+		}
+
+		return issueTokens(memberId);
 	}
 
 	private Member findMemberByProviderId(final Provider provider, final String providerId) {
@@ -88,7 +92,7 @@ public class AuthService {
 	}
 
 	private Member createMember(final Provider provider, final String providerId, final String nickname) {
-		Member newMember = Member.builder()
+		final Member newMember = Member.builder()
 			.kakaoId(provider == Provider.KAKAO ? providerId : null)
 			// Add extra providers
 			.nickname(nickname)
@@ -97,31 +101,17 @@ public class AuthService {
 		return memberRepository.save(newMember);
 	}
 
-	@Transactional
-	public AuthResponse reissueAccessToken(final RefreshTokenRequest refreshTokenRequest) {
-		final String accessToken = refreshTokenRequest.accessToken();
-		final String requestRefreshToken = refreshTokenRequest.refreshToken();
-
-		Long memberId;
-		memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
-
-		final String savedRefreshToken = refreshTokenService.getRefreshToken(memberId);
-		if (!requestRefreshToken.equals(savedRefreshToken)) {
-			refreshTokenService.deleteRefreshToken(memberId);
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
-		}
-
-		final String newAccessToken = jwtProvider.generateAccessToken(memberId);
-		final String newRefreshToken = refreshTokenService.generateRefreshToken();
-		refreshTokenService.saveRefreshToken(memberId, newRefreshToken);
+	private AuthResponse issueTokens(final Long memberId) {
+		final String accessToken = jwtProvider.generateAccessToken(memberId);
+		final String refreshToken = refreshTokenService.generateRefreshToken();
+		refreshTokenService.saveRefreshToken(memberId, refreshToken);
 
 		return new AuthResponse(
 			jwtProperties.type(),
-			newAccessToken,
+			accessToken,
 			jwtProperties.accessTokenExpireTime(),
-			newRefreshToken,
-			jwtProperties.refreshTokenExpireTime()
-		);
+			refreshToken,
+			jwtProperties.refreshTokenExpireTime());
 	}
 
 }

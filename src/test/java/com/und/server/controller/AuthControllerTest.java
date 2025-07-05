@@ -198,7 +198,7 @@ public class AuthControllerTest {
 			7200
 		);
 
-		doReturn(authResponse).when(authService).reissueAccessToken(refreshTokenRequest);
+		doReturn(authResponse).when(authService).reissueTokens(refreshTokenRequest);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(

@@ -42,7 +42,7 @@ public class AuthController {
 	public ResponseEntity<AuthResponse> refreshToken(
 		@RequestBody @Valid final RefreshTokenRequest refreshTokenRequest
 	) {
-		final AuthResponse authResponse = authService.reissueAccessToken(refreshTokenRequest);
+		final AuthResponse authResponse = authService.reissueTokens(refreshTokenRequest);
 
 		return ResponseEntity.status(HttpStatus.OK).body(authResponse);
 	}
