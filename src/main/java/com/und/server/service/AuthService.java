@@ -83,7 +83,8 @@ public class AuthService {
 		return issueTokens(memberId);
 	}
 
-	private Member findMemberByProviderId(final Provider provider, final String providerId) {
+	// FIXME: Change public to private when deleting TestController
+	public Member findMemberByProviderId(final Provider provider, final String providerId) {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId).orElse(null);
 			// Add extra providers
@@ -91,7 +92,8 @@ public class AuthService {
 		};
 	}
 
-	private Member createMember(final Provider provider, final String providerId, final String nickname) {
+	// FIXME: Change public to private when deleting TestController
+	public Member createMember(final Provider provider, final String providerId, final String nickname) {
 		final Member newMember = Member.builder()
 			.kakaoId(provider == Provider.KAKAO ? providerId : null)
 			// Add extra providers
@@ -101,7 +103,8 @@ public class AuthService {
 		return memberRepository.save(newMember);
 	}
 
-	private AuthResponse issueTokens(final Long memberId) {
+	// FIXME: Change public to private when deleting TestController
+	public AuthResponse issueTokens(final Long memberId) {
 		final String accessToken = jwtProvider.generateAccessToken(memberId);
 		final String refreshToken = refreshTokenService.generateRefreshToken();
 		refreshTokenService.saveRefreshToken(memberId, refreshToken);
