@@ -24,7 +24,7 @@ public class AuthController {
 
 	private final AuthService authService;
 
-	@PostMapping("/handshake")
+	@PostMapping("/nonce")
 	public ResponseEntity<HandshakeResponse> handshake(@RequestBody @Valid final HandshakeRequest handshakeRequest) {
 		final HandshakeResponse handshakeResponse = authService.handshake(handshakeRequest);
 
@@ -38,8 +38,8 @@ public class AuthController {
 		return ResponseEntity.status(HttpStatus.OK).body(authResponse);
 	}
 
-	@PostMapping("/refresh")
-	public ResponseEntity<AuthResponse> refreshToken(
+	@PostMapping("/tokens")
+	public ResponseEntity<AuthResponse> reissueTokens(
 		@RequestBody @Valid final RefreshTokenRequest refreshTokenRequest
 	) {
 		final AuthResponse authResponse = authService.reissueTokens(refreshTokenRequest);
