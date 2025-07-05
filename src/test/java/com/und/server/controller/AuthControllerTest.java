@@ -57,7 +57,7 @@ public class AuthControllerTest {
 	@DisplayName("Handshake successfully when request is valid")
 	void handshakeSuccessfullyWhenRequestIsValid() throws Exception {
 		// given
-		final String url = "/api/v1/auth/handshake";
+		final String url = "/api/v1/auth/nonce";
 		final HandshakeRequest request = new HandshakeRequest(Provider.KAKAO);
 		final HandshakeResponse response = new HandshakeResponse("generated-nonce");
 
@@ -71,13 +71,12 @@ public class AuthControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk());
-
 		final HandshakeResponse result = objectMapper.readValue(
 			resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8),
 			HandshakeResponse.class
 		);
 
+		resultActions.andExpect(status().isOk());
 		assertThat(result.nonce()).isEqualTo("generated-nonce");
 	}
 
@@ -85,7 +84,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to handshake when provider is null")
 	void failToHandshakeWhenProviderIsNull() throws Exception {
 		// given
-		final String url = "/api/v1/auth/handshake";
+		final String url = "/api/v1/auth/nonce";
 		final String invalidRequest = "{ \"provider\": null }";
 
 		// when
@@ -148,13 +147,12 @@ public class AuthControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk());
-
 		final AuthResponse response = objectMapper.readValue(
 				resultActions.andReturn()
 						.getResponse()
 						.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class);
 
+		resultActions.andExpect(status().isOk());
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("dummy.access.token");
 		assertThat(response.accessTokenExpiresIn()).isEqualTo(10000);
@@ -186,7 +184,7 @@ public class AuthControllerTest {
 	@DisplayName("Refresh token successfully when request is valid")
 	void refreshTokenSuccessfullyWhenRequestIsValid() throws Exception {
 		// given
-		final String url = "/api/v1/auth/refresh";
+		final String url = "/api/v1/auth/tokens";
 		final RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
 			"dummy.access.token", "dummy.refresh.token"
 		);
@@ -198,7 +196,7 @@ public class AuthControllerTest {
 			7200
 		);
 
-		doReturn(authResponse).when(authService).reissueAccessToken(refreshTokenRequest);
+		doReturn(authResponse).when(authService).reissueTokens(refreshTokenRequest);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -208,13 +206,12 @@ public class AuthControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk());
-
 		final AuthResponse response = objectMapper.readValue(
 			resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8),
 			AuthResponse.class
 		);
 
+		resultActions.andExpect(status().isOk());
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("new.access.token");
 		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
@@ -225,7 +222,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to refresh token when refresh_token is null")
 	void failToRefreshTokenWhenRefreshTokenIsNull() throws Exception {
 		// given
-		final String url = "/api/v1/auth/refresh";
+		final String url = "/api/v1/auth/tokens";
 		final RefreshTokenRequest invalidRequest = new RefreshTokenRequest("dummy.access.token", null);
 
 		// when

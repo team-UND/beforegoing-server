@@ -65,21 +65,26 @@ public class AuthService {
 			member = createMember(provider, providerId, nickname);
 		}
 
-		final String accessToken = jwtProvider.generateAccessToken(member.getId());
-		final String refreshToken = refreshTokenService.generateRefreshToken();
-
-		refreshTokenService.saveRefreshToken(member.getId(), refreshToken);
-
-		return new AuthResponse(
-			jwtProperties.type(),
-			accessToken,
-			jwtProperties.accessTokenExpireTime(),
-			refreshToken,
-			jwtProperties.refreshTokenExpireTime()
-		);
+		return issueTokens(member.getId());
 	}
 
-	private Member findMemberByProviderId(final Provider provider, final String providerId) {
+	@Transactional
+	public AuthResponse reissueTokens(final RefreshTokenRequest refreshTokenRequest) {
+		final String accessToken = refreshTokenRequest.accessToken();
+		final String providedRefreshToken = refreshTokenRequest.refreshToken();
+
+		final Long memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
+		final String savedRefreshToken = refreshTokenService.getRefreshToken(memberId);
+		if (!providedRefreshToken.equals(savedRefreshToken)) {
+			refreshTokenService.deleteRefreshToken(memberId);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+		}
+
+		return issueTokens(memberId);
+	}
+
+	// FIXME: Change public to private when deleting TestController
+	public Member findMemberByProviderId(final Provider provider, final String providerId) {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId).orElse(null);
 			// Add extra providers
@@ -87,8 +92,9 @@ public class AuthService {
 		};
 	}
 
-	private Member createMember(final Provider provider, final String providerId, final String nickname) {
-		Member newMember = Member.builder()
+	// FIXME: Change public to private when deleting TestController
+	public Member createMember(final Provider provider, final String providerId, final String nickname) {
+		final Member newMember = Member.builder()
 			.kakaoId(provider == Provider.KAKAO ? providerId : null)
 			// Add extra providers
 			.nickname(nickname)
@@ -97,31 +103,18 @@ public class AuthService {
 		return memberRepository.save(newMember);
 	}
 
-	@Transactional
-	public AuthResponse reissueAccessToken(final RefreshTokenRequest refreshTokenRequest) {
-		final String accessToken = refreshTokenRequest.accessToken();
-		final String requestRefreshToken = refreshTokenRequest.refreshToken();
-
-		Long memberId;
-		memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
-
-		final String savedRefreshToken = refreshTokenService.getRefreshToken(memberId);
-		if (!requestRefreshToken.equals(savedRefreshToken)) {
-			refreshTokenService.deleteRefreshToken(memberId);
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
-		}
-
-		final String newAccessToken = jwtProvider.generateAccessToken(memberId);
-		final String newRefreshToken = refreshTokenService.generateRefreshToken();
-		refreshTokenService.saveRefreshToken(memberId, newRefreshToken);
+	// FIXME: Change public to private when deleting TestController
+	public AuthResponse issueTokens(final Long memberId) {
+		final String accessToken = jwtProvider.generateAccessToken(memberId);
+		final String refreshToken = refreshTokenService.generateRefreshToken();
+		refreshTokenService.saveRefreshToken(memberId, refreshToken);
 
 		return new AuthResponse(
 			jwtProperties.type(),
-			newAccessToken,
+			accessToken,
 			jwtProperties.accessTokenExpireTime(),
-			newRefreshToken,
-			jwtProperties.refreshTokenExpireTime()
-		);
+			refreshToken,
+			jwtProperties.refreshTokenExpireTime());
 	}
 
 }
