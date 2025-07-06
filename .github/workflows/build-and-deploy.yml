@@ -8,8 +8,8 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: beforegoing-server
   S3_BUCKET_NAME: codedeploy-artifact-server-beforegoingdapne2
-  APPLICATION_NAME: codedeploy-app-beforegoingdapne2
-  DEPLOYMENT_GROUP_NAME: codedeploy-group-beforegoingdapne2
+  APPLICATION_NAME: codedeploy-app-server-beforegoingdapne2
+  DEPLOYMENT_GROUP_NAME: codedeploy-group-server-beforegoingdapne2
 
 permissions:
   contents: read
