@@ -1,16 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 
-export ACTUATOR_PORT=10090
-export HEALTH_CHECK_URL="http://localhost:$ACTUATOR_PORT/actuator/health"
+export HEALTH_CHECK_PORT=10090
+export HEALTH_CHECK_URL="http://localhost:$HEALTH_CHECK_PORT/actuator/health"
 
 echo "Performing health check on $HEALTH_CHECK_URL..."
 
 for i in $(seq 1 60); do
   echo "Attempt $i/60..."
 
-  if ! nc -z localhost $ACTUATOR_PORT 2>/dev/null; then
-    echo "Port $ACTUATOR_PORT is not open yet"
+  if ! nc -z localhost $HEALTH_CHECK_PORT 2>/dev/null; then
+    echo "Port $HEALTH_CHECK_PORT is not open yet"
     echo "Retrying in 5 second..."
     sleep 5
     continue
