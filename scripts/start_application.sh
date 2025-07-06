@@ -3,7 +3,7 @@ set -euo pipefail
 
 export AWS_REGION="ap-northeast-2"
 export ECR_REGISTRY="116541189059.dkr.ecr.ap-northeast-2.amazonaws.com"
-export REPOSITORY_NAME="beforegoing-build"
+export REPOSITORY_NAME="beforegoing-server"
 export IMAGE_TAG="latest"
 export CONTAINER_NAME="server"
 export APP_PORT=8080
