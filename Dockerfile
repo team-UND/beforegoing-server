@@ -10,10 +10,6 @@ EXPOSE 8080
 
 EXPOSE 10090
 
-RUN apt-get update && apt-get install -y \
-    telnet \
-    mysql-client
-
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD ["curl", "-f", "http://localhost:10090/actuator/health"]
 
