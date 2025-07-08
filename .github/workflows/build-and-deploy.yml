@@ -110,7 +110,7 @@ jobs:
           [
             {
               "author": {
-                  "name": "${{ github.event.pull_request.user.login }}"
+                  "name": "${{ github.actor }}"
               },
               "title": "Deployment Successed",
               "description": "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
@@ -129,7 +129,7 @@ jobs:
           [
             {
               "author": {
-                  "name": "${{ github.event.pull_request.user.login }}"
+                  "name": "${{ github.actor }}"
               },
               "title": "Deployment Failed",
               "description": "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
