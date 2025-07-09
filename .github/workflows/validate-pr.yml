@@ -53,7 +53,7 @@ jobs:
         if: ${{ success() }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: "PR이 도착했어요 👏"
+          args: "We got a new pull request 👏"
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_EMBEDS: |
@@ -84,7 +84,7 @@ jobs:
         if: ${{ failure() }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: "문제 해결 후 다시 PR을 해주세요 👽"
+          args: "The pull request failed. Please resolve the issue and try again 👽"
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_EMBEDS: |
