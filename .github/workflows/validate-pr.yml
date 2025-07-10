@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+env:
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
 jobs:
   build-and-analyze:
     runs-on: ubuntu-latest
@@ -46,7 +50,7 @@ jobs:
 
       - name: Build and analyze
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
         run: ./gradlew build sonar --info
 
       - name: Send Success Message
@@ -55,7 +59,7 @@ jobs:
         with:
           args: "We got a new pull request 👏"
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
           DISCORD_EMBEDS: |
             [
               {
@@ -86,7 +90,7 @@ jobs:
         with:
           args: "The pull request failed. Please resolve the issue and try again 👽"
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
           DISCORD_EMBEDS: |
             [
               {
