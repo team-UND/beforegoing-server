@@ -1,7 +1,5 @@
 FROM eclipse-temurin:17-jre-alpine
 
-RUN apk --no-cache add wget ca-certificates
-
 WORKDIR /app
 
 ARG JAR_FILE=build/libs/*.jar
