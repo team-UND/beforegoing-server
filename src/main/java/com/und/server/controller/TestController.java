@@ -1,8 +1,10 @@
 package com.und.server.controller;
 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +29,7 @@ public class TestController {
 	private final AuthService authService;
 	private final MemberRepository memberRepository;
 
+	@Transactional
 	@PostMapping("/api/v1/auth/access")
 	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody TestAuthRequest request) {
 
