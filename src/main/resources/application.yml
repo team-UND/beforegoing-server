@@ -23,7 +23,7 @@ jwt:
 # Actuator
 management:
   server:
-    port: 10090
+    port: 8080
   endpoints:
     web:
       exposure:
