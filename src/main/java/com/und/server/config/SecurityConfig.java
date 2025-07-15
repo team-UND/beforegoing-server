@@ -2,6 +2,7 @@ package com.und.server.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -31,7 +32,9 @@ public class SecurityConfig {
 			.sessionManagement(sessionManagement -> sessionManagement
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/api/v1/auth/**", "/error", "/actuator/**").permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+				.requestMatchers("/actuator/**", "/error").permitAll()
+				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 				.anyRequest().authenticated())
 			.exceptionHandling(handler -> handler.authenticationEntryPoint(customAuthenticationEntryPoint))
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
