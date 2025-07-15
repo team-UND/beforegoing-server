@@ -115,19 +115,19 @@ jacocoTestCoverageVerification {
 				minimum = 0.80
 			}
 
-			// Maximum number of lines in a file
-			limit {
-				counter = 'LINE'
-				value = 'TOTALCOUNT'
-				maximum = 120
-			}
-
 			// Branch coverage
 			// Test coverage must be greater than 70%
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
 				minimum = 0.70
+			}
+
+			// Maximum number of lines in a file
+			limit {
+				counter = 'LINE'
+				value = 'TOTALCOUNT'
+				maximum = 120
 			}
 		}
 	}
