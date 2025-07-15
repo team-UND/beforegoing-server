@@ -58,14 +58,15 @@ class TestControllerTest {
 	}
 
 	@Test
-	void requireAccessToken_whenMemberExists() throws Exception {
+	void requireAccessTokenWhenMemberExists() throws Exception {
 		// given
 		final String url = "/api/v1/auth/access";
-		final TestAuthRequest request = new TestAuthRequest(Provider.KAKAO, "provider-id-123", "Chori");
-		final Member existingMember = Member.builder().id(1L).kakaoId("provider-id-123").nickname("Chori").build();
+		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id", "Chori");
+		final Member existingMember = Member.builder().id(1L).kakaoId("dummy.provider.id").nickname("Chori").build();
 		final AuthResponse expectedResponse = new AuthResponse("Bearer", "access-token", 3600, "refresh-token", 7200);
 
-		doReturn(existingMember).when(authService).findMemberByProviderId(request.provider(), request.providerId());
+		doReturn(Provider.KAKAO).when(authService).convertToProvider(request.provider());
+		doReturn(existingMember).when(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
 		doReturn(expectedResponse).when(authService).issueTokens(existingMember.getId());
 
 		// when
@@ -82,16 +83,16 @@ class TestControllerTest {
 		final AuthResponse actualResponse = objectMapper.readValue(responseBody, AuthResponse.class);
 
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
-		verify(authService).findMemberByProviderId(request.provider(), request.providerId());
-		verify(authService, never()).createMember(request.provider(), request.providerId(), request.nickname());
+		verify(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
+		verify(authService, never()).createMember(Provider.KAKAO, request.providerId(), request.nickname());
 		verify(authService).issueTokens(existingMember.getId());
 	}
 
 	@Test
-	void requireAccessToken_whenMemberDoesNotExist() throws Exception {
+	void requireAccessTokenWhenMemberDoesNotExist() throws Exception {
 		// given
 		final String url = "/api/v1/auth/access";
-		final TestAuthRequest request = new TestAuthRequest(Provider.KAKAO, "provider-id-456", "Newbie");
+		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456", "Newbie");
 		final Member newMember = Member.builder().id(2L).kakaoId("provider-id-456").nickname("Newbie").build();
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
@@ -101,12 +102,9 @@ class TestControllerTest {
 			7200
 		);
 
-		doReturn(null).when(authService).findMemberByProviderId(request.provider(), request.providerId());
-		doReturn(newMember).when(authService).createMember(
-			request.provider(),
-			request.providerId(),
-			request.nickname()
-		);
+		doReturn(Provider.KAKAO).when(authService).convertToProvider(request.provider());
+		doReturn(null).when(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
+		doReturn(newMember).when(authService).createMember(Provider.KAKAO, request.providerId(), request.nickname());
 		doReturn(expectedResponse).when(authService).issueTokens(newMember.getId());
 
 		// when
@@ -123,8 +121,8 @@ class TestControllerTest {
 		final AuthResponse actualResponse = objectMapper.readValue(responseBody, AuthResponse.class);
 
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
-		verify(authService).findMemberByProviderId(request.provider(), request.providerId());
-		verify(authService).createMember(request.provider(), request.providerId(), request.nickname());
+		verify(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
+		verify(authService).createMember(Provider.KAKAO, request.providerId(), request.nickname());
 		verify(authService).issueTokens(newMember.getId());
 	}
 
@@ -153,7 +151,7 @@ class TestControllerTest {
 	}
 
 	@Test
-	void helloWithDefaultNickname() throws Exception {
+	void returnHelloWithDefaultNickname() throws Exception {
 		// given
 		Long memberId = 2L;
 		Member member = Member.builder().id(memberId).nickname(null).build();
@@ -193,4 +191,5 @@ class TestControllerTest {
 		// then
 		result.andExpect(status().isUnauthorized());
 	}
+
 }

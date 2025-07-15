@@ -20,6 +20,7 @@ import com.und.server.oauth.Provider;
 import com.und.server.repository.MemberRepository;
 import com.und.server.service.AuthService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,9 +32,9 @@ public class TestController {
 
 	@Transactional
 	@PostMapping("/api/v1/auth/access")
-	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody TestAuthRequest request) {
+	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid TestAuthRequest request) {
 
-		final Provider provider = request.provider();
+		final Provider provider = authService.convertToProvider(request.provider());
 		final String providerId = request.providerId();
 		final String nickname = request.nickname();
 
