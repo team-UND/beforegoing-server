@@ -36,6 +36,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetches all history for all tags and branches
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -75,9 +77,8 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker build --target prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
     - name: Download task definition
@@ -101,16 +102,47 @@ jobs:
         wait-for-service-stability: true
         wait-for-minutes: 8
 
+    - name: Check if tag exists for this commit
+      id: check_tag
+      run: |
+        # The output of 'git tag --points-at HEAD' will be empty if no tag exists.
+        if [ -z "$(git tag --points-at HEAD)" ]; then
+          echo "tagged=false" >> $GITHUB_OUTPUT
+        else
+          echo "tagged=true" >> $GITHUB_OUTPUT
+        fi
+
     - name: Bump version and push tag
-      if: success()
+      # This step runs only if the deployment was successful AND no tag exists for this commit yet.
+      # This correctly handles re-running failed jobs.
+      if: success() && steps.check_tag.outputs.tagged == 'false'
       id: tag_version
       uses: anothrNick/github-tag-action@1.67.0
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         default_bump: patch
 
-    - name: Send Success Message
-      if: success()
+    - name: Set new tag creation status
+      id: new_tag_check
+      run: |
+        if [ -n "${{ steps.tag_version.outputs.new_tag }}" ]; then
+          echo "created=true" >> $GITHUB_OUTPUT
+        else
+          echo "created=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Add semantic version tag to Docker image and push
+      if: success() && steps.new_tag_check.outputs.created == 'true'
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG_SHA: ${{ github.sha }}
+        IMAGE_TAG_SEMVER: ${{ steps.tag_version.outputs.new_tag }}
+      run: |
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_SHA $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_SEMVER
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_SEMVER
+
+    - name: Send New Version Success Message
+      if: success() && steps.new_tag_check.outputs.created == 'true'
       uses: Ilshidur/action-discord@0.3.2
       with:
         args: "A new version (`${{ steps.tag_version.outputs.new_tag }}`) has been deployed to Production Server 🚀"
@@ -124,6 +156,25 @@ jobs:
               },
               "title": "Deployment Succeeded: `${{ steps.tag_version.outputs.new_tag }}`",
               "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "color": 10478271
+            }
+          ]
+
+    - name: Send Re-run Success Message
+      if: success() && steps.new_tag_check.outputs.created == 'false'
+      uses: Ilshidur/action-discord@0.3.2
+      with:
+        args: "Deployment re-run to Production Server was successful ✅"
+      env:
+        DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
+        DISCORD_EMBEDS: |
+          [
+            {
+              "author": {
+                "name": "${{ github.actor }}"
+              },
+              "title": "Deployment Re-run Succeeded",
+              "description": "Commit `${{ github.sha }}` re-deployed.\nBranch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
               "color": 10478271
             }
           ]
