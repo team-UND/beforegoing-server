@@ -7,8 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Provider {
 
-	KAKAO("Kakao"),
-	APPLE("Apple");
+	KAKAO("kakao");
 
 	private final String name;
 

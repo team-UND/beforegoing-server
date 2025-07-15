@@ -39,7 +39,7 @@ public class AuthService {
 	@Transactional
 	public HandshakeResponse handshake(final HandshakeRequest handshakeRequest) {
 		final String nonce = nonceService.generateNonceValue();
-		final Provider provider = handshakeRequest.provider();
+		final Provider provider = convertToProvider(handshakeRequest.provider());
 
 		nonceService.saveNonce(nonce, provider);
 
@@ -48,8 +48,8 @@ public class AuthService {
 
 	@Transactional
 	public AuthResponse login(final AuthRequest authRequest) {
-		final Provider provider = authRequest.provider();
 		final String idToken = authRequest.idToken();
+		final Provider provider = convertToProvider(authRequest.provider());
 
 		final String nonce = jwtProvider.extractNonce(idToken);
 		nonceService.validateNonce(nonce, provider);
@@ -115,6 +115,15 @@ public class AuthService {
 			jwtProperties.accessTokenExpireTime(),
 			refreshToken,
 			jwtProperties.refreshTokenExpireTime());
+	}
+
+	// FIXME: Change public to private when deleting TestController
+	public Provider convertToProvider(final String providerName) {
+		try {
+			return Provider.valueOf(providerName.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+		}
 	}
 
 }

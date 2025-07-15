@@ -89,4 +89,5 @@ class RefreshTokenServiceTest {
 		// then
 		verify(refreshTokenRepository, times(1)).deleteById(memberId);
 	}
+
 }

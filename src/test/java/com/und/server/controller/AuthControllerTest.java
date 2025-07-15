@@ -2,18 +2,16 @@ package com.und.server.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,7 +28,8 @@ import com.und.server.dto.HandshakeRequest;
 import com.und.server.dto.HandshakeResponse;
 import com.und.server.dto.RefreshTokenRequest;
 import com.und.server.exception.GlobalExceptionHandler;
-import com.und.server.oauth.Provider;
+import com.und.server.exception.ServerErrorResult;
+import com.und.server.exception.ServerException;
 import com.und.server.service.AuthService;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,7 +57,7 @@ public class AuthControllerTest {
 	void handshakeSuccessfullyWhenRequestIsValid() throws Exception {
 		// given
 		final String url = "/api/v1/auth/nonce";
-		final HandshakeRequest request = new HandshakeRequest(Provider.KAKAO);
+		final HandshakeRequest request = new HandshakeRequest("kakao");
 		final HandshakeResponse response = new HandshakeResponse("generated-nonce");
 
 		doReturn(response).when(authService).handshake(request);
@@ -85,42 +84,112 @@ public class AuthControllerTest {
 	void failToHandshakeWhenProviderIsNull() throws Exception {
 		// given
 		final String url = "/api/v1/auth/nonce";
-		final String invalidRequest = "{ \"provider\": null }";
+		final HandshakeRequest request = new HandshakeRequest(null);
+		final String requestBody = objectMapper.writeValueAsString(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
 			MockMvcRequestBuilders.post(url)
-				.content(invalidRequest)
+				.content(requestBody)
 				.contentType(MediaType.APPLICATION_JSON)
 		);
 
 		// then
-		resultActions.andExpect(status().isBadRequest());
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.message[0]").value("Provider must not be null"));
 	}
 
-	@ParameterizedTest
-	@MethodSource("invalidLoginParameter")
-	@DisplayName("Fail to login when request parameters are invalid")
-	void failToLoginWhenRequestParametersAreInvalid(Provider provider, String idToken) throws Exception {
+	@Test
+	@DisplayName("Fail to handshake when provider is an unknown string")
+	void failToHandshakeWhenProviderIsUnknownString() throws Exception {
+		// given
+		final String url = "/api/v1/auth/nonce";
+		final HandshakeRequest request = new HandshakeRequest("GOOGLE");
+		final String requestBody = objectMapper.writeValueAsString(request);
+		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
+
+		doThrow(new ServerException(errorResult))
+			.when(authService).handshake(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(requestBody)
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().is(errorResult.getHttpStatus().value()))
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
+	}
+
+	@Test
+	@DisplayName("Fail to login when provider is null")
+	void failToLoginWhenProviderIsNull() throws Exception {
 		// given
 		final String url = "/api/v1/auth/login";
+		final AuthRequest request = new AuthRequest(null, "dummy.id.token");
+		final String requestBody = objectMapper.writeValueAsString(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
 			MockMvcRequestBuilders.post(url)
-				.content(objectMapper.writeValueAsString(authRequest(provider, idToken)))
+				.content(requestBody)
 				.contentType(MediaType.APPLICATION_JSON)
 		);
 
 		// then
-		resultActions.andExpect(status().isBadRequest());
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.message[0]").value("Provider must not be null"));
 	}
 
-	private static Stream<Arguments> invalidLoginParameter() {
-		return Stream.of(
-			Arguments.of(null, "dummy.id.token"),
-			Arguments.of(Provider.KAKAO, null)
+	@Test
+	@DisplayName("Fail to login when idToken is null")
+	void failToLoginWhenIdTokenIsNull() throws Exception {
+		// given
+		final String url = "/api/v1/auth/login";
+		final AuthRequest request = new AuthRequest("kakao", null);
+		final String requestBody = objectMapper.writeValueAsString(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(requestBody)
+				.contentType(MediaType.APPLICATION_JSON)
 		);
+
+		// then
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.message[0]").value("ID Token must not be null"));
+	}
+
+	@Test
+	@DisplayName("Fail to login when provider is an unknown string")
+	void failToLoginWhenProviderIsUnknownString() throws Exception {
+		// given
+		final String url = "/api/v1/auth/login";
+		final AuthRequest request = new AuthRequest("GOOGLE", "dummy.id.token");
+		final String requestBody = objectMapper.writeValueAsString(request);
+		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
+
+		doThrow(new ServerException(errorResult))
+			.when(authService).login(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(requestBody)
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().is(errorResult.getHttpStatus().value()))
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
 	}
 
 	@Test
@@ -128,7 +197,7 @@ public class AuthControllerTest {
 	void loginSuccessfullyWhenRequestIsValid() throws Exception {
 		// given
 		final String url = "/api/v1/auth/login";
-		final AuthRequest authRequest = authRequest(Provider.KAKAO, "dummy.id.token");
+		final AuthRequest authRequest = authRequest("kakao", "dummy.id.token");
 		final AuthResponse authResponse = authResponse(
 			"Bearer",
 			"dummy.access.token",
@@ -160,7 +229,7 @@ public class AuthControllerTest {
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(20000);
 	}
 
-	private AuthRequest authRequest(final Provider provider, final String idToken) {
+	private AuthRequest authRequest(final String provider, final String idToken) {
 		return new AuthRequest(provider, idToken);
 	}
 
@@ -219,21 +288,45 @@ public class AuthControllerTest {
 
 
 	@Test
-	@DisplayName("Fail to refresh token when refresh_token is null")
-	void failToRefreshTokenWhenRefreshTokenIsNull() throws Exception {
+	@DisplayName("Fail to refresh token when access_token is null")
+	void failToRefreshTokenWhenAccessTokenIsNull() throws Exception {
 		// given
 		final String url = "/api/v1/auth/tokens";
-		final RefreshTokenRequest invalidRequest = new RefreshTokenRequest("dummy.access.token", null);
+		final RefreshTokenRequest request = new RefreshTokenRequest(null, "dummy.refresh.token");
+		final String requestBody = objectMapper.writeValueAsString(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
 			MockMvcRequestBuilders.post(url)
-				.content(objectMapper.writeValueAsString(invalidRequest))
+				.content(requestBody)
 				.contentType(MediaType.APPLICATION_JSON)
 		);
 
 		// then
-		resultActions.andExpect(status().isBadRequest());
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.message[0]").value("Access Token must not be null"));
+	}
+
+	@Test
+	@DisplayName("Fail to refresh token when refresh_token is null")
+	void failToRefreshTokenWhenRefreshTokenIsNull() throws Exception {
+		// given
+		final String url = "/api/v1/auth/tokens";
+		final RefreshTokenRequest request = new RefreshTokenRequest("dummy.access.token", null);
+		final String requestBody = objectMapper.writeValueAsString(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(requestBody)
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be null"));
 	}
 
 }

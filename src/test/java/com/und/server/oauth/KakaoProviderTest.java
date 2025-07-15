@@ -59,5 +59,5 @@ class KakaoProviderTest {
 		// then
 		assertThat(actualPayload).isEqualTo(expectedPayload);
 	}
-}
 
+}

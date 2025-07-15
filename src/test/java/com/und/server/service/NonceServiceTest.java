@@ -92,24 +92,21 @@ class NonceServiceTest {
 	}
 
 	@Test
-	@DisplayName("Throw exception when provider mismatch")
-	void throwExceptionWhenProviderMismatch() {
+	@DisplayName("Throw exception when provider does not match")
+	void throwExceptionWhenProviderDoesNotMatch() {
 		// given
 		String nonceValue = UUID.randomUUID().toString();
-		Provider requestedProvider = Provider.KAKAO;
-		Provider storedProvider = Provider.APPLE;
-
-		Nonce nonce = Nonce.builder()
+		Provider requestProvider = Provider.KAKAO;
+		Nonce storedNonce = Nonce.builder()
 			.value(nonceValue)
-			.provider(storedProvider)
+			.provider(null) // Stored nonce has a different (null) provider
 			.build();
 
-		doReturn(Optional.of(nonce)).when(nonceRepository).findById(nonceValue);
+		doReturn(Optional.of(storedNonce)).when(nonceRepository).findById(nonceValue);
 
 		// when & then
-		ServerException exception = assertThrows(ServerException.class, () -> {
-			nonceService.validateNonce(nonceValue, requestedProvider);
-		});
+		ServerException exception = assertThrows(ServerException.class,
+			() -> nonceService.validateNonce(nonceValue, requestProvider));
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_NONCE);
 		verify(nonceRepository, never()).deleteById(anyString());
 	}
@@ -126,4 +123,5 @@ class NonceServiceTest {
 		// then
 		verify(nonceRepository).deleteById(nonceValue);
 	}
+
 }

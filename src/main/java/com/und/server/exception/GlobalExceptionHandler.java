@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,14 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-	private ResponseEntity<Object> makeErrorResponseEntity(final String errorDescription) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), errorDescription));
-	}
-
-	private ResponseEntity<ErrorResponse> makeErrorResponseEntity(final ServerErrorResult errorResult) {
+	private ResponseEntity<Object> buildErrorResponse(final ServerErrorResult errorResult, final Object message) {
 		return ResponseEntity.status(errorResult.getHttpStatus())
-			.body(new ErrorResponse(errorResult.name(), errorResult.getMessage()));
+			.body(new ErrorResponse(errorResult.name(), message));
 	}
 
 	@Override
@@ -47,30 +41,35 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			.map(DefaultMessageSourceResolvable::getDefaultMessage)
 			.collect(Collectors.toList());
 
-		log.warn("Invalid Request Parameter Errors: {}", errorList);
-
-		return this.makeErrorResponseEntity(errorList.toString());
+		log.warn("Invalid DTO Parameter Errors: {}", errorList);
+		return this.buildErrorResponse(ServerErrorResult.INVALID_PARAMETER, errorList);
 	}
 
 	@ExceptionHandler({ServerException.class})
-	public ResponseEntity<ErrorResponse> handleRestApiException(final ServerException exception) {
+	public ResponseEntity<Object> handleRestApiException(final ServerException exception) {
 		log.warn("ServerException occur: ", exception);
 
-		return this.makeErrorResponseEntity(exception.getErrorResult());
+		return this.buildErrorResponse(
+			exception.getErrorResult(),
+			exception.getErrorResult().getMessage()
+		);
 	}
 
 	@ExceptionHandler({Exception.class})
-	public ResponseEntity<ErrorResponse> handleException(final Exception exception) {
+	public ResponseEntity<Object> handleException(final Exception exception) {
 		log.warn("Exception occur: ", exception);
 
-		return this.makeErrorResponseEntity(ServerErrorResult.UNKNOWN_EXCEPTION);
+		return this.buildErrorResponse(
+			ServerErrorResult.UNKNOWN_EXCEPTION,
+			ServerErrorResult.UNKNOWN_EXCEPTION.getMessage()
+		);
 	}
 
 	@Getter
 	@RequiredArgsConstructor
 	static class ErrorResponse {
 		private final String code;
-		private final String message;
+		private final Object message;
 	}
 
 }

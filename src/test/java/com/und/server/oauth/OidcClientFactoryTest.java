@@ -35,11 +35,12 @@ class OidcClientFactoryTest {
 	}
 
 	@Test
-	void throwExceptionWhenProviderInvalid() {
+	void throwExceptionWhenProviderIsNull() {
 		// when & then
 		assertThatThrownBy(() -> oidcClientFactory.getOidcClient(null))
 			.isInstanceOf(ServerException.class)
 			.extracting("errorResult")
 			.isEqualTo(ServerErrorResult.INVALID_PROVIDER);
 	}
+
 }

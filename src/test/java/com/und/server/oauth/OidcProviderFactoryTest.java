@@ -49,9 +49,9 @@ class OidcProviderFactoryTest {
 	}
 
 	@Test
-	void throwExceptionWhenProviderNotRegistered() {
+	void throwExceptionWhenProviderIsNull() {
 		// when & then
-		assertThatThrownBy(() -> factory.getIdTokenPayload(Provider.APPLE, token, oidcPublicKeys))
+		assertThatThrownBy(() -> factory.getIdTokenPayload(null, token, oidcPublicKeys))
 			.isInstanceOf(ServerException.class)
 			.extracting("errorResult")
 			.isEqualTo(ServerErrorResult.INVALID_PROVIDER);

@@ -71,4 +71,5 @@ public class PublicKeyProviderTest {
 			.extracting("errorResult")
 			.isEqualTo(ServerErrorResult.INVALID_PUBLIC_KEY);
 	}
+
 }

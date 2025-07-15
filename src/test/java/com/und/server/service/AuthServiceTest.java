@@ -76,27 +76,39 @@ class AuthServiceTest {
 	void returnNonceOnHandshake() {
 		// given
 		final String nonce = "generated-nonce";
-		final Provider provider = Provider.KAKAO;
-		final HandshakeRequest handshakeRequest = new HandshakeRequest(provider);
+		final String providerName = "kakao";
+		final HandshakeRequest handshakeRequest = new HandshakeRequest(providerName);
 
 		doReturn(nonce).when(nonceService).generateNonceValue();
-		doNothing().when(nonceService).saveNonce(nonce, provider);
+		doNothing().when(nonceService).saveNonce(nonce, Provider.KAKAO);
 
 		// when
 		final HandshakeResponse response = authService.handshake(handshakeRequest);
 
 		// then
 		verify(nonceService).generateNonceValue();
-		verify(nonceService).saveNonce(nonce, provider);
+		verify(nonceService).saveNonce(nonce, Provider.KAKAO);
 		assertThat(response.nonce()).isEqualTo(nonce);
 	}
 
+	@Test
+	@DisplayName("Fail to handshake with invalid provider string")
+	void failToHandshakeWithInvalidProviderString() {
+		// given
+		final HandshakeRequest handshakeRequest = new HandshakeRequest("facebook");
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.handshake(handshakeRequest));
+
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+	}
 
 	@Test
 	@DisplayName("Return tokens when registered member login")
 	void returnTokensWhenRegisteredMemberLogin() {
 		// given
-		final AuthRequest authRequest = new AuthRequest(Provider.KAKAO, idToken);
+		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
 		final OidcClient oidcClient = mock(OidcClient.class);
 		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
 		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
@@ -127,7 +139,7 @@ class AuthServiceTest {
 	@DisplayName("Return tokens when new member register")
 	void returnTokensWhenNewMemberRegister() {
 		// given
-		final AuthRequest authRequest = new AuthRequest(Provider.KAKAO, idToken);
+		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
 		final OidcClient oidcClient = mock(OidcClient.class);
 		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
 		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
@@ -153,21 +165,15 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Fail to login with unsupported provider")
-	void failToLoginWithUnsupportedProvider() {
+	@DisplayName("Fail to login with invalid provider string")
+	void failToLoginWithInvalidProviderString() {
 		// given
-		final AuthRequest authRequest = new AuthRequest(Provider.APPLE, idToken);
-		final OidcClient oidcClient = mock(OidcClient.class);
-		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
-		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
-
-		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
-		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.APPLE);
-		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.APPLE, idToken, keys);
+		final AuthRequest authRequest = new AuthRequest("facebook", idToken);
 
 		// when & then
-		final ServerException exception = assertThrows(ServerException.class, () -> authService.login(authRequest));
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.login(authRequest));
+
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
 	}
 
@@ -218,4 +224,5 @@ class AuthServiceTest {
 		doReturn(accessTokenExpireTime).when(jwtProperties).accessTokenExpireTime();
 		doReturn(refreshTokenExpireTime).when(jwtProperties).refreshTokenExpireTime();
 	}
+
 }
