@@ -88,13 +88,16 @@ jobs:
           "PAUSED")
             echo "Service is PAUSED. Resuming service..."
             aws apprunner resume-service --service-arn $SERVICE_ARN
-            echo "Waiting for service to become active..."
-            aws apprunner wait service-running --service-arn $SERVICE_ARN
-            echo "Service is now RUNNING."
+            # Repeat check until status becomes RUNNING
+            while true; do
+              STATUS=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query 'Service.Status' --output text)
+              [ "$STATUS" = "RUNNING" ] && break
+              echo "Resuming... current status: $STATUS"
+              sleep 10
+            done
             ;;
           "CREATE_FAILED" | "UPDATE_FAILED" | "DELETE_FAILED")
             echo "::error::Service is in a non-recoverable state: $STATUS."
-            echo "Please check the AWS App Runner console event logs, then delete and recreate the service."
             exit 1
             ;;
           "RUNNING")
@@ -104,8 +107,15 @@ jobs:
 
         echo "Starting a new deployment for service $SERVICE_ARN..."
         aws apprunner start-deployment --service-arn $SERVICE_ARN
-        echo "Waiting for the new deployment to become stable..."
-        aws apprunner wait service-stable --service-arn $SERVICE_ARN --region ${{ env.AWS_REGION }}
+
+        # Wait until status becomes RUNNING after deployment
+        while true; do
+          STATUS=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query 'Service.Status' --output text)
+          [ "$STATUS" = "RUNNING" ] && break
+          echo "Deploying... current status: $STATUS"
+          sleep 10
+        done
+        echo "Deployment complete! Service is now in RUNNING status."
 
     - name: Send Success Message
       if: success()
