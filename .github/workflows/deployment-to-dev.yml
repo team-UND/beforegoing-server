@@ -80,9 +80,19 @@ jobs:
     - name: Deploy to AWS App Runner
       id: deploy
       run: |
+        STATUS=$(aws apprunner describe-service --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }} --query 'Service.Status' --output text)
+        if [ "$STATUS" == "PAUSED" ]; then
+          echo "Service is PAUSED. Resuming service..."
+          aws apprunner resume-service --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }}
+          echo "Waiting for service to become active..."
+          aws apprunner wait service-running --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }}
+          echo "Service is now RUNNING."
+        fi
+
+        echo "Starting a new deployment..."
         aws apprunner start-deployment --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }}
-        echo "Waiting for App Runner deployment to complete..."
-        aws apprunner wait service-stable --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }}
+        echo "Waiting for the deployment to complete..."
+        aws apprunner wait service-stable --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }} --region ${{ env.AWS_REGION }}
 
     - name: Send Success Message
       if: success()
