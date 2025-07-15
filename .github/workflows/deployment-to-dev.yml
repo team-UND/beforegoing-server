@@ -109,9 +109,14 @@ jobs:
         aws apprunner start-deployment --service-arn $SERVICE_ARN
 
         # Wait until status becomes RUNNING after deployment
+        MAX_RETRIES=60   # For example: 10 min (60 x 10s)
+        RETRIES=0
         while true; do
           STATUS=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query 'Service.Status' --output text)
           [ "$STATUS" = "RUNNING" ] && break
+          [ "$STATUS" = "CREATE_FAILED" ] && { echo "Deployment failed!"; exit 1; }
+          RETRIES=$((RETRIES+1))
+          [ $RETRIES -ge $MAX_RETRIES ] && { echo "Timeout while waiting for service to be RUNNING."; exit 1; }
           echo "Deploying... current status: $STATUS"
           sleep 10
         done
