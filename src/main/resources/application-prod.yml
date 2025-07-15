@@ -23,9 +23,9 @@ spring:
 
 # Sentry
 sentry:
-  dsn: ${DEV_SENTRY_DSN}
-  environment: dev
+  dsn: ${PROD_SENTRY_DSN}
+  environment: prod
   send-default-pii: false
-  traces-sample-rate: 1.0
+  traces-sample-rate: 0.2
   exception-resolver-order: -2147483647
-  max-request-body-size: always
+  max-request-body-size: medium

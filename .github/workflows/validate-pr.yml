@@ -8,6 +8,9 @@ env:
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 
+permissions:
+  contents: read
+
 jobs:
   build-and-analyze:
     runs-on: ubuntu-latest

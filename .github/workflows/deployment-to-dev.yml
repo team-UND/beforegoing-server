@@ -1,17 +1,14 @@
-name: Build and Deploy
+name: Deployment to Development Server
 
 on:
   push:
-    branches: main
+    branches: develop
 
 env:
-  AWS_IAM_ROLE_TO_ASSUME: ${{ secrets.AWS_IAM_ROLE_TO_ASSUME }}
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-  ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
-  ECS_TASK_DEFINITION: ${{ vars.ECS_TASK_DEFINITION }}
-  CONTAINER_NAME: ${{ vars.CONTAINER_NAME }}
+  AWS_IAM_ROLE_TO_ASSUME: ${{ secrets.DEV_AWS_IAM_ROLE_TO_ASSUME }}
+  AWS_REGION: ${{ vars.DEV_AWS_REGION }}
+  ECR_REPOSITORY: ${{ vars.DEV_ECR_REPOSITORY }}
+  APP_RUNNER_SERVICE_ARN: ${{ vars.DEV_APP_RUNNER_SERVICE_ARN }}
   DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 
 permissions:
@@ -76,46 +73,32 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-    - name: Download task definition
+    - name: Deploy to AWS App Runner
+      id: deploy
       run: |
-        aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
-
-    - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: task-definition.json
-        container-name: ${{ env.CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.image }}
-
-    - name: Deploy to Amazon ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: ${{ env.ECS_SERVICE }}
-        cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
-        wait-for-minutes: 8
+        aws apprunner start-deployment --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }}
+        echo "Waiting for App Runner deployment to complete..."
+        aws apprunner wait service-stable --service-arn ${{ env.APP_RUNNER_SERVICE_ARN }}
 
     - name: Send Success Message
       if: success()
       uses: Ilshidur/action-discord@0.3.2
       with:
-        args: "A new version has been deployed 🚀"
+        args: "A new version (`${{ steps.build-image.outputs.tag }}`) has been deployed to Development Server 🚀"
       env:
         DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
         DISCORD_EMBEDS: |
           [
             {
               "author": {
-                  "name": "${{ github.actor }}"
+                "name": "${{ github.actor }}"
               },
-              "title": "Deployment Successed",
-              "description": "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "title": "Deployment Succeeded",
+              "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
               "color": 10478271
             }
           ]
@@ -124,17 +107,17 @@ jobs:
       if: failure()
       uses: Ilshidur/action-discord@0.3.2
       with:
-        args: "There was an error during deployment 😢"
+        args: "Deployment to Development Server failed 😢"
       env:
         DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
         DISCORD_EMBEDS: |
           [
             {
               "author": {
-                  "name": "${{ github.actor }}"
+                "name": "${{ github.actor }}"
               },
               "title": "Deployment Failed",
-              "description": "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
               "color": 13458524
             }
           ]

@@ -1,7 +1,5 @@
 spring:
   config:
-    activate:
-      on-profile: local
     import:
     - optional:file:beforegoing-server/.env[.properties]
 
@@ -24,3 +22,7 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+# Sentry
+sentry:
+  enabled: false
