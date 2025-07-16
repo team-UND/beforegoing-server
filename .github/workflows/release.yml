@@ -1,0 +1,63 @@
+# name: Release
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# # TODO: Node.js를 SpringBoot에 맞춰 변경
+# jobs:
+#   release:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write # release, tag 생성 권한
+#       issues: write   # optional: changelog에서 이슈 닫기
+#       pull-requests: write # optional: PR 자동 닫기
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0 # 모든 태그와 커밋 내역 필요
+
+#       - name: Use Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20' # 최신 LTS
+
+#       - name: Install semantic-release
+#         run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github
+
+#       - name: Run semantic-release
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: semantic-release
+
+# {
+#   "branches": ["main"],
+#   "plugins": [
+#     "@semantic-release/commit-analyzer",
+#     "@semantic-release/release-notes-generator",
+#     [
+#       "@semantic-release/changelog",
+#       {
+#         "changelogFile": "CHANGELOG.md"
+#       }
+#     ],
+#     [
+#       "@semantic-release/git",
+#       {
+#         "assets": ["CHANGELOG.md", "package.json"],
+#         "message": "chore(release): ${nextRelease.version} [skip ci]"
+#       }
+#     ],
+#     "@semantic-release/github"
+#   ]
+# }
+
+# 표준화된 커밋 메시지 형식
+# feat: 새로운 기능 추가
+# fix: 버그 수정
+# docs: 문서만 수정
+# chore: 빌드, 의존성 변경 등
+# refactor: 리팩토링 (기능 변화 없음)
+# BREAKING CHANGE: 파괴적 변경
