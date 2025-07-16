@@ -29,3 +29,10 @@ sentry:
   traces-sample-rate: 0.2
   exception-resolver-order: -2147483647
   max-request-body-size: medium
+
+# Springdoc (Swagger)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -1,7 +1,9 @@
 package com.und.server.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.servers.Server;
@@ -12,35 +14,48 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @Configuration
-@OpenAPIDefinition(
-	servers = {
-		@Server(url = "https://wb3jjpwkur.ap-northeast-1.awsapprunner.com", description = "Development Server"),
-		@Server(url = "http://localhost:8080", description = "Local Server")
-	})
 public class SwaggerConfig {
+
+	@Value("${server.url:}")
+	private String serverUrl;
 
 	@Bean
 	public OpenAPI openApi() {
-		String jwt = "JWT";
-		SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwt);
-		Components components = new Components().addSecuritySchemes(jwt,
-			new SecurityScheme()
-				.name(jwt)
-				.type(SecurityScheme.Type.HTTP)
-				.scheme("Bearer")
-				.bearerFormat("JWT")
-		);
+		final String jwt = "JWT";
+
 		return new OpenAPI()
 			.info(apiInfo())
-			.addSecurityItem(securityRequirement)
-			.components(components);
+			.components(new Components()
+				.addSecuritySchemes(jwt, new SecurityScheme()
+					.type(SecurityScheme.Type.HTTP)
+					.scheme("Bearer")
+					.bearerFormat(jwt)
+				)
+			)
+			.addSecurityItem(new SecurityRequirement().addList(jwt));
 	}
 
 	private Info apiInfo() {
 		return new Info()
 			.title("API Specification")
 			.description("Swagger UI")
-			.version("1.0.0");
+			.version("0.0.1");
+	}
+
+	@Configuration
+	@Profile("local")
+	@OpenAPIDefinition(servers = {
+		@Server(url = "http://localhost:8080", description = "Local Server")
+	})
+	class LocalConfig {
+	}
+
+	@Configuration
+	@Profile("dev")
+	@OpenAPIDefinition(servers = {
+		@Server(url = "https://server.beforegoing.store", description = "Development Server")
+	})
+	class DevConfig {
 	}
 
 }
