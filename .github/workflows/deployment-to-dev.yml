@@ -63,60 +63,52 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
+    - name: Set SHORT_SHA
+      id: set-sha
+      run: |
+        SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+        echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
+        SHORT_SHA: ${{ steps.set-sha.outputs.short_sha }}
       run: |
-        docker build --target dev -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-        docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-        echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        IMAGE_URI=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$SHORT_SHA
+        docker build --target dev -t $IMAGE_URI -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest .
+        docker push $IMAGE_URI
+        docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+        echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+        echo "tag=$SHORT_SHA" >> $GITHUB_OUTPUT
 
     - name: Deploy to AWS App Runner
       id: deploy
+      env:
+        SERVICE_ARN: ${{ env.APP_RUNNER_SERVICE_ARN }}
+        IMAGE_URI: ${{ steps.build-image.outputs.image }}
       run: |
-        SERVICE_ARN=${{ env.APP_RUNNER_SERVICE_ARN }}
-        STATUS=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query 'Service.Status' --output text)
-        echo "Current App Runner service status is: $STATUS"
+        echo "Updating App Runner service to use image: $IMAGE_URI"
+        aws apprunner update-service \
+          --service-arn $SERVICE_ARN \
+          --source-configuration "ImageRepository={ImageIdentifier=$IMAGE_URI,ImageRepositoryType=ECR}"
 
-        case $STATUS in
-          "PAUSED")
-            echo "Service is PAUSED. Resuming service..."
-            aws apprunner resume-service --service-arn $SERVICE_ARN
-            # Repeat check until status becomes RUNNING
-            while true; do
-              STATUS=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query 'Service.Status' --output text)
-              [ "$STATUS" = "RUNNING" ] && break
-              echo "Resuming... current status: $STATUS"
-              sleep 10
-            done
-            ;;
-          "CREATE_FAILED" | "UPDATE_FAILED" | "DELETE_FAILED")
-            echo "::error::Service is in a non-recoverable state: $STATUS."
-            exit 1
-            ;;
-          "RUNNING")
-            echo "Service is RUNNING. Proceeding with deployment."
-            ;;
-        esac
-
-        echo "Starting a new deployment for service $SERVICE_ARN..."
-        aws apprunner start-deployment --service-arn $SERVICE_ARN
-
-        # Wait until status becomes RUNNING after deployment
-        MAX_RETRIES=60   # For example: 10 min (60 x 10s)
+        echo "Waiting for service update to complete..."
+        MAX_RETRIES=60
         RETRIES=0
         while true; do
           STATUS=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query 'Service.Status' --output text)
+          echo "[$((RETRIES + 1))/$MAX_RETRIES] Deploying... current status: $STATUS"
+
           [ "$STATUS" = "RUNNING" ] && break
           [ "$STATUS" = "CREATE_FAILED" ] && { echo "Deployment failed!"; exit 1; }
+
           RETRIES=$((RETRIES+1))
           [ $RETRIES -ge $MAX_RETRIES ] && { echo "Timeout while waiting for service to be RUNNING."; exit 1; }
-          echo "Deploying... current status: $STATUS"
+
           sleep 10
         done
+
         echo "Deployment complete! Service is now in RUNNING status."
 
     - name: Send Success Message
