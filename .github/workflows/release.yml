@@ -1,36 +1,35 @@
-# name: Release
+name: Release
 
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches: stg
 
-# # TODO: Node.js를 SpringBoot에 맞춰 변경
-# jobs:
-#   release:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       contents: write # release, tag 생성 권한
-#       issues: write   # optional: changelog에서 이슈 닫기
-#       pull-requests: write # optional: PR 자동 닫기
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-#         with:
-#           fetch-depth: 0 # 모든 태그와 커밋 내역 필요
+# TODO: Node.js를 SpringBoot에 맞춰 변경
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # release, tag 생성 권한
+      issues: write   # optional: changelog에서 이슈 닫기
+      pull-requests: write # optional: PR 자동 닫기
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 모든 태그와 커밋 내역 필요
 
-#       - name: Use Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20' # 최신 LTS
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 최신 LTS
 
-#       - name: Install semantic-release
-#         run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github
+      - name: Install semantic-release
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github
 
-#       - name: Run semantic-release
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: semantic-release
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release
 
 # {
 #   "branches": ["main"],
