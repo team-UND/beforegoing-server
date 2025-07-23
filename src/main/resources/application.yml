@@ -20,11 +20,8 @@ jwt:
   access-token-expire-time: ${ACCESS_TOKEN_EXPIRE_TIME}
   refresh-token-expire-time: ${REFRESH_TOKEN_EXPIRE_TIME}
 
-# Actuator
-management:
-  server:
-    port: 8080
-  endpoints:
-    web:
-      exposure:
-        include: health, prometheus
+# Observability Tools Basic Auth
+observability:
+  prometheus:
+    username: ${PROMETHEUS_USERNAME}
+    password: ${PROMETHEUS_PASSWORD}

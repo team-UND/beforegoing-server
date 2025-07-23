@@ -26,3 +26,12 @@ spring:
 # Sentry
 sentry:
   enabled: false
+
+# Actuator
+management:
+  server:
+    port: 8080
+  endpoints:
+    web:
+      exposure:
+        include: "*"
