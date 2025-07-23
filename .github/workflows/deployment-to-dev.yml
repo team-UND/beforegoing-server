@@ -89,27 +89,49 @@ jobs:
         IMAGE_URI: ${{ steps.build-image.outputs.image }}
       run: |
         echo "Updating App Runner service to use image: $IMAGE_URI"
-        aws apprunner update-service \
+        UPDATE_OUTPUT=$(aws apprunner update-service \
           --service-arn $SERVICE_ARN \
-          --source-configuration "ImageRepository={ImageIdentifier=$IMAGE_URI,ImageRepositoryType=ECR}"
+          --source-configuration "ImageRepository={ImageIdentifier=$IMAGE_URI,ImageRepositoryType=ECR}" \
+          --output json)
+
+        OPERATION_ID=$(echo $UPDATE_OUTPUT | jq -r '.OperationId')
+
+        if [ -z "$OPERATION_ID" ] || [ "$OPERATION_ID" = "null" ]; then
+          echo "::error::Failed to get OperationId from update-service command."
+          echo "AWS CLI output: $UPDATE_OUTPUT"
+          exit 1
+        fi
+
+        echo "Deployment update initiated. Operation ID: $OPERATION_ID"
 
         echo "Waiting for service update to complete..."
-        MAX_RETRIES=60
+        MAX_RETRIES=60 # 60 * 10s = 10 minutes timeout
         RETRIES=0
         while true; do
-          STATUS=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query 'Service.Status' --output text)
-          echo "[$((RETRIES + 1))/$MAX_RETRIES] Deploying... current status: $STATUS"
+          OPERATION_STATUS=$(aws apprunner list-operations --service-arn $SERVICE_ARN --max-results 50 --output json \
+            | jq -r --arg opId "$OPERATION_ID" '.OperationSummaryList[] | select(.Id == $opId) | .Status')
 
-          [ "$STATUS" = "RUNNING" ] && break
-          [ "$STATUS" = "CREATE_FAILED" ] && { echo "Deployment failed!"; exit 1; }
+          if [ -z "$OPERATION_STATUS" ]; then
+            echo "Waiting for operation details to become available..."
+          else
+            echo "[$((RETRIES + 1))/$MAX_RETRIES] Current deployment status: $OPERATION_STATUS"
+          fi
+
+          if [ "$OPERATION_STATUS" = "SUCCEEDED" ]; then
+            echo "Deployment complete! Service update succeeded."
+            break
+          elif [ "$OPERATION_STATUS" = "FAILED" ] || [ "$OPERATION_STATUS" = "ROLLBACK_SUCCEEDED" ] || [ "$OPERATION_STATUS" = "ROLLBACK_FAILED" ]; then
+            echo "::error::Deployment failed with status: $OPERATION_STATUS"
+            exit 1
+          fi
 
           RETRIES=$((RETRIES+1))
-          [ $RETRIES -ge $MAX_RETRIES ] && { echo "Timeout while waiting for service to be RUNNING."; exit 1; }
-
+          if [ $RETRIES -ge $MAX_RETRIES ]; then
+            echo "::error::Timeout while waiting for deployment to complete."
+            exit 1
+          fi
           sleep 10
         done
-
-        echo "Deployment complete! Service is now in RUNNING status."
 
     - name: Send Success Message
       if: success()
