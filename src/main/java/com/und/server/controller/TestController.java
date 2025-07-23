@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.dto.AuthResponse;
@@ -25,13 +26,14 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/v1/test")
 public class TestController {
 
 	private final AuthService authService;
 	private final MemberRepository memberRepository;
 
 	@Transactional
-	@PostMapping("/api/v1/auth/access")
+	@PostMapping("/access")
 	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid TestAuthRequest request) {
 
 		final Provider provider = authService.convertToProvider(request.provider());

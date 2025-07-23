@@ -58,7 +58,8 @@ public class SecurityConfig {
 			.sessionManagement(sessionManagement -> sessionManagement
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+				// FIXME: Remove "/v*/test/access" when deleting TestController
+				.requestMatchers(HttpMethod.POST, "/v*/auth/**", "/v*/test/access").permitAll()
 				.requestMatchers("/error").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 				.anyRequest().authenticated())

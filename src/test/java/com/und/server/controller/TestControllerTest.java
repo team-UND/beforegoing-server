@@ -60,7 +60,7 @@ class TestControllerTest {
 	@Test
 	void requireAccessTokenWhenMemberExists() throws Exception {
 		// given
-		final String url = "/api/v1/auth/access";
+		final String url = "/v1/test/access";
 		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id", "Chori");
 		final Member existingMember = Member.builder().id(1L).kakaoId("dummy.provider.id").nickname("Chori").build();
 		final AuthResponse expectedResponse = new AuthResponse("Bearer", "access-token", 3600, "refresh-token", 7200);
@@ -91,7 +91,7 @@ class TestControllerTest {
 	@Test
 	void requireAccessTokenWhenMemberDoesNotExist() throws Exception {
 		// given
-		final String url = "/api/v1/auth/access";
+		final String url = "/v1/test/access";
 		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456", "Newbie");
 		final Member newMember = Member.builder().id(2L).kakaoId("provider-id-456").nickname("Newbie").build();
 		final AuthResponse expectedResponse = new AuthResponse(
@@ -129,16 +129,16 @@ class TestControllerTest {
 	@Test
 	void returnHelloWithNickname() throws Exception {
 		// given
-		Long memberId = 1L;
-		Member member = Member.builder().id(memberId).nickname("Chori").build();
+		final String url = "/v1/test/hello";
+		final Long memberId = 1L;
+		final Member member = Member.builder().id(memberId).nickname("Chori").build();
 
 		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
 		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
 		ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get("/hello")
-				.principal(auth)
+			MockMvcRequestBuilders.get(url).principal(auth)
 		);
 
 		// then
@@ -153,16 +153,16 @@ class TestControllerTest {
 	@Test
 	void returnHelloWithDefaultNickname() throws Exception {
 		// given
-		Long memberId = 2L;
-		Member member = Member.builder().id(memberId).nickname(null).build();
+		final String url = "/v1/test/hello";
+		final Long memberId = 2L;
+		final Member member = Member.builder().id(memberId).nickname(null).build();
 
 		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
 		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
 		ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get("/hello")
-				.principal(auth)
+			MockMvcRequestBuilders.get(url).principal(auth)
 		);
 
 		// then
@@ -177,15 +177,15 @@ class TestControllerTest {
 	@Test
 	void failToReturnHelloWithMissingMember() throws Exception {
 		// given
-		Long memberId = 3L;
+		final String url = "/v1/test/hello";
+		final Long memberId = 3L;
 
 		doReturn(Optional.empty()).when(memberRepository).findById(memberId);
 		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
 		ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get("/hello")
-				.principal(auth)
+			MockMvcRequestBuilders.get(url).principal(auth)
 		);
 
 		// then

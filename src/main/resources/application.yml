@@ -4,6 +4,10 @@ spring:
   profiles:
     default: local
 
+server:
+  servlet:
+    context-path: /server
+
 # OAuth2
 oauth:
   kakao:

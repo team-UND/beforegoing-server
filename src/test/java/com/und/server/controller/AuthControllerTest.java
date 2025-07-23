@@ -56,7 +56,7 @@ public class AuthControllerTest {
 	@DisplayName("Handshake successfully when request is valid")
 	void handshakeSuccessfullyWhenRequestIsValid() throws Exception {
 		// given
-		final String url = "/api/v1/auth/nonce";
+		final String url = "/v1/auth/nonce";
 		final HandshakeRequest request = new HandshakeRequest("kakao");
 		final HandshakeResponse response = new HandshakeResponse("generated-nonce");
 
@@ -83,7 +83,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to handshake when provider is null")
 	void failToHandshakeWhenProviderIsNull() throws Exception {
 		// given
-		final String url = "/api/v1/auth/nonce";
+		final String url = "/v1/auth/nonce";
 		final HandshakeRequest request = new HandshakeRequest(null);
 		final String requestBody = objectMapper.writeValueAsString(request);
 
@@ -104,7 +104,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to handshake when provider is an unknown string")
 	void failToHandshakeWhenProviderIsUnknownString() throws Exception {
 		// given
-		final String url = "/api/v1/auth/nonce";
+		final String url = "/v1/auth/nonce";
 		final HandshakeRequest request = new HandshakeRequest("GOOGLE");
 		final String requestBody = objectMapper.writeValueAsString(request);
 		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
@@ -129,7 +129,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to login when provider is null")
 	void failToLoginWhenProviderIsNull() throws Exception {
 		// given
-		final String url = "/api/v1/auth/login";
+		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest(null, "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
 
@@ -150,7 +150,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to login when idToken is null")
 	void failToLoginWhenIdTokenIsNull() throws Exception {
 		// given
-		final String url = "/api/v1/auth/login";
+		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("kakao", null);
 		final String requestBody = objectMapper.writeValueAsString(request);
 
@@ -171,7 +171,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to login when provider is an unknown string")
 	void failToLoginWhenProviderIsUnknownString() throws Exception {
 		// given
-		final String url = "/api/v1/auth/login";
+		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("GOOGLE", "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
 		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
@@ -196,7 +196,7 @@ public class AuthControllerTest {
 	@DisplayName("Login successfully when request is valid")
 	void loginSuccessfullyWhenRequestIsValid() throws Exception {
 		// given
-		final String url = "/api/v1/auth/login";
+		final String url = "/v1/auth/login";
 		final AuthRequest authRequest = authRequest("kakao", "dummy.id.token");
 		final AuthResponse authResponse = authResponse(
 			"Bearer",
@@ -233,7 +233,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to login due to an unknown exception")
 	void failToLoginDueToUnknownException() throws Exception {
 		// given
-		final String url = "/api/v1/auth/login";
+		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("kakao", "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
 		final ServerErrorResult errorResult = ServerErrorResult.UNKNOWN_EXCEPTION;
@@ -278,7 +278,7 @@ public class AuthControllerTest {
 	@DisplayName("Refresh token successfully when request is valid")
 	void refreshTokenSuccessfullyWhenRequestIsValid() throws Exception {
 		// given
-		final String url = "/api/v1/auth/tokens";
+		final String url = "/v1/auth/tokens";
 		final RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
 			"dummy.access.token", "dummy.refresh.token"
 		);
@@ -316,7 +316,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to refresh token when access_token is null")
 	void failToRefreshTokenWhenAccessTokenIsNull() throws Exception {
 		// given
-		final String url = "/api/v1/auth/tokens";
+		final String url = "/v1/auth/tokens";
 		final RefreshTokenRequest request = new RefreshTokenRequest(null, "dummy.refresh.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
 
@@ -337,7 +337,7 @@ public class AuthControllerTest {
 	@DisplayName("Fail to refresh token when refresh_token is null")
 	void failToRefreshTokenWhenRefreshTokenIsNull() throws Exception {
 		// given
-		final String url = "/api/v1/auth/tokens";
+		final String url = "/v1/auth/tokens";
 		final RefreshTokenRequest request = new RefreshTokenRequest("dummy.access.token", null);
 		final String requestBody = objectMapper.writeValueAsString(request);
 
