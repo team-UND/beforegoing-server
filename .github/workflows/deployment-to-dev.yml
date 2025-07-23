@@ -119,6 +119,7 @@ jobs:
 
         echo "Waiting for service update to complete..."
         MAX_RETRIES=60 # 60 * 10s = 10 minutes timeout
+        FINAL_STATUS=""
         RETRIES=0
         while true; do
           OPERATION_STATUS=$(aws apprunner list-operations --service-arn $SERVICE_ARN --max-results 50 --output json \
@@ -132,19 +133,26 @@ jobs:
 
           if [ "$OPERATION_STATUS" = "SUCCEEDED" ]; then
             echo "Deployment complete! Service update succeeded."
+            FINAL_STATUS="SUCCEEDED"
             break
           elif [ "$OPERATION_STATUS" = "FAILED" ] || [ "$OPERATION_STATUS" = "ROLLBACK_SUCCEEDED" ] || [ "$OPERATION_STATUS" = "ROLLBACK_FAILED" ]; then
-            echo "::error::Deployment failed with status: $OPERATION_STATUS"
-            exit 1
+            FINAL_STATUS=$OPERATION_STATUS
+            break
           fi
 
           RETRIES=$((RETRIES+1))
           if [ $RETRIES -ge $MAX_RETRIES ]; then
-            echo "::error::Timeout while waiting for deployment to complete."
-            exit 1
+            FINAL_STATUS="TIMEOUT"
+            break
           fi
           sleep 10
         done
+
+        echo "final_status=$FINAL_STATUS" >> $GITHUB_OUTPUT
+        if [ "$FINAL_STATUS" != "SUCCEEDED" ]; then
+          echo "::error::Deployment did not succeed. Final status: $FINAL_STATUS"
+          exit 1
+        fi
 
     - name: Send Success Message
       if: success()
@@ -169,7 +177,7 @@ jobs:
       if: failure()
       uses: Ilshidur/action-discord@0.3.2
       with:
-        args: "Deployment to Development Server failed 😢"
+        args: "Deployment to Development Server failed with status: `${{ steps.deploy.outputs.final_status }}` 😢"
       env:
         DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
         DISCORD_EMBEDS: |
