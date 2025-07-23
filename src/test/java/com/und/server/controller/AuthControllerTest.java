@@ -229,6 +229,31 @@ public class AuthControllerTest {
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(20000);
 	}
 
+	@Test
+	@DisplayName("Fail to login due to an unknown exception")
+	void failToLoginDueToUnknownException() throws Exception {
+		// given
+		final String url = "/api/v1/auth/login";
+		final AuthRequest request = new AuthRequest("kakao", "dummy.id.token");
+		final String requestBody = objectMapper.writeValueAsString(request);
+		final ServerErrorResult errorResult = ServerErrorResult.UNKNOWN_EXCEPTION;
+
+		doThrow(new RuntimeException("A wild unexpected error appeared!"))
+			.when(authService).login(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(requestBody)
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
+	}
+
 	private AuthRequest authRequest(final String provider, final String idToken) {
 		return new AuthRequest(provider, idToken);
 	}
