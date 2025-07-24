@@ -12,14 +12,14 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import com.und.server.entity.Member;
 
 @DataJpaTest
-public class MemberRepositoryTest {
+class MemberRepositoryTest {
 
 	@Autowired
 	private MemberRepository memberRepository;
 
 	@Test
-	@DisplayName("Save a member successfully with Kakao ID and Nickname")
-	void saveMemberSuccessfullyWithKakao() {
+	@DisplayName("Saves a member and verifies its properties")
+	void Given_MemberDetails_When_SaveMember_Then_MemberIsPersistedWithCorrectDetails() {
 		// given
 		final Member member = Member.builder()
 			.nickname("Chori")
@@ -37,8 +37,8 @@ public class MemberRepositoryTest {
 	}
 
 	@Test
-	@DisplayName("Find a member by Kakao ID")
-	void findMemberByKakaoId() {
+	@DisplayName("Finds a member by their Kakao ID")
+	void Given_ExistingMember_When_FindByKakaoId_Then_ReturnsCorrectMember() {
 		// given
 		final Member member = Member.builder()
 			.nickname("Chori")

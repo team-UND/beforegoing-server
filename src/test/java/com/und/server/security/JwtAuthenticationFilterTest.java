@@ -45,50 +45,14 @@ class JwtAuthenticationFilterTest {
 	}
 
 	@BeforeEach
-	void setUp() {
+	void init() {
 		jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, objectMapper);
 		SecurityContextHolder.clearContext();
 	}
 
 	@Test
-	@DisplayName("Set authentication in context when token is valid")
-	void setAuthenticationWhenTokenIsValid() throws ServletException, IOException {
-		// given
-		final MockHttpServletRequest request = new MockHttpServletRequest();
-		final MockHttpServletResponse response = new MockHttpServletResponse();
-		final String token = "valid.token.string";
-		request.addHeader("Authorization", "Bearer " + token);
-
-		final Authentication authentication = mock(Authentication.class);
-		when(jwtProvider.getAuthentication(token)).thenReturn(authentication);
-
-		// when
-		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-
-		// then
-		assertThat(SecurityContextHolder.getContext().getAuthentication()).isEqualTo(authentication);
-		verify(filterChain).doFilter(request, response);
-	}
-
-	@Test
-	@DisplayName("Do nothing with context when token is not present")
-	void doNothingWhenTokenIsNotPresent() throws ServletException, IOException {
-		// given
-		final MockHttpServletRequest request = new MockHttpServletRequest();
-		final MockHttpServletResponse response = new MockHttpServletResponse();
-
-		// when
-		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-
-		// then
-		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-		verify(jwtProvider, never()).getAuthentication(anyString());
-		verify(filterChain).doFilter(request, response);
-	}
-
-	@Test
-	@DisplayName("Set error response when token is expired")
-	void setErrorResponseWhenTokenIsExpired() throws ServletException, IOException {
+	@DisplayName("Sets an error response and stops the filter chain when token is invalid")
+	void Given_InvalidToken_When_Filter_Then_ErrorResponseIsSetAndChainStops() throws ServletException, IOException {
 		// given
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		final MockHttpServletResponse response = new MockHttpServletResponse();
@@ -113,8 +77,25 @@ class JwtAuthenticationFilterTest {
 	}
 
 	@Test
-	@DisplayName("Do nothing with context when token format is invalid")
-	void doNothingWhenTokenIsInvalidFormat() throws ServletException, IOException {
+	@DisplayName("Continues filter chain without setting authentication when token is not present")
+	void Given_NoToken_When_Filter_Then_ContextIsEmptyAndChainContinues() throws ServletException, IOException {
+		// given
+		final MockHttpServletRequest request = new MockHttpServletRequest();
+		final MockHttpServletResponse response = new MockHttpServletResponse();
+
+		// when
+		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+		// then
+		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+		verify(jwtProvider, never()).getAuthentication(anyString());
+		verify(filterChain).doFilter(request, response);
+	}
+
+	@Test
+	@DisplayName("Continues filter chain without setting authentication for an invalid token format")
+	void Given_InvalidTokenFormat_When_Filter_Then_ContextIsEmptyAndChainContinues()
+		throws ServletException, IOException {
 		// given
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		final MockHttpServletResponse response = new MockHttpServletResponse();
@@ -125,11 +106,28 @@ class JwtAuthenticationFilterTest {
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
 		// then
-		// The context should be empty because resolveToken returns null
 		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-		// getAuthentication should not be called
 		verify(jwtProvider, never()).getAuthentication(anyString());
-		// The filter chain should continue
+		verify(filterChain).doFilter(request, response);
+	}
+
+	@Test
+	@DisplayName("Sets authentication in SecurityContext for a valid token")
+	void Given_ValidToken_When_Filter_Then_AuthenticationIsSetInContext() throws ServletException, IOException {
+		// given
+		final MockHttpServletRequest request = new MockHttpServletRequest();
+		final MockHttpServletResponse response = new MockHttpServletResponse();
+		final String token = "valid.token.string";
+		request.addHeader("Authorization", "Bearer " + token);
+
+		final Authentication authentication = mock(Authentication.class);
+		when(jwtProvider.getAuthentication(token)).thenReturn(authentication);
+
+		// when
+		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+		// then
+		assertThat(SecurityContextHolder.getContext().getAuthentication()).isEqualTo(authentication);
 		verify(filterChain).doFilter(request, response);
 	}
 

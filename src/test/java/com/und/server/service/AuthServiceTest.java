@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
@@ -72,8 +73,21 @@ class AuthServiceTest {
 	private final Integer refreshTokenExpireTime = 7200;
 
 	@Test
-	@DisplayName("Return nonce on handshake")
-	void returnNonceOnHandshake() {
+	@DisplayName("Throws an exception on handshake with an invalid provider")
+	void Given_InvalidProvider_When_Handshake_Then_ThrowsException() {
+		// given
+		final HandshakeRequest handshakeRequest = new HandshakeRequest("facebook");
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.handshake(handshakeRequest));
+
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+	}
+
+	@Test
+	@DisplayName("Returns a nonce on a successful handshake")
+	void Given_ValidProvider_When_Handshake_Then_ReturnsNonce() {
 		// given
 		final String nonce = "generated-nonce";
 		final String providerName = "kakao";
@@ -92,21 +106,21 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Fail to handshake with invalid provider string")
-	void failToHandshakeWithInvalidProviderString() {
+	@DisplayName("Throws an exception on login with an invalid provider")
+	void Given_InvalidProvider_When_Login_Then_ThrowsException() {
 		// given
-		final HandshakeRequest handshakeRequest = new HandshakeRequest("facebook");
+		final AuthRequest authRequest = new AuthRequest("facebook", idToken);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.handshake(handshakeRequest));
+			() -> authService.login(authRequest));
 
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
-	@DisplayName("Return tokens when registered member login")
-	void returnTokensWhenRegisteredMemberLogin() {
+	@DisplayName("Issues tokens successfully when a registered member logs in")
+	void Given_RegisteredMember_When_Login_Then_IssuesTokensSuccessfully() {
 		// given
 		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
 		final OidcClient oidcClient = mock(OidcClient.class);
@@ -127,6 +141,7 @@ class AuthServiceTest {
 
 		// then
 		verify(nonceService).validateNonce("nonce", Provider.KAKAO);
+		verify(memberRepository, never()).save(any(Member.class));
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo(accessToken);
@@ -136,8 +151,8 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Return tokens when new member register")
-	void returnTokensWhenNewMemberRegister() {
+	@DisplayName("Creates a new member and issues tokens on the first login")
+	void Given_NewMember_When_Login_Then_CreatesMemberAndIssuesTokens() {
 		// given
 		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
 		final OidcClient oidcClient = mock(OidcClient.class);
@@ -165,21 +180,43 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Fail to login with invalid provider string")
-	void failToLoginWithInvalidProviderString() {
+	@DisplayName("Throws an exception when reissuing tokens with a mismatched refresh token")
+	void Given_MismatchedRefreshToken_When_ReissueTokens_Then_ThrowsException() {
 		// given
-		final AuthRequest authRequest = new AuthRequest("facebook", idToken);
+		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, "wrong.refresh.token");
+
+		doReturn(memberId).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
+		doReturn(refreshToken).when(refreshTokenService).getRefreshToken(memberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.login(authRequest));
+			() -> authService.reissueTokens(request));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+		verify(refreshTokenService).deleteRefreshToken(memberId);
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
-	@DisplayName("Reissue tokens successfully")
-	void reissueTokensSuccessfully() {
+	@DisplayName("Throws an exception on token reissue if no refresh token is stored")
+	void Given_NoStoredRefreshToken_When_ReissueTokens_Then_ThrowsException() {
+		// given
+		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
+
+		doReturn(memberId).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
+		doReturn(null).when(refreshTokenService).getRefreshToken(memberId);
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.reissueTokens(request));
+
+		verify(refreshTokenService).deleteRefreshToken(memberId);
+		verify(jwtProvider, never()).generateAccessToken(any());
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Reissues tokens successfully with a valid refresh token")
+	void Given_ValidRefreshToken_When_ReissueTokens_Then_Succeeds() {
 		// given
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 		final String newAccessToken = "new-access-token";
@@ -198,23 +235,6 @@ class AuthServiceTest {
 		assertThat(response.refreshToken()).isEqualTo(newRefreshToken);
 		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
-	}
-
-	@Test
-	@DisplayName("Fail to reissue token when refreshToken is invalid")
-	void failToReissueTokenWhenRefreshTokenIsInvalid() {
-		// given
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, "wrong.refresh.token");
-
-		doReturn(memberId).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
-		doReturn(refreshToken).when(refreshTokenService).getRefreshToken(memberId);
-
-		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueTokens(request));
-
-		verify(refreshTokenService).deleteRefreshToken(memberId);
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
 	}
 
 	private void setupTokenIssuance(final String newAccessToken, final String newRefreshToken) {

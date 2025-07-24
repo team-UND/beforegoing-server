@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -20,7 +21,7 @@ import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
-public class PublicKeyProviderTest {
+class PublicKeyProviderTest {
 	private PublicKeyProvider publicKeyProvider;
 
 	@Mock
@@ -41,7 +42,21 @@ public class PublicKeyProviderTest {
 	}
 
 	@Test
-	void generatePublicKeySuccessfully() {
+	@DisplayName("Throws an exception when OIDC key components are invalid")
+	void Given_InvalidOidcKeyComponents_When_GeneratePublicKey_Then_ThrowsServerException() {
+		// given
+		doReturn(oidcPublicKey).when(oidcPublicKeys).matchingKey("dummyKid", "RS256");
+		doReturn("!!!invalidbase64").when(oidcPublicKey).n();
+
+		// then
+		assertThatThrownBy(() -> publicKeyProvider.generatePublicKey(header, oidcPublicKeys))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_PUBLIC_KEY);
+	}
+
+	@Test
+	@DisplayName("Generates a public key successfully from valid OIDC key components")
+	void Given_ValidOidcKey_When_GeneratePublicKey_Then_ReturnsRsaPublicKey() {
 		// given
 		final String dummyN = "sXchJisJXZcWT7_GXjeYGv9dtGdAj4kmK6jRKgEZMpYl5izALeGaMWv6HvVb9s2AOjYX-5hykqCHrpb06XtQmQ";
 		final String dummyE = "AQAB";
@@ -57,19 +72,6 @@ public class PublicKeyProviderTest {
 		// then
 		assertThat(publicKey).isNotNull();
 		assertThat(publicKey.getAlgorithm()).isEqualTo("RSA");
-	}
-
-	@Test
-	void throwExceptionWhenKeyInvalid() {
-		// given
-		doReturn(oidcPublicKey).when(oidcPublicKeys).matchingKey("dummyKid", "RS256");
-		doReturn("!!!invalidbase64").when(oidcPublicKey).n();
-
-		// then
-		assertThatThrownBy(() -> publicKeyProvider.generatePublicKey(header, oidcPublicKeys))
-			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.INVALID_PUBLIC_KEY);
 	}
 
 }

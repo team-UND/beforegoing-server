@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,7 +36,17 @@ class OidcProviderFactoryTest {
 	}
 
 	@Test
-	void getIdTokenPayloadSuccessfully() {
+	@DisplayName("Throws an exception when the provider is null")
+	void Given_NullProvider_When_GetIdTokenPayload_Then_ThrowsServerException() {
+		// when & then
+		assertThatThrownBy(() -> factory.getIdTokenPayload(null, token, oidcPublicKeys))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_PROVIDER);
+	}
+
+	@Test
+	@DisplayName("Retrieves ID token payload successfully for a given provider")
+	void Given_ValidProvider_When_GetIdTokenPayload_Then_ReturnsCorrectPayload() {
 		// given
 		final IdTokenPayload expectedPayload = new IdTokenPayload(providerId, nickname);
 
@@ -48,12 +59,4 @@ class OidcProviderFactoryTest {
 		assertThat(actualPayload).isEqualTo(expectedPayload);
 	}
 
-	@Test
-	void throwExceptionWhenProviderIsNull() {
-		// when & then
-		assertThatThrownBy(() -> factory.getIdTokenPayload(null, token, oidcPublicKeys))
-			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.INVALID_PROVIDER);
-	}
 }

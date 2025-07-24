@@ -21,13 +21,13 @@ class CustomAuthenticationEntryPointTest {
 	private record ErrorResponse(String code, Object message) { }
 
 	@BeforeEach
-	void setUp() {
+	void init() {
 		customAuthenticationEntryPoint = new CustomAuthenticationEntryPoint(objectMapper);
 	}
 
 	@Test
-	@DisplayName("Commence method should write UNAUTHORIZED_ACCESS error to response")
-	void commenceShouldWriteUnauthorizedAccessError() throws Exception {
+	@DisplayName("Writes an unauthorized access error to the response when authentication fails")
+	void Given_AuthenticationFailure_When_Commence_Then_WritesUnauthorizedErrorResponse() throws Exception {
 		// given
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		final MockHttpServletResponse response = new MockHttpServletResponse();

@@ -14,8 +14,34 @@ import com.und.server.exception.ServerException;
 class OidcPublicKeysTest {
 
 	@Test
-	@DisplayName("Return matching key when both kid and alg match")
-	void returnMatchingKeyWhenKidAndAlgMatch() {
+	@DisplayName("Throws an exception when kid does not match")
+	void Given_MismatchedKid_When_MatchingKey_Then_ThrowsServerException() {
+		// given
+		final OidcPublicKey key1 = new OidcPublicKey("kid1", "RSA", "RS256", "sig", "n1", "e1");
+		final OidcPublicKeys oidcPublicKeys = new OidcPublicKeys(List.of(key1));
+
+		// when & then
+		assertThatThrownBy(() -> oidcPublicKeys.matchingKey("kid3", "RS256"))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.PUBLIC_KEY_NOT_FOUND);
+	}
+
+	@Test
+	@DisplayName("Throws an exception when kid matches but alg does not")
+	void Given_MismatchedAlg_When_MatchingKey_Then_ThrowsServerException() {
+		// given
+		final OidcPublicKey key1 = new OidcPublicKey("kid1", "RSA", "RS256", "sig", "n1", "e1");
+		final OidcPublicKeys oidcPublicKeys = new OidcPublicKeys(List.of(key1));
+
+		// when & then
+		assertThatThrownBy(() -> oidcPublicKeys.matchingKey("kid1", "RS512"))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.PUBLIC_KEY_NOT_FOUND);
+	}
+
+	@Test
+	@DisplayName("Returns a matching key when both kid and alg match")
+	void Given_MatchingKidAndAlg_When_MatchingKey_Then_ReturnsCorrectKey() {
 		// given
 		final OidcPublicKey key1 = new OidcPublicKey("kid1", "RSA", "RS256", "sig", "n1", "e1");
 		final OidcPublicKey key2 = new OidcPublicKey("kid2", "RSA", "RS256", "sig", "n2", "e2");
@@ -26,34 +52,6 @@ class OidcPublicKeysTest {
 
 		// then
 		assertThat(result).isEqualTo(key2);
-	}
-
-	@Test
-	@DisplayName("Throw exception when kid matches but alg does not")
-	void throwExceptionWhenKidMatchesButAlgDoesNot() {
-		// given
-		final OidcPublicKey key1 = new OidcPublicKey("kid1", "RSA", "RS256", "sig", "n1", "e1");
-		final OidcPublicKeys oidcPublicKeys = new OidcPublicKeys(List.of(key1));
-
-		// when & then
-		assertThatThrownBy(() -> oidcPublicKeys.matchingKey("kid1", "RS512"))
-			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.PUBLIC_KEY_NOT_FOUND);
-	}
-
-	@Test
-	@DisplayName("Throw exception when kid does not match")
-	void throwExceptionWhenKidDoesNotMatch() {
-		// given
-		final OidcPublicKey key1 = new OidcPublicKey("kid1", "RSA", "RS256", "sig", "n1", "e1");
-		final OidcPublicKeys oidcPublicKeys = new OidcPublicKeys(List.of(key1));
-
-		// when & then
-		assertThatThrownBy(() -> oidcPublicKeys.matchingKey("kid3", "RS256"))
-			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.PUBLIC_KEY_NOT_FOUND);
 	}
 
 }

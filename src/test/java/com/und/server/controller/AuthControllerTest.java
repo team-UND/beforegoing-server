@@ -33,7 +33,7 @@ import com.und.server.exception.ServerException;
 import com.und.server.service.AuthService;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthControllerTest {
+class AuthControllerTest {
 
 	@InjectMocks
 	private AuthController authController;
@@ -53,35 +53,8 @@ public class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Handshake successfully when request is valid")
-	void handshakeSuccessfullyWhenRequestIsValid() throws Exception {
-		// given
-		final String url = "/v1/auth/nonce";
-		final HandshakeRequest request = new HandshakeRequest("kakao");
-		final HandshakeResponse response = new HandshakeResponse("generated-nonce");
-
-		doReturn(response).when(authService).handshake(request);
-
-		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.post(url)
-				.content(objectMapper.writeValueAsString(request))
-				.contentType(MediaType.APPLICATION_JSON)
-		);
-
-		// then
-		final HandshakeResponse result = objectMapper.readValue(
-			resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8),
-			HandshakeResponse.class
-		);
-
-		resultActions.andExpect(status().isOk());
-		assertThat(result.nonce()).isEqualTo("generated-nonce");
-	}
-
-	@Test
-	@DisplayName("Fail to handshake when provider is null")
-	void failToHandshakeWhenProviderIsNull() throws Exception {
+	@DisplayName("Fails handshake with bad request when provider is null")
+	void Given_HandshakeRequestWithNullProvider_When_Handshake_Then_ReturnsBadRequest() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final HandshakeRequest request = new HandshakeRequest(null);
@@ -101,8 +74,8 @@ public class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fail to handshake when provider is an unknown string")
-	void failToHandshakeWhenProviderIsUnknownString() throws Exception {
+	@DisplayName("Fails handshake when provider is unknown")
+	void Given_HandshakeRequestWithUnknownProvider_When_Handshake_Then_ReturnsErrorResponse() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final HandshakeRequest request = new HandshakeRequest("GOOGLE");
@@ -126,8 +99,30 @@ public class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fail to login when provider is null")
-	void failToLoginWhenProviderIsNull() throws Exception {
+	@DisplayName("Succeeds handshake and returns nonce for a valid request")
+	void Given_ValidHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+		// given
+		final String url = "/v1/auth/nonce";
+		final HandshakeRequest request = new HandshakeRequest("kakao");
+		final HandshakeResponse response = new HandshakeResponse("generated-nonce");
+
+		doReturn(response).when(authService).handshake(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.nonce").value("generated-nonce"));
+	}
+
+	@Test
+	@DisplayName("Fails login with bad request when provider is null")
+	void Given_LoginRequestWithNullProvider_When_Login_Then_ReturnsBadRequest() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest(null, "dummy.id.token");
@@ -147,8 +142,8 @@ public class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fail to login when idToken is null")
-	void failToLoginWhenIdTokenIsNull() throws Exception {
+	@DisplayName("Fails login with bad request when ID token is null")
+	void Given_LoginRequestWithNullIdToken_When_Login_Then_ReturnsBadRequest() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("kakao", null);
@@ -168,8 +163,8 @@ public class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fail to login when provider is an unknown string")
-	void failToLoginWhenProviderIsUnknownString() throws Exception {
+	@DisplayName("Fails login when provider is unknown")
+	void Given_LoginRequestWithUnknownProvider_When_Login_Then_ReturnsErrorResponse() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("GOOGLE", "dummy.id.token");
@@ -193,45 +188,8 @@ public class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Login successfully when request is valid")
-	void loginSuccessfullyWhenRequestIsValid() throws Exception {
-		// given
-		final String url = "/v1/auth/login";
-		final AuthRequest authRequest = authRequest("kakao", "dummy.id.token");
-		final AuthResponse authResponse = authResponse(
-			"Bearer",
-			"dummy.access.token",
-			10000,
-			"dummy.refresh.token",
-			20000
-		);
-
-		doReturn(authResponse).when(authService).login(authRequest);
-
-		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.post(url)
-				.content(objectMapper.writeValueAsString(authRequest))
-				.contentType(MediaType.APPLICATION_JSON)
-		);
-
-		// then
-		final AuthResponse response = objectMapper.readValue(
-				resultActions.andReturn()
-						.getResponse()
-						.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class);
-
-		resultActions.andExpect(status().isOk());
-		assertThat(response.tokenType()).isEqualTo("Bearer");
-		assertThat(response.accessToken()).isEqualTo("dummy.access.token");
-		assertThat(response.accessTokenExpiresIn()).isEqualTo(10000);
-		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
-		assertThat(response.refreshTokenExpiresIn()).isEqualTo(20000);
-	}
-
-	@Test
-	@DisplayName("Fail to login due to an unknown exception")
-	void failToLoginDueToUnknownException() throws Exception {
+	@DisplayName("Fails login with internal server error for an unknown exception")
+	void Given_LoginRequest_When_ServiceThrowsUnknownException_Then_ReturnsInternalServerError() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("kakao", "dummy.id.token");
@@ -254,6 +212,126 @@ public class AuthControllerTest {
 			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
 	}
 
+	@Test
+	@DisplayName("Succeeds login and issues tokens for a valid request")
+	void Given_ValidLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
+		// given
+		final String url = "/v1/auth/login";
+		final AuthRequest authRequest = authRequest("kakao", "dummy.id.token");
+		final AuthResponse authResponse = authResponse(
+			"Bearer",
+			"dummy.access.token",
+			10000,
+			"dummy.refresh.token",
+			20000
+		);
+
+		doReturn(authResponse).when(authService).login(authRequest);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(objectMapper.writeValueAsString(authRequest))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		final AuthResponse response = objectMapper.readValue(
+			resultActions
+				.andReturn()
+				.getResponse()
+				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
+		);
+
+		resultActions.andExpect(status().isOk());
+		assertThat(response.tokenType()).isEqualTo("Bearer");
+		assertThat(response.accessToken()).isEqualTo("dummy.access.token");
+		assertThat(response.accessTokenExpiresIn()).isEqualTo(10000);
+		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
+		assertThat(response.refreshTokenExpiresIn()).isEqualTo(20000);
+	}
+
+	@Test
+	@DisplayName("Fails token refresh with bad request when access token is null")
+	void Given_RefreshTokenRequestWithNullAccessToken_When_ReissueTokens_Then_ReturnsBadRequest() throws Exception {
+		// given
+		final String url = "/v1/auth/tokens";
+		final RefreshTokenRequest request = new RefreshTokenRequest(null, "old.refresh.token");
+		final String requestBody = objectMapper.writeValueAsString(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(requestBody)
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.message[0]").value("Access Token must not be null"));
+	}
+
+	@Test
+	@DisplayName("Fails token refresh with bad request when refresh token is null")
+	void Given_RefreshTokenRequestWithNullRefreshToken_When_ReissueTokens_Then_ReturnsBadRequest() throws Exception {
+		// given
+		final String url = "/v1/auth/tokens";
+		final RefreshTokenRequest request = new RefreshTokenRequest("old.access.token", null);
+		final String requestBody = objectMapper.writeValueAsString(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(requestBody)
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be null"));
+	}
+
+	@Test
+	@DisplayName("Succeeds token refresh for a valid request")
+	void Given_ValidRefreshTokenRequest_When_ReissueTokens_Then_ReturnsOkWithNewTokens() throws Exception {
+		// given
+		final String url = "/v1/auth/tokens";
+		final RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
+			"old.access.token", "old.refresh.token"
+		);
+		final AuthResponse authResponse = authResponse(
+			"Bearer",
+			"new.access.token",
+			10000,
+			"new.refresh.token",
+			7200
+		);
+
+		doReturn(authResponse).when(authService).reissueTokens(refreshTokenRequest);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(objectMapper.writeValueAsString(refreshTokenRequest))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		final AuthResponse response = objectMapper.readValue(
+			resultActions
+				.andReturn()
+				.getResponse()
+				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
+		);
+
+		resultActions.andExpect(status().isOk());
+		assertThat(response.tokenType()).isEqualTo("Bearer");
+		assertThat(response.accessToken()).isEqualTo("new.access.token");
+		assertThat(response.refreshToken()).isEqualTo("new.refresh.token");
+	}
+
 	private AuthRequest authRequest(final String provider, final String idToken) {
 		return new AuthRequest(provider, idToken);
 	}
@@ -272,86 +350,6 @@ public class AuthControllerTest {
 			refreshToken,
 			refreshTokenExpiresIn
 		);
-	}
-
-	@Test
-	@DisplayName("Refresh token successfully when request is valid")
-	void refreshTokenSuccessfullyWhenRequestIsValid() throws Exception {
-		// given
-		final String url = "/v1/auth/tokens";
-		final RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
-			"dummy.access.token", "dummy.refresh.token"
-		);
-		final AuthResponse authResponse = authResponse(
-			"Bearer",
-			"new.access.token",
-			3600,
-			"dummy.refresh.token",
-			7200
-		);
-
-		doReturn(authResponse).when(authService).reissueTokens(refreshTokenRequest);
-
-		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.post(url)
-				.content(objectMapper.writeValueAsString(refreshTokenRequest))
-				.contentType(MediaType.APPLICATION_JSON)
-		);
-
-		// then
-		final AuthResponse response = objectMapper.readValue(
-			resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8),
-			AuthResponse.class
-		);
-
-		resultActions.andExpect(status().isOk());
-		assertThat(response.tokenType()).isEqualTo("Bearer");
-		assertThat(response.accessToken()).isEqualTo("new.access.token");
-		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
-	}
-
-
-	@Test
-	@DisplayName("Fail to refresh token when access_token is null")
-	void failToRefreshTokenWhenAccessTokenIsNull() throws Exception {
-		// given
-		final String url = "/v1/auth/tokens";
-		final RefreshTokenRequest request = new RefreshTokenRequest(null, "dummy.refresh.token");
-		final String requestBody = objectMapper.writeValueAsString(request);
-
-		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.post(url)
-				.content(requestBody)
-				.contentType(MediaType.APPLICATION_JSON)
-		);
-
-		// then
-		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Access Token must not be null"));
-	}
-
-	@Test
-	@DisplayName("Fail to refresh token when refresh_token is null")
-	void failToRefreshTokenWhenRefreshTokenIsNull() throws Exception {
-		// given
-		final String url = "/v1/auth/tokens";
-		final RefreshTokenRequest request = new RefreshTokenRequest("dummy.access.token", null);
-		final String requestBody = objectMapper.writeValueAsString(request);
-
-		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.post(url)
-				.content(requestBody)
-				.contentType(MediaType.APPLICATION_JSON)
-		);
-
-		// then
-		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be null"));
 	}
 
 }
