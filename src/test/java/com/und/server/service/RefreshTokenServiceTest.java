@@ -29,36 +29,36 @@ class RefreshTokenServiceTest {
 	private final String refreshToken = UUID.randomUUID().toString();
 
 	@Test
-	@DisplayName("Generate a new refresh token")
-	void generateRefreshToken() {
+	@DisplayName("Generates a new UUID-formatted refresh token")
+	void Given_Nothing_When_GenerateRefreshToken_Then_ReturnsUuidString() {
 		// when
 		String token = refreshTokenService.generateRefreshToken();
 
 		// then
 		assertThat(token).isNotNull();
-		assertThat(token).isInstanceOf(String.class);
+		assertThat(token).hasSize(36); // UUID format
 	}
 
 	@Test
-	@DisplayName("Save refresh token for member")
-	void saveRefreshToken() {
+	@DisplayName("Saves a refresh token for a member")
+	void Given_MemberIdAndToken_When_SaveRefreshToken_Then_RepositorySaveIsCalled() {
 		// when
 		refreshTokenService.saveRefreshToken(memberId, refreshToken);
 
 		// then
-		verify(refreshTokenRepository, times(1)).save(any(RefreshToken.class));
+		verify(refreshTokenRepository).save(any(RefreshToken.class));
 	}
 
 	@Test
-	@DisplayName("Get existing refresh token for member")
-	void getExistingRefreshToken() {
+	@DisplayName("Retrieves an existing refresh token for a member")
+	void Given_ExistingTokenInRepository_When_GetRefreshToken_Then_ReturnsCorrectToken() {
 		// given
 		RefreshToken token = RefreshToken.builder()
 			.memberId(memberId)
 			.refreshToken(refreshToken)
 			.build();
 
-		when(refreshTokenRepository.findById(memberId)).thenReturn(Optional.of(token));
+		doReturn(Optional.of(token)).when(refreshTokenRepository).findById(memberId);
 
 		// when
 		String result = refreshTokenService.getRefreshToken(memberId);
@@ -68,10 +68,10 @@ class RefreshTokenServiceTest {
 	}
 
 	@Test
-	@DisplayName("Return null if refresh token does not exist")
-	void getRefreshTokenReturnsNullIfNotFound() {
+	@DisplayName("Returns null when refresh token is not found")
+	void Given_TokenNotInRepository_When_GetRefreshToken_Then_ReturnsNull() {
 		// given
-		when(refreshTokenRepository.findById(memberId)).thenReturn(Optional.empty());
+		doReturn(Optional.empty()).when(refreshTokenRepository).findById(memberId);
 
 		// when
 		String result = refreshTokenService.getRefreshToken(memberId);
@@ -81,12 +81,13 @@ class RefreshTokenServiceTest {
 	}
 
 	@Test
-	@DisplayName("Delete refresh token for member")
-	void deleteRefreshToken() {
+	@DisplayName("Deletes a refresh token for a member")
+	void Given_MemberId_When_DeleteRefreshToken_Then_RepositoryDeleteIsCalled() {
 		// when
 		refreshTokenService.deleteRefreshToken(memberId);
 
 		// then
-		verify(refreshTokenRepository, times(1)).deleteById(memberId);
+		verify(refreshTokenRepository).deleteById(memberId);
 	}
+
 }

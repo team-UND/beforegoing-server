@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -49,19 +50,20 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void throwExceptionWhenTokenFormatIsInvalid() {
+	@DisplayName("Throws ServerException when token format is invalid")
+	void Given_InvalidFormatToken_When_GetDecodedHeader_Then_ThrowsServerException() {
 		// given
 		final String invalidToken = "invalidHeaderOnly";
 
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getDecodedHeader(invalidToken))
 			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.INVALID_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
-	void throwExceptionWhenBase64HeaderIsInvalidInvalid() {
+	@DisplayName("Throws ServerException when token header is not a valid Base64 format")
+	void Given_MalformedBase64HeaderToken_When_GetDecodedHeader_Then_ThrowsServerException() {
 		// given
 		final String malformedBase64Header = "!!!";
 		final String token = malformedBase64Header + ".payload.signature";
@@ -69,12 +71,24 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getDecodedHeader(token))
 			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.INVALID_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
-	void extractNonceSuccessfully() throws Exception {
+	@DisplayName("Throws ServerException when nonce is not present in token")
+	void Given_TokenWithoutNonce_When_ExtractNonce_Then_ThrowsServerException() {
+		// given
+		final String invalidToken = "invalid.token.parts";
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.extractNonce(invalidToken))
+				.isInstanceOf(ServerException.class)
+				.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Extracts nonce successfully from a valid token")
+	void Given_ValidTokenWithNonce_When_ExtractNonce_Then_ReturnsCorrectNonce() {
 		// given
 		final String token = Jwts.builder()
 				.subject("1")
@@ -90,19 +104,32 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void throwExceptionWhenTokenIsInvalid() {
+	@DisplayName("Throws ServerException when audience does not match")
+	void Given_OidcToken_When_ParseWithMismatchedAudience_Then_ThrowsServerException() throws Exception {
 		// given
-		final String invalidToken = "invalid.token.parts";
+		final String wrongAudience = "wrong-client";
+		final KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		final PublicKey publicKey = keyPair.getPublic();
+		final String token = Jwts.builder()
+			.subject(subject)
+			.issuer(issuer)
+			.audience()
+				.add(audience)
+				.and()
+			.issuedAt(new Date())
+			.signWith(keyPair.getPrivate(), Jwts.SIG.RS256)
+			.compact();
 
 		// when & then
-		assertThatThrownBy(() -> jwtProvider.extractNonce(invalidToken))
-				.isInstanceOf(ServerException.class)
-				.extracting("errorResult")
-				.isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThatThrownBy(() -> {
+			jwtProvider.parseOidcIdToken(token, issuer, wrongAudience, publicKey);
+		}).isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
-	void parseOidcIdTokenSuccessfully() throws Exception {
+	@DisplayName("Parses a valid OIDC ID token successfully")
+	void Given_ValidOidcIdToken_When_ParseOidcIdToken_Then_ReturnsCorrectPayload() throws Exception {
 		// given
 		final KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
 		final String token = Jwts.builder()
@@ -127,29 +154,8 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void throwExceptionWhenAudienceDoesNotMatch() throws Exception {
-		// given
-		final String wrongAudience = "wrong-client";
-		final KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-		final PublicKey publicKey = keyPair.getPublic();
-		final String token = Jwts.builder()
-			.subject(subject)
-			.issuer(issuer)
-			.audience()
-				.add(audience)
-				.and()
-			.issuedAt(new Date())
-			.signWith(keyPair.getPrivate(), Jwts.SIG.RS256)
-			.compact();
-
-		// when & then
-		assertThatThrownBy(() -> {
-			jwtProvider.parseOidcIdToken(token, issuer, wrongAudience, publicKey);
-		}).isInstanceOf(ServerException.class);
-	}
-
-	@Test
-	void generateAccessTokenWithValidClaims() {
+	@DisplayName("Generates access token with valid claims")
+	void Given_MemberId_When_GenerateAccessToken_Then_TokenContainsValidClaims() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
@@ -167,7 +173,8 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void verifyTokenIssuedAtTimeConversion() {
+	@DisplayName("Verifies that the 'issued at' time is close to the generation time")
+	void Given_MemberId_When_GenerateAccessToken_Then_IssuedAtClaimIsCloseToCurrentTime() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
@@ -193,7 +200,8 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void verifyTimeZoneConsistencyInTokenGeneration() {
+	@DisplayName("Verifies that the expiration time is correct relative to the issued at time")
+	void Given_MemberId_When_GenerateAccessToken_Then_ExpirationIsCorrect() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
@@ -213,7 +221,8 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void getDecodedHeaderSuccessfully() {
+	@DisplayName("Decodes the header from a valid token successfully")
+	void Given_ValidToken_When_GetDecodedHeader_Then_ReturnsHeaderMap() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
@@ -229,7 +238,8 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void getAuthentication() {
+	@DisplayName("Gets Authentication object from a valid token")
+	void Given_ValidToken_When_GetAuthentication_Then_ReturnsAuthenticationObject() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
@@ -247,40 +257,8 @@ class JwtProviderTest {
 	}
 
 	@Test
-	void getMemberIdFromToken() {
-		// given
-		doReturn(secretKey).when(jwtProperties).secretKey();
-		doReturn(issuer).when(jwtProperties).issuer();
-		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
-
-		final Long memberId = 1L;
-		final String token = jwtProvider.generateAccessToken(memberId);
-
-		// when
-		final Long extractedId = jwtProvider.getMemberIdFromToken(token);
-
-		// then
-		assertThat(extractedId).isEqualTo(memberId);
-	}
-
-	@Test
-	void throwsTokenNotExpiredException() {
-		// given
-		doReturn(secretKey).when(jwtProperties).secretKey();
-		doReturn(issuer).when(jwtProperties).issuer();
-		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
-
-		final String token = jwtProvider.generateAccessToken(1L);
-
-		// when & then
-		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
-			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.TOKEN_NOT_EXPIRED);
-	}
-
-	@Test
-	void throwExpiredTokenException() throws Exception {
+	@DisplayName("Throws ServerException when a token is expired")
+	void Given_ExpiredToken_When_GetMemberIdFromToken_Then_ThrowsServerException() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 
@@ -299,12 +277,73 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
 			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.EXPIRED_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.EXPIRED_TOKEN);
 	}
 
 	@Test
-	void getMemberIdFromExpiredAccessTokenSuccessfully() throws Exception {
+	@DisplayName("Throws ServerException when token structure is invalid")
+	void Given_MalformedToken_When_GetMemberIdFromToken_Then_ThrowsServerException() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		final String malformedToken = "this.is.not.a.jwt";
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(malformedToken))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.MALFORMED_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Throws ServerException when token signature is invalid")
+	void Given_TokenWithInvalidSignature_When_GetMemberIdFromToken_Then_ThrowsServerException() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		final SecretKey anotherKey = Jwts.SIG.HS256.key().build();
+		final String token = Jwts.builder().subject("1").signWith(anotherKey).compact();
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_SIGNATURE);
+	}
+
+	@Test
+	@DisplayName("Gets member ID from a valid token")
+	void Given_ValidToken_When_GetMemberIdFromToken_Then_ReturnsCorrectMemberId() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		doReturn(issuer).when(jwtProperties).issuer();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+
+		final Long memberId = 1L;
+		final String token = jwtProvider.generateAccessToken(memberId);
+
+		// when
+		final Long extractedId = jwtProvider.getMemberIdFromToken(token);
+
+		// then
+		assertThat(extractedId).isEqualTo(memberId);
+	}
+
+	@Test
+	@DisplayName("Throws ServerException when trying to get member ID from a non-expired access token")
+	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsServerException() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		doReturn(issuer).when(jwtProperties).issuer();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+
+		final String token = jwtProvider.generateAccessToken(1L);
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Gets member ID from an expired access token successfully")
+	void Given_ExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ReturnsCorrectMemberId() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 

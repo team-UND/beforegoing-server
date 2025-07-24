@@ -7,6 +7,7 @@ import java.security.PublicKey;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -44,7 +45,8 @@ class KakaoProviderTest {
 	}
 
 	@Test
-	void getIdTokenPayloadSuccessfully() {
+	@DisplayName("Successfully retrieves the ID token payload from a valid token")
+	void Given_ValidToken_When_GetIdTokenPayload_Then_ReturnsCorrectPayload() {
 		// given
 		final Map<String, String> decodedHeader = Map.of("alg", "RS256", "kid", "key1");
 		final IdTokenPayload expectedPayload = new IdTokenPayload(providerId, nickname);
@@ -59,5 +61,5 @@ class KakaoProviderTest {
 		// then
 		assertThat(actualPayload).isEqualTo(expectedPayload);
 	}
-}
 
+}

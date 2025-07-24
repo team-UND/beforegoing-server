@@ -4,13 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 
+@ExtendWith(MockitoExtension.class)
 class OidcClientFactoryTest {
 
 	@Mock
@@ -20,26 +23,26 @@ class OidcClientFactoryTest {
 
 	@BeforeEach
 	void init() {
-		MockitoAnnotations.openMocks(this);
 		oidcClientFactory = new OidcClientFactory(kakaoClient);
 	}
 
 	@Test
-	void getOidcClientSuccessfully() {
+	@DisplayName("Throws an exception when the provider is null")
+	void Given_NullProvider_When_GetOidcClient_Then_ThrowsServerException() {
+		// when & then
+		assertThatThrownBy(() -> oidcClientFactory.getOidcClient(null))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_PROVIDER);
+	}
+
+	@Test
+	@DisplayName("Returns the correct OIDC client for a given provider")
+	void Given_ValidProvider_When_GetOidcClient_Then_ReturnsCorrectClient() {
 		// when
 		final OidcClient client = oidcClientFactory.getOidcClient(Provider.KAKAO);
 
 		// then
-		assertThat(client).isNotNull();
 		assertThat(client).isEqualTo(kakaoClient);
 	}
 
-	@Test
-	void throwExceptionWhenProviderInvalid() {
-		// when & then
-		assertThatThrownBy(() -> oidcClientFactory.getOidcClient(null))
-			.isInstanceOf(ServerException.class)
-			.extracting("errorResult")
-			.isEqualTo(ServerErrorResult.INVALID_PROVIDER);
-	}
 }

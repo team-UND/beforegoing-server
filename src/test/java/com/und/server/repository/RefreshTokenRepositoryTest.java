@@ -12,14 +12,14 @@ import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
 import com.und.server.entity.RefreshToken;
 
 @DataRedisTest
-public class RefreshTokenRepositoryTest {
+class RefreshTokenRepositoryTest {
 
 	@Autowired
 	RefreshTokenRepository refreshTokenRepository;
 
 	@Test
-	@DisplayName("Save a refreshToken successfully")
-	void saveRefreshTokenSuccessfully() {
+	@DisplayName("Saves a refresh token and verifies its properties")
+	void Given_RefreshTokenDetails_When_SaveToken_Then_TokenIsPersistedCorrectly() {
 		// given
 		final RefreshToken token = RefreshToken.builder()
 			.memberId(1L)
@@ -35,8 +35,8 @@ public class RefreshTokenRepositoryTest {
 	}
 
 	@Test
-	@DisplayName("Find a refreshToken by member ID")
-	void findRefreshTokenByMemberId() {
+	@DisplayName("Finds a refresh token by its member ID")
+	void Given_ExistingRefreshToken_When_FindById_Then_ReturnsCorrectToken() {
 		// given
 		final RefreshToken token = RefreshToken.builder()
 			.memberId(1L)

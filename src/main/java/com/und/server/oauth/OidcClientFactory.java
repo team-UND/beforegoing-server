@@ -2,6 +2,7 @@ package com.und.server.oauth;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
@@ -19,12 +20,8 @@ public class OidcClientFactory {
 	}
 
 	public OidcClient getOidcClient(Provider provider) {
-		OidcClient oidcClient = oidcClients.get(provider);
-		if (oidcClient == null) {
-			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
-		}
-
-		return oidcClient;
+		return Optional.ofNullable(oidcClients.get(provider))
+			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_PROVIDER));
 	}
 
 }

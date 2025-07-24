@@ -27,6 +27,7 @@ import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -103,31 +104,33 @@ public class JwtProvider {
 
 	private Claims parseClaims(final String token, final JwtParserBuilder builder) {
 		try {
-			return builder.build()
-					.parseSignedClaims(token)
-					.getPayload();
+			return parseToken(token, builder);
 		} catch (ExpiredJwtException e) {
 			throw new ServerException(ServerErrorResult.EXPIRED_TOKEN, e);
-		} catch (MalformedJwtException e) {
-			throw new ServerException(ServerErrorResult.MALFORMED_TOKEN, e);
-		} catch (SecurityException e) {
-			throw new ServerException(ServerErrorResult.INVALID_SIGNATURE, e);
-		} catch (JwtException e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
 	public Long getMemberIdFromExpiredAccessToken(final String token) {
+		final JwtParserBuilder builder = Jwts.parser().verifyWith(jwtProperties.secretKey());
 		try {
-			Jwts.parser()
-				.verifyWith(jwtProperties.secretKey())
-				.build()
-				.parseSignedClaims(token)
-				.getPayload();
-
-			throw new ServerException(ServerErrorResult.TOKEN_NOT_EXPIRED);
+			parseToken(token, builder);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
 		} catch (ExpiredJwtException e) {
 			return Long.valueOf(e.getClaims().getSubject());
+		}
+	}
+
+	private Claims parseToken(final String token, final JwtParserBuilder builder) {
+		try {
+			return builder.build()
+				.parseSignedClaims(token)
+				.getPayload();
+		} catch (MalformedJwtException e) {
+			throw new ServerException(ServerErrorResult.MALFORMED_TOKEN, e);
+		} catch (SecurityException e) {
+			throw new ServerException(ServerErrorResult.INVALID_SIGNATURE, e);
+		} catch (ExpiredJwtException e) {
+			throw e;
 		} catch (JwtException e) {
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}

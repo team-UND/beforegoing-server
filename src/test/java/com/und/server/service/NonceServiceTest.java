@@ -1,7 +1,7 @@
 package com.und.server.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
@@ -30,8 +30,8 @@ class NonceServiceTest {
 	private NonceService nonceService;
 
 	@Test
-	@DisplayName("Generate UUID nonce value")
-	void generateNonceValue() {
+	@DisplayName("Generates a UUID-formatted nonce value")
+	void Given_Nothing_When_GenerateNonceValue_Then_ReturnsUuidString() {
 		// when
 		String nonce = nonceService.generateNonceValue();
 
@@ -41,8 +41,8 @@ class NonceServiceTest {
 	}
 
 	@Test
-	@DisplayName("Save nonce successfully")
-	void saveNonceSuccessfully() {
+	@DisplayName("Saves a nonce successfully")
+	void Given_NonceValueAndProvider_When_SaveNonce_Then_RepositorySaveIsCalled() {
 		// given
 		String nonceValue = UUID.randomUUID().toString();
 		Provider provider = Provider.KAKAO;
@@ -55,8 +55,44 @@ class NonceServiceTest {
 	}
 
 	@Test
-	@DisplayName("Validate nonce successfully")
-	void validateNonceSuccessfully() {
+	@DisplayName("Throws an exception when validating a non-existent nonce")
+	void Given_NonceNotInRepository_When_ValidateNonce_Then_ThrowsInvalidNonceException() {
+		// given
+		String nonceValue = UUID.randomUUID().toString();
+		Provider provider = Provider.KAKAO;
+
+		doReturn(Optional.empty()).when(nonceRepository).findById(nonceValue);
+
+		// when & then
+		assertThatThrownBy(() -> nonceService.validateNonce(nonceValue, provider))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_NONCE);
+		verify(nonceRepository, never()).deleteById(anyString());
+	}
+
+	@Test
+	@DisplayName("Throws an exception when the provider does not match")
+	void Given_NonceWithMismatchedProvider_When_ValidateNonce_Then_ThrowsInvalidNonceException() {
+		// given
+		String nonceValue = UUID.randomUUID().toString();
+		Provider requestProvider = Provider.KAKAO;
+		Nonce storedNonce = Nonce.builder()
+			.value(nonceValue)
+			.provider(null) // Stored nonce has a different (null) provider
+			.build();
+
+		doReturn(Optional.of(storedNonce)).when(nonceRepository).findById(nonceValue);
+
+		// when & then
+		assertThatThrownBy(() -> nonceService.validateNonce(nonceValue, requestProvider))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_NONCE);
+		verify(nonceRepository, never()).deleteById(anyString());
+	}
+
+	@Test
+	@DisplayName("Validates a nonce successfully and deletes it")
+	void Given_ValidNonceInRepository_When_ValidateNonce_Then_DeletesNonce() {
 		// given
 		String nonceValue = UUID.randomUUID().toString();
 		Provider provider = Provider.KAKAO;
@@ -75,48 +111,8 @@ class NonceServiceTest {
 	}
 
 	@Test
-	@DisplayName("Throw exception when nonce not found")
-	void throwExceptionWhenNonceNotFound() {
-		// given
-		String nonceValue = UUID.randomUUID().toString();
-		Provider provider = Provider.KAKAO;
-
-		doReturn(Optional.empty()).when(nonceRepository).findById(nonceValue);
-
-		// when & then
-		ServerException exception = assertThrows(ServerException.class, () -> {
-			nonceService.validateNonce(nonceValue, provider);
-		});
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_NONCE);
-		verify(nonceRepository, never()).deleteById(anyString());
-	}
-
-	@Test
-	@DisplayName("Throw exception when provider mismatch")
-	void throwExceptionWhenProviderMismatch() {
-		// given
-		String nonceValue = UUID.randomUUID().toString();
-		Provider requestedProvider = Provider.KAKAO;
-		Provider storedProvider = Provider.APPLE;
-
-		Nonce nonce = Nonce.builder()
-			.value(nonceValue)
-			.provider(storedProvider)
-			.build();
-
-		doReturn(Optional.of(nonce)).when(nonceRepository).findById(nonceValue);
-
-		// when & then
-		ServerException exception = assertThrows(ServerException.class, () -> {
-			nonceService.validateNonce(nonceValue, requestedProvider);
-		});
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_NONCE);
-		verify(nonceRepository, never()).deleteById(anyString());
-	}
-
-	@Test
-	@DisplayName("Delete nonce successfully")
-	void deleteNonceSuccessfully() {
+	@DisplayName("Deletes a nonce successfully")
+	void Given_NonceValue_When_DeleteNonce_Then_RepositoryDeleteIsCalled() {
 		// given
 		String nonceValue = UUID.randomUUID().toString();
 
@@ -126,4 +122,5 @@ class NonceServiceTest {
 		// then
 		verify(nonceRepository).deleteById(nonceValue);
 	}
+
 }

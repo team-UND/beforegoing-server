@@ -2,6 +2,7 @@ package com.und.server.oauth;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
@@ -28,12 +29,8 @@ public class OidcProviderFactory {
 	}
 
 	private OidcProvider getOidcProvider(final Provider provider) {
-		final OidcProvider oidcProvider = oidcProviders.get(provider);
-		if (oidcProvider == null) {
-			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
-		}
-
-		return oidcProvider;
+		return Optional.ofNullable(oidcProviders.get(provider))
+			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_PROVIDER));
 	}
 
 }

@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,9 +28,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.dto.AuthResponse;
 import com.und.server.dto.TestAuthRequest;
-import com.und.server.dto.TestHelloResponse;
 import com.und.server.entity.Member;
 import com.und.server.exception.GlobalExceptionHandler;
+import com.und.server.exception.ServerErrorResult;
 import com.und.server.oauth.Provider;
 import com.und.server.repository.MemberRepository;
 import com.und.server.service.AuthService;
@@ -58,14 +60,22 @@ class TestControllerTest {
 	}
 
 	@Test
-	void requireAccessToken_whenMemberExists() throws Exception {
+	@DisplayName("Issues tokens for an existing member")
+	void Given_ExistingMember_When_RequestAccessToken_Then_ReturnsOkWithTokens() throws Exception {
 		// given
-		final String url = "/api/v1/auth/access";
-		final TestAuthRequest request = new TestAuthRequest(Provider.KAKAO, "provider-id-123", "Chori");
-		final Member existingMember = Member.builder().id(1L).kakaoId("provider-id-123").nickname("Chori").build();
-		final AuthResponse expectedResponse = new AuthResponse("Bearer", "access-token", 3600, "refresh-token", 7200);
+		final String url = "/v1/test/access";
+		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id", "Chori");
+		final Member existingMember = Member.builder().id(1L).kakaoId("dummy.provider.id").nickname("Chori").build();
+		final AuthResponse expectedResponse = new AuthResponse(
+			"Bearer",
+			"access-token",
+			3600,
+			"refresh-token",
+			7200
+		);
 
-		doReturn(existingMember).when(authService).findMemberByProviderId(request.provider(), request.providerId());
+		doReturn(Provider.KAKAO).when(authService).convertToProvider(request.provider());
+		doReturn(existingMember).when(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
 		doReturn(expectedResponse).when(authService).issueTokens(existingMember.getId());
 
 		// when
@@ -76,22 +86,26 @@ class TestControllerTest {
 		);
 
 		// then
+		final AuthResponse actualResponse = objectMapper.readValue(
+			resultActions
+				.andReturn()
+				.getResponse()
+				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
+		);
+
 		resultActions.andExpect(status().isOk());
-
-		final String responseBody = resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
-		final AuthResponse actualResponse = objectMapper.readValue(responseBody, AuthResponse.class);
-
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
-		verify(authService).findMemberByProviderId(request.provider(), request.providerId());
-		verify(authService, never()).createMember(request.provider(), request.providerId(), request.nickname());
+		verify(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
+		verify(authService, never()).createMember(Provider.KAKAO, request.providerId(), request.nickname());
 		verify(authService).issueTokens(existingMember.getId());
 	}
 
 	@Test
-	void requireAccessToken_whenMemberDoesNotExist() throws Exception {
+	@DisplayName("Creates a new member and issues tokens when member does not exist")
+	void Given_NonExistingMember_When_RequestAccessToken_Then_CreatesMemberAndReturnsOkWithTokens() throws Exception {
 		// given
-		final String url = "/api/v1/auth/access";
-		final TestAuthRequest request = new TestAuthRequest(Provider.KAKAO, "provider-id-456", "Newbie");
+		final String url = "/v1/test/access";
+		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456", "Newbie");
 		final Member newMember = Member.builder().id(2L).kakaoId("provider-id-456").nickname("Newbie").build();
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
@@ -101,12 +115,9 @@ class TestControllerTest {
 			7200
 		);
 
-		doReturn(null).when(authService).findMemberByProviderId(request.provider(), request.providerId());
-		doReturn(newMember).when(authService).createMember(
-			request.provider(),
-			request.providerId(),
-			request.nickname()
-		);
+		doReturn(Provider.KAKAO).when(authService).convertToProvider(request.provider());
+		doReturn(null).when(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
+		doReturn(newMember).when(authService).createMember(Provider.KAKAO, request.providerId(), request.nickname());
 		doReturn(expectedResponse).when(authService).issueTokens(newMember.getId());
 
 		// when
@@ -117,80 +128,81 @@ class TestControllerTest {
 		);
 
 		// then
+		final AuthResponse actualResponse = objectMapper.readValue(
+			resultActions
+				.andReturn()
+				.getResponse()
+				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
+		);
+
 		resultActions.andExpect(status().isOk());
-
-		final String responseBody = resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
-		final AuthResponse actualResponse = objectMapper.readValue(responseBody, AuthResponse.class);
-
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
-		verify(authService).findMemberByProviderId(request.provider(), request.providerId());
-		verify(authService).createMember(request.provider(), request.providerId(), request.nickname());
+		verify(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
+		verify(authService).createMember(Provider.KAKAO, request.providerId(), request.nickname());
 		verify(authService).issueTokens(newMember.getId());
 	}
 
 	@Test
-	void returnHelloWithNickname() throws Exception {
+	@DisplayName("Fails to greet and returns unauthorized when the authenticated member is not found")
+	void Given_AuthenticatedUserNotFoundInDb_When_Greet_Then_ReturnsUnauthorized() throws Exception {
 		// given
-		Long memberId = 1L;
-		Member member = Member.builder().id(memberId).nickname("Chori").build();
-
-		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
-		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
-
-		// when
-		ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get("/hello")
-				.principal(auth)
-		);
-
-		// then
-		result.andExpect(status().isOk());
-
-		String responseBody = result.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
-		TestHelloResponse response = objectMapper.readValue(responseBody, TestHelloResponse.class);
-
-		assertThat(response.message()).isEqualTo("Hello, Chori!");
-	}
-
-	@Test
-	void helloWithDefaultNickname() throws Exception {
-		// given
-		Long memberId = 2L;
-		Member member = Member.builder().id(memberId).nickname(null).build();
-
-		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
-		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
-
-		// when
-		ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get("/hello")
-				.principal(auth)
-		);
-
-		// then
-		result.andExpect(status().isOk());
-
-		String responseBody = result.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
-		TestHelloResponse response = objectMapper.readValue(responseBody, TestHelloResponse.class);
-
-		assertThat(response.message()).isEqualTo("Hello, Member!");
-	}
-
-	@Test
-	void failToReturnHelloWithMissingMember() throws Exception {
-		// given
-		Long memberId = 3L;
+		final String url = "/v1/test/hello";
+		final Long memberId = 3L;
 
 		doReturn(Optional.empty()).when(memberRepository).findById(memberId);
 		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
 		ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get("/hello")
-				.principal(auth)
+			MockMvcRequestBuilders.get(url).principal(auth)
 		);
 
 		// then
-		result.andExpect(status().isUnauthorized());
+		result.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(ServerErrorResult.MEMBER_NOT_FOUND.name()))
+			.andExpect(jsonPath("$.message").value(ServerErrorResult.MEMBER_NOT_FOUND.getMessage()));
 	}
+
+	@Test
+	@DisplayName("Returns a personalized greeting for an authenticated user with a nickname")
+	void Given_AuthenticatedUserWithNickname_When_Greet_Then_ReturnsOkWithPersonalizedMessage() throws Exception {
+		// given
+		final String url = "/v1/test/hello";
+		final Long memberId = 1L;
+		final Member member = Member.builder().id(memberId).nickname("Chori").build();
+
+		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
+		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
+
+		// when
+		ResultActions result = mockMvc.perform(
+			MockMvcRequestBuilders.get(url).principal(auth)
+		);
+
+		// then
+		result.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("Hello, Chori!"));
+	}
+
+	@Test
+	@DisplayName("Returns a default greeting for an authenticated user without a nickname")
+	void Given_AuthenticatedUserWithoutNickname_When_Greet_Then_ReturnsOkWithDefaultMessage() throws Exception {
+		// given
+		final String url = "/v1/test/hello";
+		final Long memberId = 2L;
+		final Member member = Member.builder().id(memberId).nickname(null).build();
+
+		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
+		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
+
+		// when
+		ResultActions result = mockMvc.perform(
+			MockMvcRequestBuilders.get(url).principal(auth)
+		);
+
+		// then
+		result.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("Hello, Member!"));
+	}
+
 }

@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-alpine AS base
 
 WORKDIR /app
 
@@ -10,7 +10,22 @@ EXPOSE 8080
 
 EXPOSE 10090
 
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+
+FROM base AS dev
+
+HEALTHCHECK --start-period=90s --interval=20s --timeout=20s --retries=3 \
+  CMD ["wget", "--quiet", "--spider", "http://localhost:8080/actuator/health"]
+
+
+FROM base AS stg
+
 HEALTHCHECK --start-period=90s --interval=15s --timeout=5s --retries=3 \
   CMD ["wget", "--quiet", "--spider", "http://localhost:10090/actuator/health"]
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+FROM base AS prod
+
+HEALTHCHECK --start-period=90s --interval=15s --timeout=5s --retries=3 \
+  CMD ["wget", "--quiet", "--spider", "http://localhost:10090/actuator/health"]
