@@ -130,13 +130,25 @@ jobs:
         if: success()
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: |
-            ✅ **Deployment Succeeded**
-            - Service: `${{ env.ECS_SERVICE }}`
-            - Image: `${{ needs.build.outputs.short_sha }}`
-            - Cluster: `${{ env.ECS_CLUSTER }}`
+          args: "A new version (`${{ needs.build.outputs.short_sha }}`) has been deployed to Production Server 🚀"
         env:
           DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
+          DISCORD_EMBEDS: |
+            [
+              {
+                "author": {
+                  "name": "${{ github.actor }}"
+                },
+                "title": "Deployment Succeeded",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "color": 10478271,
+                "fields": [
+                  { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
+                  { "name": "Cluster", "value": "`${{ env.ECS_CLUSTER }}`", "inline": true },
+                  { "name": "Image", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true }
+                ]
+              }
+            ]
 
       - name: Rollback on Failure
         if: failure()
@@ -151,10 +163,21 @@ jobs:
         if: failure()
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: |
-            ❌ **Deployment Failed**
-            - Service: `${{ env.ECS_SERVICE }}`
-            - Image: `${{ needs.build.outputs.short_sha }}`
-            - Action: Rolled back to previous task definition.
+          args: "Deployment to Production Server failed 😢"
         env:
           DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
+          DISCORD_EMBEDS: |
+            [
+              {
+                "author": {
+                  "name": "${{ github.actor }}"
+                },
+                "title": "Deployment Failed",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n**Action**: Rolled back to previous task definition.",
+                "color": 13458524,
+                "fields": [
+                  { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
+                  { "name": "Image attempted", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true }
+                ]
+              }
+            ]
