@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.dto.ErrorResponse;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 import com.und.server.jwt.JwtProvider;
@@ -39,16 +40,13 @@ class JwtAuthenticationFilterTest {
 	@Mock
 	private FilterChain filterChain;
 
-	private SecurityErrorResponseWriter securityErrorResponseWriter;
-
 	private final ObjectMapper objectMapper = new ObjectMapper();
-
-	private record ErrorResponse(String code, Object message) {
-	}
+	private final SecurityErrorResponseWriter securityErrorResponseWriter = new SecurityErrorResponseWriter(
+		objectMapper
+	);
 
 	@BeforeEach
 	void init() {
-		securityErrorResponseWriter = new SecurityErrorResponseWriter(objectMapper);
 		jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, securityErrorResponseWriter);
 		SecurityContextHolder.clearContext();
 	}

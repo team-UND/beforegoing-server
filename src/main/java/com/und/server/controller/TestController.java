@@ -4,7 +4,6 @@ package com.und.server.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +16,6 @@ import com.und.server.dto.TestHelloResponse;
 import com.und.server.entity.Member;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
-import com.und.server.oauth.Provider;
 import com.und.server.repository.MemberRepository;
 import com.und.server.service.AuthService;
 
@@ -32,20 +30,9 @@ public class TestController {
 	private final AuthService authService;
 	private final MemberRepository memberRepository;
 
-	@Transactional
 	@PostMapping("/access")
 	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid TestAuthRequest request) {
-
-		final Provider provider = authService.convertToProvider(request.provider());
-		final String providerId = request.providerId();
-		final String nickname = request.nickname();
-
-		Member member = authService.findMemberByProviderId(provider, providerId);
-		if (member == null) {
-			member = authService.createMember(provider, providerId, nickname);
-		}
-		final AuthResponse response = authService.issueTokens(member.getId());
-
+		final AuthResponse response = authService.issueTokensForTest(request);
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 

@@ -33,7 +33,7 @@ class NonceServiceTest {
 	@DisplayName("Generates a UUID-formatted nonce value")
 	void Given_Nothing_When_GenerateNonceValue_Then_ReturnsUuidString() {
 		// when
-		String nonce = nonceService.generateNonceValue();
+		final String nonce = nonceService.generateNonceValue();
 
 		// then
 		assertThat(nonce).isNotNull();
@@ -44,8 +44,8 @@ class NonceServiceTest {
 	@DisplayName("Saves a nonce successfully")
 	void Given_NonceValueAndProvider_When_SaveNonce_Then_RepositorySaveIsCalled() {
 		// given
-		String nonceValue = UUID.randomUUID().toString();
-		Provider provider = Provider.KAKAO;
+		final String nonceValue = UUID.randomUUID().toString();
+		final Provider provider = Provider.KAKAO;
 
 		// when
 		nonceService.saveNonce(nonceValue, provider);
@@ -58,8 +58,8 @@ class NonceServiceTest {
 	@DisplayName("Throws an exception when validating a non-existent nonce")
 	void Given_NonceNotInRepository_When_ValidateNonce_Then_ThrowsInvalidNonceException() {
 		// given
-		String nonceValue = UUID.randomUUID().toString();
-		Provider provider = Provider.KAKAO;
+		final String nonceValue = UUID.randomUUID().toString();
+		final Provider provider = Provider.KAKAO;
 
 		doReturn(Optional.empty()).when(nonceRepository).findById(nonceValue);
 
@@ -74,9 +74,9 @@ class NonceServiceTest {
 	@DisplayName("Throws an exception when the provider does not match")
 	void Given_NonceWithMismatchedProvider_When_ValidateNonce_Then_ThrowsInvalidNonceException() {
 		// given
-		String nonceValue = UUID.randomUUID().toString();
-		Provider requestProvider = Provider.KAKAO;
-		Nonce storedNonce = Nonce.builder()
+		final String nonceValue = UUID.randomUUID().toString();
+		final Provider requestProvider = Provider.KAKAO;
+		final Nonce storedNonce = Nonce.builder()
 			.value(nonceValue)
 			.provider(null) // Stored nonce has a different (null) provider
 			.build();
@@ -94,9 +94,9 @@ class NonceServiceTest {
 	@DisplayName("Validates a nonce successfully and deletes it")
 	void Given_ValidNonceInRepository_When_ValidateNonce_Then_DeletesNonce() {
 		// given
-		String nonceValue = UUID.randomUUID().toString();
-		Provider provider = Provider.KAKAO;
-		Nonce nonce = Nonce.builder()
+		final String nonceValue = UUID.randomUUID().toString();
+		final Provider provider = Provider.KAKAO;
+		final Nonce nonce = Nonce.builder()
 			.value(nonceValue)
 			.provider(provider)
 			.build();
@@ -114,7 +114,7 @@ class NonceServiceTest {
 	@DisplayName("Deletes a nonce successfully")
 	void Given_NonceValue_When_DeleteNonce_Then_RepositoryDeleteIsCalled() {
 		// given
-		String nonceValue = UUID.randomUUID().toString();
+		final String nonceValue = UUID.randomUUID().toString();
 
 		// when
 		nonceService.deleteNonce(nonceValue);

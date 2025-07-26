@@ -29,7 +29,4 @@ HEALTHCHECK --start-period=90s --interval=15s --timeout=5s --retries=3 \
   CMD ["wget", "--quiet", "--spider", "http://localhost:10090/server/actuator/health"]
 
 
-FROM base AS prod
-
-HEALTHCHECK --start-period=90s --interval=15s --timeout=5s --retries=3 \
-  CMD ["wget", "--quiet", "--spider", "http://localhost:10090/server/actuator/health"]
+FROM stg AS prod

@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.dto.ErrorResponse;
 import com.und.server.exception.ServerErrorResult;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,6 +26,4 @@ public class SecurityErrorResponseWriter {
 			objectMapper.writeValueAsString(new ErrorResponse(errorResult.name(), errorResult.getMessage()))
 		);
 	}
-
-	private record ErrorResponse(String code, Object message) { }
 }

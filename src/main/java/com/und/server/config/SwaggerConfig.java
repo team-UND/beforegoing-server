@@ -43,7 +43,7 @@ public class SwaggerConfig {
 	@OpenAPIDefinition(servers = {
 		@Server(url = "http://localhost:8080/server", description = "Local Server")
 	})
-	class LocalConfig {
+	static class LocalConfig {
 	}
 
 	@Configuration
@@ -51,7 +51,7 @@ public class SwaggerConfig {
 	@OpenAPIDefinition(servers = {
 		@Server(url = "https://api.beforegoing.store/server", description = "Development Server")
 	})
-	class DevConfig {
+	static class DevConfig {
 	}
 
 }

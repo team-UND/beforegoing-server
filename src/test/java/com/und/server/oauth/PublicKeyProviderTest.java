@@ -5,10 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 
 import java.security.PublicKey;
-import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +20,7 @@ import com.und.server.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
 class PublicKeyProviderTest {
-	private PublicKeyProvider publicKeyProvider;
+	private final PublicKeyProvider publicKeyProvider = new PublicKeyProvider();
 
 	@Mock
 	private OidcPublicKeys oidcPublicKeys;
@@ -30,16 +28,9 @@ class PublicKeyProviderTest {
 	@Mock
 	private OidcPublicKey oidcPublicKey;
 
-	private Map<String, String> header;
-
-	@BeforeEach
-	void init() {
-		publicKeyProvider = new PublicKeyProvider();
-
-		header = new HashMap<>();
-		header.put("kid", "dummyKid");
-		header.put("alg", "RS256");
-	}
+	private final Map<String, String> header = Map.of(
+		"kid", "dummyKid", "alg", "RS256"
+	);
 
 	@Test
 	@DisplayName("Throws an exception when OIDC key components are invalid")

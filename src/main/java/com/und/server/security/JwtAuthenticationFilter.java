@@ -1,7 +1,6 @@
 package com.und.server.security;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
@@ -26,8 +25,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtProvider jwtProvider;
 	private final SecurityErrorResponseWriter errorResponseWriter;
-	private final AntPathMatcher pathMatcher = new AntPathMatcher();
-	private final List<String> permissivePaths = Arrays.asList("/v*/auth/tokens");
+	private static final AntPathMatcher pathMatcher = new AntPathMatcher();
+	private static final List<String> permissivePaths = List.of("/v*/auth/tokens");
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -43,10 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				final boolean isPermissivePath = permissivePaths.stream().anyMatch(
 					pattern -> pathMatcher.match(pattern, request.getServletPath()));
 
-				if (e.getErrorResult() == ServerErrorResult.EXPIRED_TOKEN && isPermissivePath) {
-					// For expired tokens on permissive paths, do not stop the chain
-				} else {
-					// For other errors, stop the chain and write the error response
+				if (e.getErrorResult() != ServerErrorResult.EXPIRED_TOKEN || !isPermissivePath) {
 					errorResponseWriter.sendErrorResponse(response, e.getErrorResult());
 					return;
 				}

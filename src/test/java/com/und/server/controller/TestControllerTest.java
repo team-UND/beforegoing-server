@@ -2,8 +2,6 @@ package com.und.server.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,7 +29,6 @@ import com.und.server.dto.TestAuthRequest;
 import com.und.server.entity.Member;
 import com.und.server.exception.GlobalExceptionHandler;
 import com.und.server.exception.ServerErrorResult;
-import com.und.server.oauth.Provider;
 import com.und.server.repository.MemberRepository;
 import com.und.server.service.AuthService;
 
@@ -48,15 +45,13 @@ class TestControllerTest {
 	private AuthService authService;
 
 	private MockMvc mockMvc;
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@BeforeEach
 	void init() {
 		mockMvc = MockMvcBuilders.standaloneSetup(testController)
 			.setControllerAdvice(new GlobalExceptionHandler())
 			.build();
-
-		objectMapper = new ObjectMapper();
 	}
 
 	@Test
@@ -65,7 +60,6 @@ class TestControllerTest {
 		// given
 		final String url = "/v1/test/access";
 		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id", "Chori");
-		final Member existingMember = Member.builder().id(1L).kakaoId("dummy.provider.id").nickname("Chori").build();
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
 			"access-token",
@@ -73,10 +67,7 @@ class TestControllerTest {
 			"refresh-token",
 			7200
 		);
-
-		doReturn(Provider.KAKAO).when(authService).convertToProvider(request.provider());
-		doReturn(existingMember).when(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
-		doReturn(expectedResponse).when(authService).issueTokens(existingMember.getId());
+		doReturn(expectedResponse).when(authService).issueTokensForTest(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -95,9 +86,6 @@ class TestControllerTest {
 
 		resultActions.andExpect(status().isOk());
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
-		verify(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
-		verify(authService, never()).createMember(Provider.KAKAO, request.providerId(), request.nickname());
-		verify(authService).issueTokens(existingMember.getId());
 	}
 
 	@Test
@@ -106,7 +94,6 @@ class TestControllerTest {
 		// given
 		final String url = "/v1/test/access";
 		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456", "Newbie");
-		final Member newMember = Member.builder().id(2L).kakaoId("provider-id-456").nickname("Newbie").build();
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
 			"new-access-token",
@@ -115,10 +102,7 @@ class TestControllerTest {
 			7200
 		);
 
-		doReturn(Provider.KAKAO).when(authService).convertToProvider(request.provider());
-		doReturn(null).when(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
-		doReturn(newMember).when(authService).createMember(Provider.KAKAO, request.providerId(), request.nickname());
-		doReturn(expectedResponse).when(authService).issueTokens(newMember.getId());
+		doReturn(expectedResponse).when(authService).issueTokensForTest(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -137,9 +121,6 @@ class TestControllerTest {
 
 		resultActions.andExpect(status().isOk());
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
-		verify(authService).findMemberByProviderId(Provider.KAKAO, request.providerId());
-		verify(authService).createMember(Provider.KAKAO, request.providerId(), request.nickname());
-		verify(authService).issueTokens(newMember.getId());
 	}
 
 	@Test
@@ -150,10 +131,10 @@ class TestControllerTest {
 		final Long memberId = 3L;
 
 		doReturn(Optional.empty()).when(memberRepository).findById(memberId);
-		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
+		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
-		ResultActions result = mockMvc.perform(
+		final ResultActions result = mockMvc.perform(
 			MockMvcRequestBuilders.get(url).principal(auth)
 		);
 
@@ -172,10 +153,10 @@ class TestControllerTest {
 		final Member member = Member.builder().id(memberId).nickname("Chori").build();
 
 		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
-		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
+		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
-		ResultActions result = mockMvc.perform(
+		final ResultActions result = mockMvc.perform(
 			MockMvcRequestBuilders.get(url).principal(auth)
 		);
 
@@ -193,10 +174,10 @@ class TestControllerTest {
 		final Member member = Member.builder().id(memberId).nickname(null).build();
 
 		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
-		Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
+		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
-		ResultActions result = mockMvc.perform(
+		final ResultActions result = mockMvc.perform(
 			MockMvcRequestBuilders.get(url).principal(auth)
 		);
 

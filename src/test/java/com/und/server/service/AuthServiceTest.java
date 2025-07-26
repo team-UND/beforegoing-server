@@ -24,6 +24,7 @@ import com.und.server.dto.HandshakeRequest;
 import com.und.server.dto.HandshakeResponse;
 import com.und.server.dto.OidcPublicKeys;
 import com.und.server.dto.RefreshTokenRequest;
+import com.und.server.dto.TestAuthRequest;
 import com.und.server.entity.Member;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
@@ -71,6 +72,51 @@ class AuthServiceTest {
 	private final String refreshToken = "dummy.refresh.token";
 	private final Integer accessTokenExpireTime = 3600;
 	private final Integer refreshTokenExpireTime = 7200;
+
+	// TODO: Remove this test method when deleting TestController
+	@Test
+	@DisplayName("Issues tokens for an existing member for testing purposes")
+	void Given_ExistingMemberForTest_When_IssueTokensForTest_Then_Succeeds() {
+		// given
+		final TestAuthRequest request = new TestAuthRequest("kakao", providerId, nickname);
+		final Member existingMember = Member.builder().id(memberId).kakaoId(providerId).nickname(nickname).build();
+
+		doReturn(Optional.of(existingMember)).when(memberRepository).findByKakaoId(providerId);
+		setupTokenIssuance(accessToken, refreshToken);
+
+		// when
+		final AuthResponse response = authService.issueTokensForTest(request);
+
+		// then
+		verify(memberRepository).findByKakaoId(providerId);
+		verify(memberRepository, never()).save(any(Member.class));
+		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
+		assertThat(response.accessToken()).isEqualTo(accessToken);
+		assertThat(response.refreshToken()).isEqualTo(refreshToken);
+	}
+
+	// TODO: Remove this test method when deleting TestController
+	@Test
+	@DisplayName("Creates a new member and issues tokens for testing purposes")
+	void Given_NewMemberForTest_When_IssueTokensForTest_Then_CreatesMemberAndSucceeds() {
+		// given
+		final TestAuthRequest request = new TestAuthRequest("kakao", providerId, nickname);
+		final Member newMember = Member.builder().id(memberId).kakaoId(providerId).nickname(nickname).build();
+
+		doReturn(Optional.empty()).when(memberRepository).findByKakaoId(providerId);
+		doReturn(newMember).when(memberRepository).save(any(Member.class));
+		setupTokenIssuance(accessToken, refreshToken);
+
+		// when
+		final AuthResponse response = authService.issueTokensForTest(request);
+
+		// then
+		verify(memberRepository).findByKakaoId(providerId);
+		verify(memberRepository).save(any(Member.class));
+		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
+		assertThat(response.accessToken()).isEqualTo(accessToken);
+		assertThat(response.refreshToken()).isEqualTo(refreshToken);
+	}
 
 	@Test
 	@DisplayName("Throws an exception on handshake with an invalid provider")

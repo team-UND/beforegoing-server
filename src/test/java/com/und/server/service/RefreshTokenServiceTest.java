@@ -32,7 +32,7 @@ class RefreshTokenServiceTest {
 	@DisplayName("Generates a new UUID-formatted refresh token")
 	void Given_Nothing_When_GenerateRefreshToken_Then_ReturnsUuidString() {
 		// when
-		String token = refreshTokenService.generateRefreshToken();
+		final String token = refreshTokenService.generateRefreshToken();
 
 		// then
 		assertThat(token).isNotNull();
@@ -61,7 +61,7 @@ class RefreshTokenServiceTest {
 		doReturn(Optional.of(token)).when(refreshTokenRepository).findById(memberId);
 
 		// when
-		String result = refreshTokenService.getRefreshToken(memberId);
+		final String result = refreshTokenService.getRefreshToken(memberId);
 
 		// then
 		assertThat(result).isEqualTo(refreshToken);
@@ -74,7 +74,7 @@ class RefreshTokenServiceTest {
 		doReturn(Optional.empty()).when(refreshTokenRepository).findById(memberId);
 
 		// when
-		String result = refreshTokenService.getRefreshToken(memberId);
+		final String result = refreshTokenService.getRefreshToken(memberId);
 
 		// then
 		assertThat(result).isNull();
