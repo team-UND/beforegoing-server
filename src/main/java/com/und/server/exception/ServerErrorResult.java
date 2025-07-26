@@ -19,7 +19,7 @@ public enum ServerErrorResult {
 	INVALID_TOKEN_SIGNATURE(HttpStatus.UNAUTHORIZED, "Invalid Token Signature"),
 	INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Invalid Token"),
 	UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "Unauthorized Access"),
-	// FIXME: Remove MEMBER_NOT_FOUND when deleting TestController
+	// TODO: Remove MEMBER_NOT_FOUND when deleting TestController
 	MEMBER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Member Not Found"),
 	UNKNOWN_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown Exception");
 
