@@ -17,7 +17,7 @@ public enum ServerErrorResult {
 	EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "Expired Token"),
 	TOKEN_NOT_EXPIRED(HttpStatus.BAD_REQUEST, "Token Not Expired"),
 	MALFORMED_TOKEN(HttpStatus.BAD_REQUEST, "Malformed Token"),
-	INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "Invalid Signature"),
+	INVALID_TOKEN_SIGNATURE(HttpStatus.UNAUTHORIZED, "Invalid Token Signature"),
 	INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Invalid Token"),
 	UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "Unauthorized Access"),
 	MEMBER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Member Not Found"),
