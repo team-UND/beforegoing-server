@@ -73,7 +73,7 @@ class AuthServiceTest {
 	private final Integer accessTokenExpireTime = 3600;
 	private final Integer refreshTokenExpireTime = 7200;
 
-	// TODO: Remove this test method when deleting TestController
+	// FIXME: Remove this test method when deleting TestController
 	@Test
 	@DisplayName("Issues tokens for an existing member for testing purposes")
 	void Given_ExistingMemberForTest_When_IssueTokensForTest_Then_Succeeds() {
@@ -95,7 +95,7 @@ class AuthServiceTest {
 		assertThat(response.refreshToken()).isEqualTo(refreshToken);
 	}
 
-	// TODO: Remove this test method when deleting TestController
+	// FIXME: Remove this test method when deleting TestController
 	@Test
 	@DisplayName("Creates a new member and issues tokens for testing purposes")
 	void Given_NewMemberForTest_When_IssueTokensForTest_Then_CreatesMemberAndSucceeds() {
