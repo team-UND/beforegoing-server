@@ -128,7 +128,7 @@ public class JwtProvider {
 		} catch (MalformedJwtException e) {
 			throw new ServerException(ServerErrorResult.MALFORMED_TOKEN, e);
 		} catch (SecurityException e) {
-			throw new ServerException(ServerErrorResult.INVALID_SIGNATURE, e);
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN_SIGNATURE, e);
 		} catch (ExpiredJwtException e) {
 			throw e;
 		} catch (JwtException e) {

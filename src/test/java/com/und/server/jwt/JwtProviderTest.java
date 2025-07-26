@@ -304,7 +304,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_SIGNATURE);
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN_SIGNATURE);
 	}
 
 	@Test

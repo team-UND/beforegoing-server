@@ -27,12 +27,6 @@ spring:
 sentry:
   enabled: false
 
-# Springdoc (Swagger)
-springdoc:
-  server:
-    url: http://localhost:8080/server
-    description: Local Server
-
 # Actuator
 management:
   server:

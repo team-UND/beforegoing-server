@@ -16,13 +16,15 @@ import com.und.server.exception.ServerErrorResult;
 class CustomAuthenticationEntryPointTest {
 
 	private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+	private SecurityErrorResponseWriter securityErrorResponseWriter;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private record ErrorResponse(String code, Object message) { }
 
 	@BeforeEach
 	void init() {
-		customAuthenticationEntryPoint = new CustomAuthenticationEntryPoint(objectMapper);
+		securityErrorResponseWriter = new SecurityErrorResponseWriter(objectMapper);
+		customAuthenticationEntryPoint = new CustomAuthenticationEntryPoint(securityErrorResponseWriter);
 	}
 
 	@Test
@@ -41,7 +43,7 @@ class CustomAuthenticationEntryPointTest {
 		assertThat(response.getStatus()).isEqualTo(expectedError.getHttpStatus().value());
 		assertThat(response.getContentType()).isEqualTo("application/json;charset=UTF-8");
 
-		ErrorResponse actualResponse = objectMapper.readValue(response.getContentAsString(), ErrorResponse.class);
+		final ErrorResponse actualResponse = objectMapper.readValue(response.getContentAsString(), ErrorResponse.class);
 		assertThat(actualResponse.code()).isEqualTo(expectedError.name());
 		assertThat(actualResponse.message()).isEqualTo(expectedError.getMessage());
 	}
