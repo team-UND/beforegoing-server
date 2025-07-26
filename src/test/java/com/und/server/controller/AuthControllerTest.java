@@ -42,14 +42,13 @@ class AuthControllerTest {
 	private AuthService authService;
 
 	private MockMvc mockMvc;
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@BeforeEach
 	void init() {
 		mockMvc = MockMvcBuilders.standaloneSetup(authController)
 			.setControllerAdvice(new GlobalExceptionHandler())
 			.build();
-		objectMapper = new ObjectMapper();
 	}
 
 	@Test
@@ -217,8 +216,8 @@ class AuthControllerTest {
 	void Given_ValidLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
-		final AuthRequest authRequest = authRequest("kakao", "dummy.id.token");
-		final AuthResponse authResponse = authResponse(
+		final AuthRequest authRequest = new AuthRequest("kakao", "dummy.id.token");
+		final AuthResponse authResponse = new AuthResponse(
 			"Bearer",
 			"dummy.access.token",
 			10000,
@@ -301,7 +300,7 @@ class AuthControllerTest {
 		final RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
 			"old.access.token", "old.refresh.token"
 		);
-		final AuthResponse authResponse = authResponse(
+		final AuthResponse authResponse = new AuthResponse(
 			"Bearer",
 			"new.access.token",
 			10000,
@@ -330,26 +329,6 @@ class AuthControllerTest {
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("new.access.token");
 		assertThat(response.refreshToken()).isEqualTo("new.refresh.token");
-	}
-
-	private AuthRequest authRequest(final String provider, final String idToken) {
-		return new AuthRequest(provider, idToken);
-	}
-
-	private AuthResponse authResponse(
-		final String tokenType,
-		final String accessToken,
-		final Integer accessTokenExpiresIn,
-		final String refreshToken,
-		final Integer refreshTokenExpiresIn
-	) {
-		return new AuthResponse(
-			tokenType,
-			accessToken,
-			accessTokenExpiresIn,
-			refreshToken,
-			refreshTokenExpiresIn
-		);
 	}
 
 }

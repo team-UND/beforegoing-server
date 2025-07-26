@@ -37,7 +37,7 @@ class JwtProviderTest {
 
 	private JwtProvider jwtProvider;
 
-	private SecretKey secretKey;
+	private final SecretKey secretKey = Jwts.SIG.HS256.key().build();
 	private final String nonce = "dummyNonce";
 	private final String issuer = "dummyIssuer";
 	private final String subject = "Chori";
@@ -45,7 +45,6 @@ class JwtProviderTest {
 
 	@BeforeEach
 	void init() {
-		secretKey = Jwts.SIG.HS256.key().build();
 		jwtProvider = new JwtProvider(jwtProperties);
 	}
 

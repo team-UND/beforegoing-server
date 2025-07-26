@@ -3,7 +3,6 @@ package com.und.server.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -11,21 +10,18 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.dto.ErrorResponse;
 import com.und.server.exception.ServerErrorResult;
 
 class CustomAuthenticationEntryPointTest {
 
-	private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-	private SecurityErrorResponseWriter securityErrorResponseWriter;
 	private final ObjectMapper objectMapper = new ObjectMapper();
-
-	private record ErrorResponse(String code, Object message) { }
-
-	@BeforeEach
-	void init() {
-		securityErrorResponseWriter = new SecurityErrorResponseWriter(objectMapper);
-		customAuthenticationEntryPoint = new CustomAuthenticationEntryPoint(securityErrorResponseWriter);
-	}
+	private final SecurityErrorResponseWriter securityErrorResponseWriter = new SecurityErrorResponseWriter(
+		objectMapper
+	);
+	private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint = new CustomAuthenticationEntryPoint(
+		securityErrorResponseWriter
+	);
 
 	@Test
 	@DisplayName("Writes an unauthorized access error to the response when authentication fails")
