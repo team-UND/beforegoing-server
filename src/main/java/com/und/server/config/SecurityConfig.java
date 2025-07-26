@@ -1,5 +1,6 @@
 package com.und.server.config;
 
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -35,17 +36,17 @@ public class SecurityConfig {
 	@Bean
 	@Order(1)
 	public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
-		http
-			.securityMatcher("/actuator/**")
+		return http
+			.securityMatcher(EndpointRequest.toAnyEndpoint())
 			.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/actuator/health").permitAll()
-				.requestMatchers("/actuator/prometheus").hasRole("OBSERVABILITY")
+				.requestMatchers(EndpointRequest.to("health")).permitAll()
+				.requestMatchers(EndpointRequest.to("prometheus")).hasRole("OBSERVABILITY")
 				.anyRequest().denyAll()
 			)
 			.httpBasic(Customizer.withDefaults())
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.csrf(AbstractHttpConfigurer::disable);
-		return http.build();
+			.csrf(AbstractHttpConfigurer::disable)
+			.build();
 	}
 
 	@Bean

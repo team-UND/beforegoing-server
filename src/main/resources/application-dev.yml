@@ -30,6 +30,12 @@ sentry:
   exception-resolver-order: -2147483647
   max-request-body-size: always
 
+# Springdoc (Swagger)
+springdoc:
+  server:
+    url: https://api.beforegoing.store/server
+    description: Development Server
+
 # Actuator
 management:
   server:

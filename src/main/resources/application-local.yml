@@ -27,11 +27,18 @@ spring:
 sentry:
   enabled: false
 
+# Springdoc (Swagger)
+springdoc:
+  server:
+    url: http://localhost:8080/server
+    description: Local Server
+
 # Actuator
 management:
   server:
-    port: 8080
+    port: 10090
   endpoints:
     web:
+      base-path: /server/actuator
       exposure:
         include: "*"

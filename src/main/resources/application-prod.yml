@@ -43,5 +43,6 @@ management:
     port: 10090
   endpoints:
     web:
+      base-path: /server/actuator
       exposure:
         include: health, prometheus
