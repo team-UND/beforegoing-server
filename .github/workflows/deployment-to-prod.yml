@@ -143,8 +143,8 @@ jobs:
                 "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
                 "color": 10478271,
                 "fields": [
-                  { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
                   { "name": "Cluster", "value": "`${{ env.ECS_CLUSTER }}`", "inline": true },
+                  { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
                   { "name": "Image", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true }
                 ]
               }
