@@ -18,7 +18,7 @@ public record OidcPublicKey(
 	@Schema(description = "Usage", example = "sig")
 	@JsonProperty("use") String use,
 
-	@Schema(description = "Modulus", example = "u2a...")
+	@Schema(description = "Modulus", example = "q8zZ0b_MNaLd6Ny8wd4...")
 	@JsonProperty("n") String n,
 
 	@Schema(description = "Exponent", example = "AQAB")

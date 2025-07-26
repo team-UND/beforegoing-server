@@ -10,6 +10,6 @@ public record RefreshTokenRequest(
 	@Schema(description = "Expired Access Token", example = "eyJhbGciOiJIUzI1Ni...")
 	@NotNull(message = "Access Token must not be null") @JsonProperty("access_token") String accessToken,
 
-	@Schema(description = "Valid Refresh Token", example = "eyJhbGciOiJIUzI1Ni...")
+	@Schema(description = "Valid Refresh Token", example = "a1b2c3d4-e5f6-78...")
 	@NotNull(message = "Refresh Token must not be null") @JsonProperty("refresh_token") String refreshToken
 ) { }

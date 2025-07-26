@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "A list of OIDC Public Keys")
 public record OidcPublicKeys(
-	@Schema(description = "List of public keys")
+	@Schema(description = "List of public keys", example = "[...]")
 	@JsonProperty("keys") List<OidcPublicKey> keys
 ) {
 	public OidcPublicKey matchingKey(final String kid, final String alg) {
