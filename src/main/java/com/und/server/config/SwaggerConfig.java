@@ -3,27 +3,29 @@ package com.und.server.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
 public class SwaggerConfig {
 
-	@Value("${server.url:}")
+	@Value("${springdoc.server.url}")
 	private String serverUrl;
+
+	@Value("${springdoc.server.description}")
+	private String serverDescription;
 
 	@Bean
 	public OpenAPI openApi() {
 		final String jwt = "JWT";
 
 		return new OpenAPI()
+			.addServersItem(new Server().url(serverUrl).description(serverDescription))
 			.info(apiInfo())
 			.components(new Components()
 				.addSecuritySchemes(jwt, new SecurityScheme()
@@ -40,22 +42,6 @@ public class SwaggerConfig {
 			.title("API Specification")
 			.description("Swagger UI")
 			.version("0.0.1");
-	}
-
-	@Configuration
-	@Profile("local")
-	@OpenAPIDefinition(servers = {
-		@Server(url = "http://localhost:8080/server", description = "Local Server")
-	})
-	class LocalConfig {
-	}
-
-	@Configuration
-	@Profile("dev")
-	@OpenAPIDefinition(servers = {
-		@Server(url = "https://api.beforegoing.store/server", description = "Development Server")
-	})
-	class DevConfig {
 	}
 
 }

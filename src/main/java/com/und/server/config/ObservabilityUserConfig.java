@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
@@ -19,11 +18,10 @@ public class ObservabilityUserConfig {
 
 	@Bean
 	public InMemoryUserDetailsManager prometheusUserDetails(PasswordEncoder passwordEncoder) {
-		UserDetails user = User.builder()
+		return new InMemoryUserDetailsManager(User.builder()
 			.username(prometheusUsername)
 			.password(passwordEncoder.encode(prometheusPassword))
 			.roles("OBSERVABILITY")
-			.build();
-		return new InMemoryUserDetailsManager(user);
+			.build());
 	}
 }
