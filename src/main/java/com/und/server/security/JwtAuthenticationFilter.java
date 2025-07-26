@@ -2,14 +2,11 @@ package com.und.server.security;
 
 import java.io.IOException;
 
-import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 import com.und.server.jwt.JwtProvider;
 
@@ -24,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtProvider jwtProvider;
-	private final ObjectMapper objectMapper;
+	private final SecurityErrorResponseWriter errorResponseWriter;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -37,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				Authentication authentication = jwtProvider.getAuthentication(token);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			} catch (ServerException e) {
-				setErrorResponse(response, e.getErrorResult());
+				errorResponseWriter.sendErrorResponse(response, e.getErrorResult());
 				return;
 			}
 		}
@@ -53,16 +50,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		return null;
 	}
 
-	private void setErrorResponse(HttpServletResponse response, ServerErrorResult errorResult) throws IOException {
-		response.setStatus(errorResult.getHttpStatus().value());
-		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		response.setCharacterEncoding("UTF-8");
-		response.getWriter().write(objectMapper.writeValueAsString(
-			new ErrorResponse(errorResult.name(),
-			errorResult.getMessage()))
-		);
-	}
-
-	private record ErrorResponse(String code, Object message) { }
 }
-

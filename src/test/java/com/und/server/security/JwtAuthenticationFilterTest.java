@@ -39,6 +39,8 @@ class JwtAuthenticationFilterTest {
 	@Mock
 	private FilterChain filterChain;
 
+	private SecurityErrorResponseWriter securityErrorResponseWriter;
+
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private record ErrorResponse(String code, Object message) {
@@ -46,7 +48,8 @@ class JwtAuthenticationFilterTest {
 
 	@BeforeEach
 	void init() {
-		jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, objectMapper);
+		securityErrorResponseWriter = new SecurityErrorResponseWriter(objectMapper);
+		jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtProvider, securityErrorResponseWriter);
 		SecurityContextHolder.clearContext();
 	}
 
