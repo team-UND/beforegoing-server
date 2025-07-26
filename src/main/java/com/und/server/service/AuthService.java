@@ -9,6 +9,7 @@ import com.und.server.dto.HandshakeRequest;
 import com.und.server.dto.HandshakeResponse;
 import com.und.server.dto.OidcPublicKeys;
 import com.und.server.dto.RefreshTokenRequest;
+import com.und.server.dto.TestAuthRequest;
 import com.und.server.entity.Member;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
@@ -36,6 +37,16 @@ public class AuthService {
 	private final NonceService nonceService;
 	private final RefreshTokenService refreshTokenService;
 
+	// TODO: Remove this method when deleting TestController
+	@Transactional
+	public AuthResponse issueTokensForTest(TestAuthRequest request) {
+		final Provider provider = convertToProvider(request.provider());
+		final IdTokenPayload payload = new IdTokenPayload(request.providerId(), request.nickname());
+		final Member member = findOrCreateMember(provider, payload);
+
+		return issueTokens(member.getId());
+	}
+
 	@Transactional
 	public HandshakeResponse handshake(final HandshakeRequest handshakeRequest) {
 		final String nonce = nonceService.generateNonceValue();
@@ -48,22 +59,9 @@ public class AuthService {
 
 	@Transactional
 	public AuthResponse login(final AuthRequest authRequest) {
-		final String idToken = authRequest.idToken();
 		final Provider provider = convertToProvider(authRequest.provider());
-
-		final String nonce = jwtProvider.extractNonce(idToken);
-		nonceService.validateNonce(nonce, provider);
-
-		final OidcClient oidcClient = oidcClientFactory.getOidcClient(provider);
-		final OidcPublicKeys oidcPublicKeys = oidcClient.getOidcPublicKeys();
-		final IdTokenPayload idTokenPayload = oidcProviderFactory.getIdTokenPayload(provider, idToken, oidcPublicKeys);
-		final String providerId = idTokenPayload.providerId();
-		final String nickname = idTokenPayload.nickname();
-
-		Member member = findMemberByProviderId(provider, providerId);
-		if (member == null) {
-			member = createMember(provider, providerId, nickname);
-		}
+		final IdTokenPayload idTokenPayload = validateIdTokenAndGetPayload(provider, authRequest.idToken());
+		final Member member = findOrCreateMember(provider, idTokenPayload);
 
 		return issueTokens(member.getId());
 	}
@@ -83,8 +81,32 @@ public class AuthService {
 		return issueTokens(memberId);
 	}
 
-	// FIXME: Change public to private when deleting TestController
-	public Member findMemberByProviderId(final Provider provider, final String providerId) {
+	private Provider convertToProvider(final String providerName) {
+		try {
+			return Provider.valueOf(providerName.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+		}
+	}
+
+	private IdTokenPayload validateIdTokenAndGetPayload(final Provider provider, final String idToken) {
+		final String nonce = jwtProvider.extractNonce(idToken);
+		nonceService.validateNonce(nonce, provider);
+
+		final OidcClient oidcClient = oidcClientFactory.getOidcClient(provider);
+		final OidcPublicKeys oidcPublicKeys = oidcClient.getOidcPublicKeys();
+
+		return oidcProviderFactory.getIdTokenPayload(provider, idToken, oidcPublicKeys);
+	}
+
+	private Member findOrCreateMember(final Provider provider, final IdTokenPayload payload) {
+		final String providerId = payload.providerId();
+		final Member member = findMemberByProviderId(provider, providerId);
+
+		return member != null ? member : createMember(provider, providerId, payload.nickname());
+	}
+
+	private Member findMemberByProviderId(final Provider provider, final String providerId) {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId).orElse(null);
 			// Add extra providers
@@ -92,8 +114,7 @@ public class AuthService {
 		};
 	}
 
-	// FIXME: Change public to private when deleting TestController
-	public Member createMember(final Provider provider, final String providerId, final String nickname) {
+	private Member createMember(final Provider provider, final String providerId, final String nickname) {
 		final Member newMember = Member.builder()
 			.kakaoId(provider == Provider.KAKAO ? providerId : null)
 			// Add extra providers
@@ -103,8 +124,7 @@ public class AuthService {
 		return memberRepository.save(newMember);
 	}
 
-	// FIXME: Change public to private when deleting TestController
-	public AuthResponse issueTokens(final Long memberId) {
+	private AuthResponse issueTokens(final Long memberId) {
 		final String accessToken = jwtProvider.generateAccessToken(memberId);
 		final String refreshToken = refreshTokenService.generateRefreshToken();
 		refreshTokenService.saveRefreshToken(memberId, refreshToken);
@@ -115,15 +135,6 @@ public class AuthService {
 			jwtProperties.accessTokenExpireTime(),
 			refreshToken,
 			jwtProperties.refreshTokenExpireTime());
-	}
-
-	// FIXME: Change public to private when deleting TestController
-	public Provider convertToProvider(final String providerName) {
-		try {
-			return Provider.valueOf(providerName.toUpperCase());
-		} catch (IllegalArgumentException e) {
-			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
-		}
 	}
 
 }
