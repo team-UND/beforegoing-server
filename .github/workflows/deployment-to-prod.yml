@@ -2,7 +2,7 @@ name: Deployment to Production Server
 
 on:
   push:
-    branches: main
+    branches: [main]
 
 env:
   AWS_IAM_ROLE_TO_ASSUME: ${{ secrets.PROD_AWS_IAM_ROLE_TO_ASSUME }}
@@ -16,7 +16,7 @@ env:
 
 permissions:
   id-token: write
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -67,23 +67,24 @@ jobs:
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
 
-      - name: Configure AWS
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_IAM_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Push Docker image
+      - name: Build and Push Docker image
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           SHORT_SHA: ${{ steps.set-sha.outputs.short_sha }}
         run: |
           IMAGE_TAG=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$SHORT_SHA
+          echo "Building and pushing image: $IMAGE_TAG"
           docker build --target prod -t $IMAGE_TAG .
           docker push $IMAGE_TAG
           echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -93,22 +94,28 @@ jobs:
     needs: build
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure AWS
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_IAM_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Backup Task Definition
+      - name: Log Current Service State
         run: |
-          aws ecs describe-task-definition \
-            --task-definition ${{ env.ECS_TASK_DEFINITION }} \
-            --query taskDefinition > task-def-backup.json
+          echo "Checking current service state before deployment..."
+          aws ecs describe-services --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }} --query 'services[0].deployments' --output table
 
-      - name: Render new Task Definition
+      - name: Backup Current Task Definition
+        run: |
+          echo "Backing up current task definition to task-def-backup.json"
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-def-backup.json
+          if [ ! -f task-def-backup.json ]; then
+            echo "::error::Failed to backup task definition."
+            exit 1
+          fi
+          echo "Backup successful."
+
+      - name: Render New Task Definition with New Image
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
@@ -116,7 +123,7 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ needs.build.outputs.image_tag }}
 
-      - name: Deploy to ECS
+      - name: Deploy New Task Definition to ECS
         id: deploy
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
@@ -124,7 +131,7 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-          wait-for-minutes: 8
+          wait-for-minutes: 10
 
       - name: Notify Success to Discord
         if: success()
@@ -136,9 +143,7 @@ jobs:
           DISCORD_EMBEDS: |
             [
               {
-                "author": {
-                  "name": "${{ github.actor }}"
-                },
+                "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Succeeded",
                 "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
                 "color": 10478271,
@@ -150,14 +155,26 @@ jobs:
               }
             ]
 
-      - name: Rollback on Failure
+      - name: Rollback to Previous Task Definition on Failure
         if: failure()
         run: |
-          echo "⚠️ Deployment failed. Rolling back..."
+          echo "::error::Deployment failed. Initiating rollback..."
+          if [ ! -f task-def-backup.json ]; then
+            echo "::error::Cannot find backup task definition file. Manual rollback required."
+            exit 1
+          fi
+
+          BACKUP_TASK_DEF_ARN=$(jq -r '.taskDefinitionArn' task-def-backup.json)
+          echo "Rolling back to task definition: $BACKUP_TASK_DEF_ARN"
+
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
-            --task-definition $(jq -r '.taskDefinition.taskDefinitionArn' task-def-backup.json)
+            --task-definition "$BACKUP_TASK_DEF_ARN" \
+            --force-new-deployment
+
+          echo "Rollback initiated. Waiting for service to stabilize..."
+          aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }}
 
       - name: Notify Failure to Discord
         if: failure()
@@ -169,15 +186,13 @@ jobs:
           DISCORD_EMBEDS: |
             [
               {
-                "author": {
-                  "name": "${{ github.actor }}"
-                },
+                "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Failed",
-                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n**Action**: Rolled back to previous task definition.",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n**Action**: Attempted to roll back to the previous stable task definition.",
                 "color": 13458524,
                 "fields": [
                   { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
-                  { "name": "Image attempted", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true }
+                  { "name": "Image Attempted", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true }
                 ]
               }
             ]
