@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: stg
+    branches: [stg]
 
 # TODO: Node.js를 SpringBoot에 맞춰 변경
 jobs:
