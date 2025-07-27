@@ -97,6 +97,12 @@ jobs:
           role-to-assume: ${{ env.AWS_IAM_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Extract App Runner Service Name
+        id: extract-name
+        run: |
+          SERVICE_NAME=$(echo "${{ env.APP_RUNNER_SERVICE_ARN }}" | cut -d'/' -f2)
+          echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+
       - name: Deploy to App Runner and Wait for Completion
         id: deploy
         run: |
@@ -165,7 +171,7 @@ jobs:
                 "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
                 "color": 10478271,
                 "fields": [
-                  { "name": "Service ARN", "value": "`${{ env.APP_RUNNER_SERVICE_ARN }}`", "inline": false },
+                  { "name": "Service", "value": "`${{ steps.extract-name.outputs.service_name }}`", "inline": true },
                   { "name": "Image", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true }
                 ]
               }
@@ -183,10 +189,10 @@ jobs:
               {
                 "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Failed",
-                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/actions/runs/${{ github.run_id }}\n\n**Action**: App Runner will automatically attempt to roll back to the last known good configuration.",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n**Action**: App Runner will automatically attempt to roll back to the last known good configuration.",
                 "color": 13458524,
                 "fields": [
-                  { "name": "Service ARN", "value": "`${{ env.APP_RUNNER_SERVICE_ARN }}`", "inline": false },
+                  { "name": "Service", "value": "`${{ steps.extract-name.outputs.service_name }}`", "inline": true },
                   { "name": "Image Attempted", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true },
                   { "name": "Final Status", "value": "`${{ steps.deploy.outputs.final_status }}`", "inline": true }
                 ]
