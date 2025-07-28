@@ -14,12 +14,12 @@ public class OidcClientFactory {
 
 	private final Map<Provider, OidcClient> oidcClients;
 
-	public OidcClientFactory(KakaoClient kakaoClient) {
+	public OidcClientFactory(final KakaoClient kakaoClient) {
 		oidcClients = new EnumMap<>(Provider.class);
 		oidcClients.put(Provider.KAKAO, kakaoClient);
 	}
 
-	public OidcClient getOidcClient(Provider provider) {
+	public OidcClient getOidcClient(final Provider provider) {
 		return Optional.ofNullable(oidcClients.get(provider))
 			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_PROVIDER));
 	}

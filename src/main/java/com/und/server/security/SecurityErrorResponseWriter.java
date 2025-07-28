@@ -18,7 +18,10 @@ public class SecurityErrorResponseWriter {
 
 	private final ObjectMapper objectMapper;
 
-	public void sendErrorResponse(HttpServletResponse response, ServerErrorResult errorResult) throws IOException {
+	public void sendErrorResponse(
+		final HttpServletResponse response,
+		final ServerErrorResult errorResult
+	) throws IOException {
 		response.setStatus(errorResult.getHttpStatus().value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding("UTF-8");

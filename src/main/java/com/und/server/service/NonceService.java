@@ -32,12 +32,12 @@ public class NonceService {
 
 
 	public void saveNonce(final String value, final Provider provider) {
-		Nonce token = Nonce.builder()
+		final Nonce nonce = Nonce.builder()
 			.value(value)
 			.provider(provider)
 			.build();
 
-		nonceRepository.save(token);
+		nonceRepository.save(nonce);
 	}
 
 	public void deleteNonce(final String value) {

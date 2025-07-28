@@ -26,7 +26,7 @@ public class RefreshTokenService {
 	}
 
 	public void saveRefreshToken(final Long memberId, final String refreshToken) {
-		RefreshToken token = RefreshToken.builder()
+		final RefreshToken token = RefreshToken.builder()
 			.memberId(memberId)
 			.refreshToken(refreshToken)
 			.build();
