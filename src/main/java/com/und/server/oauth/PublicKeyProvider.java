@@ -19,7 +19,7 @@ import com.und.server.exception.ServerException;
 @Component
 public class PublicKeyProvider {
 
-	public PublicKey generatePublicKey(Map<String, String> decodedHeader, OidcPublicKeys oidcPublicKeys) {
+	public PublicKey generatePublicKey(final Map<String, String> decodedHeader, final OidcPublicKeys oidcPublicKeys) {
 		final OidcPublicKey matchingKey = oidcPublicKeys
 			.matchingKey(decodedHeader.get("kid"), decodedHeader.get("alg"));
 
@@ -28,15 +28,15 @@ public class PublicKeyProvider {
 
 	private PublicKey getPublicKey(final OidcPublicKey matchingKey) {
 		try {
-			byte[] modulusBytes = Base64.getUrlDecoder().decode(matchingKey.n());
-			byte[] exponentBytes = Base64.getUrlDecoder().decode(matchingKey.e());
+			final byte[] modulusBytes = Base64.getUrlDecoder().decode(matchingKey.n());
+			final byte[] exponentBytes = Base64.getUrlDecoder().decode(matchingKey.e());
 
 			final BigInteger modulus = new BigInteger(1, modulusBytes);
 			final BigInteger exponent = new BigInteger(1, exponentBytes);
 			final RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(modulus, exponent);
 
 			return KeyFactory.getInstance(matchingKey.kty()).generatePublic(publicKeySpec);
-		} catch (IllegalArgumentException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+		} catch (final IllegalArgumentException | NoSuchAlgorithmException | InvalidKeySpecException e) {
 			throw new ServerException(ServerErrorResult.INVALID_PUBLIC_KEY, e);
 		}
 	}

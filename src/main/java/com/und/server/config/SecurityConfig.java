@@ -35,7 +35,7 @@ public class SecurityConfig {
 
 	@Bean
 	@Order(1)
-	public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain actuatorSecurityFilterChain(final HttpSecurity http) throws Exception {
 		return http
 			.securityMatcher(EndpointRequest.toAnyEndpoint())
 			.authorizeHttpRequests(authorize -> authorize
@@ -51,7 +51,7 @@ public class SecurityConfig {
 
 	@Bean
 	@Order(2)
-	public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain apiSecurityFilterChain(final HttpSecurity http) throws Exception {
 		return http
 			.csrf(AbstractHttpConfigurer::disable)
 			.formLogin(AbstractHttpConfigurer::disable)

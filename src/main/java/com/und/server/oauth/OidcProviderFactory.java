@@ -15,15 +15,15 @@ public class OidcProviderFactory {
 
 	private final Map<Provider, OidcProvider> oidcProviders;
 
-	public OidcProviderFactory(KakaoProvider kakaoProvider) {
+	public OidcProviderFactory(final KakaoProvider kakaoProvider) {
 		this.oidcProviders = new EnumMap<>(Provider.class);
 		oidcProviders.put(Provider.KAKAO, kakaoProvider);
 	}
 
 	public IdTokenPayload getIdTokenPayload(
-		Provider provider,
-		String token,
-		OidcPublicKeys oidcPublicKeys
+		final Provider provider,
+		final String token,
+		final OidcPublicKeys oidcPublicKeys
 	) {
 		return getOidcProvider(provider).getIdTokenPayload(token, oidcPublicKeys);
 	}

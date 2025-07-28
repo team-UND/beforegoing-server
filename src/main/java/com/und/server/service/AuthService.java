@@ -39,7 +39,7 @@ public class AuthService {
 
 	// FIXME: Remove this method when deleting TestController
 	@Transactional
-	public AuthResponse issueTokensForTest(TestAuthRequest request) {
+	public AuthResponse issueTokensForTest(final TestAuthRequest request) {
 		final Provider provider = convertToProvider(request.provider());
 		final IdTokenPayload payload = new IdTokenPayload(request.providerId(), request.nickname());
 		final Member member = findOrCreateMember(provider, payload);

@@ -18,10 +18,10 @@ public class KakaoProvider implements OidcProvider {
 	private final String kakaoAppKey;
 
 	public KakaoProvider(
-		JwtProvider jwtProvider,
-		PublicKeyProvider publicKeyProvider,
-		@Value("${oauth.kakao.base-url}") String kakaoBaseUrl,
-		@Value("${oauth.kakao.app-key}") String kakaoAppKey
+		final JwtProvider jwtProvider,
+		final PublicKeyProvider publicKeyProvider,
+		@Value("${oauth.kakao.base-url}") final String kakaoBaseUrl,
+		@Value("${oauth.kakao.app-key}") final String kakaoAppKey
 	) {
 		this.jwtProvider = jwtProvider;
 		this.publicKeyProvider = publicKeyProvider;
@@ -30,7 +30,7 @@ public class KakaoProvider implements OidcProvider {
 	}
 
 	@Override
-	public IdTokenPayload getIdTokenPayload(String token, OidcPublicKeys oidcPublicKeys) {
+	public IdTokenPayload getIdTokenPayload(final String token, final OidcPublicKeys oidcPublicKeys) {
 		final Map<String, String> decodedHeader = jwtProvider.getDecodedHeader(token);
 		final PublicKey publicKey = publicKeyProvider.generatePublicKey(decodedHeader, oidcPublicKeys);
 

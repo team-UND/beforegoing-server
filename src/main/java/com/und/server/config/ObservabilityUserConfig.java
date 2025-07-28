@@ -10,14 +10,19 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 @Configuration
 public class ObservabilityUserConfig {
 
-	@Value("${observability.prometheus.username}")
-	private String prometheusUsername;
+	private final String prometheusUsername;
+	private final String prometheusPassword;
 
-	@Value("${observability.prometheus.password}")
-	private String prometheusPassword;
+	public ObservabilityUserConfig(
+		@Value("${observability.prometheus.username}") final String prometheusUsername,
+		@Value("${observability.prometheus.password}") final String prometheusPassword
+	) {
+		this.prometheusUsername = prometheusUsername;
+		this.prometheusPassword = prometheusPassword;
+	}
 
 	@Bean
-	public InMemoryUserDetailsManager prometheusUserDetails(PasswordEncoder passwordEncoder) {
+	public InMemoryUserDetailsManager prometheusUserDetails(final PasswordEncoder passwordEncoder) {
 		return new InMemoryUserDetailsManager(User.builder()
 			.username(prometheusUsername)
 			.password(passwordEncoder.encode(prometheusPassword))

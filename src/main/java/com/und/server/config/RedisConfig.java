@@ -24,7 +24,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
 	@Bean
-	public CacheManager oidcCacheManager(RedisConnectionFactory redisConnectionFactory) {
+	public CacheManager oidcCacheManager(final RedisConnectionFactory redisConnectionFactory) {
 		final RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
 			.serializeKeysWith(
 				RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
