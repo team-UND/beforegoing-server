@@ -6,11 +6,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "API Error Response")
 public record ErrorResponse(
-	@Schema(description = "Error Code", example = "INVALID_TOKEN")
+	@Schema(description = "Error Code", example = "UNAUTHORIZED_ACCESS")
 	@JsonProperty("code")
 	String code,
 
-	@Schema(description = "Error Message", example = "Invalid Token")
+	@Schema(description = "Error Message", example = "Unauthorized Access")
 	@JsonProperty("message")
 	Object message
 ) { }
