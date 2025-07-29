@@ -4,11 +4,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,31 +29,34 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.SecurityException;
+import io.jsonwebtoken.security.SignatureException;
+import io.jsonwebtoken.security.WeakKeyException;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class JwtProvider {
 
+	private final Environment environment;
 	private final JwtProperties jwtProperties;
 
 	public Map<String, String> getDecodedHeader(final String token) {
 		try {
-			String decodedHeader = decodeBase64UrlPart(token.split("\\.")[0]);
+			final String decodedHeader = decodeBase64UrlPart(token.split("\\.")[0]);
 			return new ObjectMapper().readValue(decodedHeader, new TypeReference<>() { });
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
-	public String extractNonce(String idToken) {
+	public String extractNonce(final String idToken) {
 		try {
 			final String payloadJson = decodeBase64UrlPart(idToken.split("\\.")[1]);
 			final Map<String, Object> claims = new ObjectMapper().readValue(payloadJson, new TypeReference<>() { });
 			return (String) claims.get("nonce");
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
@@ -61,7 +67,7 @@ public class JwtProvider {
 			final String aud,
 			final PublicKey publicKey
 	) {
-		JwtParserBuilder builder = Jwts.parser()
+		final JwtParserBuilder builder = Jwts.parser()
 				.verifyWith(publicKey)
 				.requireIssuer(iss)
 				.requireAudience(aud);
@@ -97,7 +103,7 @@ public class JwtProvider {
 	}
 
 	private Claims parseAccessTokenClaims(final String token) {
-		JwtParserBuilder builder = Jwts.parser()
+		final JwtParserBuilder builder = Jwts.parser()
 				.verifyWith(jwtProperties.secretKey());
 		return parseClaims(token, builder);
 	}
@@ -105,7 +111,7 @@ public class JwtProvider {
 	private Claims parseClaims(final String token, final JwtParserBuilder builder) {
 		try {
 			return parseToken(token, builder);
-		} catch (ExpiredJwtException e) {
+		} catch (final ExpiredJwtException e) {
 			throw new ServerException(ServerErrorResult.EXPIRED_TOKEN, e);
 		}
 	}
@@ -114,8 +120,9 @@ public class JwtProvider {
 		final JwtParserBuilder builder = Jwts.parser().verifyWith(jwtProperties.secretKey());
 		try {
 			parseToken(token, builder);
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
-		} catch (ExpiredJwtException e) {
+			throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
+		} catch (final ExpiredJwtException e) {
+			// If the token is expired, we can still extract the member ID.
 			return Long.valueOf(e.getClaims().getSubject());
 		}
 	}
@@ -123,20 +130,41 @@ public class JwtProvider {
 	private Claims parseToken(final String token, final JwtParserBuilder builder) {
 		try {
 			return builder.build()
-				.parseSignedClaims(token)
-				.getPayload();
-		} catch (MalformedJwtException e) {
-			throw new ServerException(ServerErrorResult.MALFORMED_TOKEN, e);
-		} catch (SecurityException e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN_SIGNATURE, e);
-		} catch (ExpiredJwtException e) {
+					.parseSignedClaims(token)
+					.getPayload();
+		} catch (final ExpiredJwtException e) {
+			// This must be re-thrown for getMemberIdFromExpiredAccessToken to work correctly.
 			throw e;
-		} catch (JwtException e) {
+		} catch (final JwtException e) {
+			// For prod or stg environments, return a generic error to avoid leaking details.
+			if (isProdOrStgProfile()) {
+				throw new ServerException(ServerErrorResult.UNAUTHORIZED_ACCESS, e);
+			}
+
+			// For non-production environments, provide detailed error messages.
+			if (e instanceof MalformedJwtException) {
+				throw new ServerException(ServerErrorResult.MALFORMED_TOKEN, e);
+			}
+			if (e instanceof UnsupportedJwtException) {
+				throw new ServerException(ServerErrorResult.UNSUPPORTED_TOKEN, e);
+			}
+			if (e instanceof WeakKeyException) {
+				throw new ServerException(ServerErrorResult.WEAK_TOKEN_KEY, e);
+			}
+			if (e instanceof SignatureException) {
+				throw new ServerException(ServerErrorResult.INVALID_TOKEN_SIGNATURE, e);
+			}
+			// Fallback for any other JWT-related exceptions.
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
-	private String decodeBase64UrlPart(String encodedPart) {
+	private boolean isProdOrStgProfile() {
+		return Arrays.stream(environment.getActiveProfiles())
+			.anyMatch(Set.of("prod", "stg")::contains);
+	}
+
+	private String decodeBase64UrlPart(final String encodedPart) {
 		return new String(Decoders.BASE64URL.decode(encodedPart), StandardCharsets.UTF_8);
 	}
 

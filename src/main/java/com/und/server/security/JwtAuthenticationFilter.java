@@ -29,16 +29,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private static final List<String> permissivePaths = List.of("/v*/auth/tokens");
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-		throws ServletException, IOException {
-
+	protected void doFilterInternal(
+		final HttpServletRequest request,
+		final HttpServletResponse response,
+		final FilterChain filterChain
+	) throws ServletException, IOException {
 		final String token = resolveToken(request);
-
 		if (token != null) {
 			try {
 				final Authentication authentication = jwtProvider.getAuthentication(token);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
-			} catch (ServerException e) {
+			} catch (final ServerException e) {
 				final boolean isPermissivePath = permissivePaths.stream().anyMatch(
 					pattern -> pathMatcher.match(pattern, request.getServletPath()));
 
@@ -52,11 +53,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		filterChain.doFilter(request, response);
 	}
 
-	private String resolveToken(HttpServletRequest request) {
+	private String resolveToken(final HttpServletRequest request) {
 		final String bearerToken = request.getHeader("Authorization");
 		if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);
 		}
+
 		return null;
 	}
 

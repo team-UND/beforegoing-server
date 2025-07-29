@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -232,13 +233,13 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, "wrong.refresh.token");
 
 		doReturn(memberId).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
-		doReturn(refreshToken).when(refreshTokenService).getRefreshToken(memberId);
+		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
+			.when(refreshTokenService).validateRefreshToken(memberId, "wrong.refresh.token");
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		verify(refreshTokenService).deleteRefreshToken(memberId);
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
 	}
 
@@ -249,13 +250,13 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(memberId).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
-		doReturn(null).when(refreshTokenService).getRefreshToken(memberId);
+		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
+			.when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		verify(refreshTokenService).deleteRefreshToken(memberId);
 		verify(jwtProvider, never()).generateAccessToken(any());
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
 	}
@@ -269,7 +270,7 @@ class AuthServiceTest {
 		final String newRefreshToken = "new-refresh-token";
 
 		doReturn(memberId).when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
-		doReturn(refreshToken).when(refreshTokenService).getRefreshToken(memberId);
+		doNothing().when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
 		setupTokenIssuance(newAccessToken, newRefreshToken);
 
 		// when
@@ -281,6 +282,28 @@ class AuthServiceTest {
 		assertThat(response.refreshToken()).isEqualTo(newRefreshToken);
 		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
+	}
+
+	@Test
+	@DisplayName("Throws an exception and deletes refresh token if the access token is non-expired")
+	void Given_NonExpiredAccessToken_When_ReissueTokens_Then_ThrowsExceptionAndDeletesToken() {
+		// given
+		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
+
+		// Simulate the case where the access token is not yet expired.
+		doThrow(new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN))
+			.when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
+
+		// When the exception is caught, the service should try to get the memberId from the valid token.
+		doReturn(memberId).when(jwtProvider).getMemberIdFromToken(accessToken);
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.reissueTokens(request));
+
+		// then
+		verify(refreshTokenService).deleteRefreshToken(memberId);
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.NOT_EXPIRED_TOKEN);
 	}
 
 	private void setupTokenIssuance(final String newAccessToken, final String newRefreshToken) {

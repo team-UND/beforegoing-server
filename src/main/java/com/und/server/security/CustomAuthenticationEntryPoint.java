@@ -20,9 +20,9 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
 	@Override
 	public void commence(
-		HttpServletRequest request,
-		HttpServletResponse response,
-		AuthenticationException authException
+		final HttpServletRequest request,
+		final HttpServletResponse response,
+		final AuthenticationException authException
 	) throws IOException {
 		errorResponseWriter.sendErrorResponse(response, ServerErrorResult.UNAUTHORIZED_ACCESS);
 	}

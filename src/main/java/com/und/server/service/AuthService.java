@@ -39,7 +39,7 @@ public class AuthService {
 
 	// FIXME: Remove this method when deleting TestController
 	@Transactional
-	public AuthResponse issueTokensForTest(TestAuthRequest request) {
+	public AuthResponse issueTokensForTest(final TestAuthRequest request) {
 		final Provider provider = convertToProvider(request.provider());
 		final IdTokenPayload payload = new IdTokenPayload(request.providerId(), request.nickname());
 		final Member member = findOrCreateMember(provider, payload);
@@ -71,12 +71,8 @@ public class AuthService {
 		final String accessToken = refreshTokenRequest.accessToken();
 		final String providedRefreshToken = refreshTokenRequest.refreshToken();
 
-		final Long memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
-		final String savedRefreshToken = refreshTokenService.getRefreshToken(memberId);
-		if (!providedRefreshToken.equals(savedRefreshToken)) {
-			refreshTokenService.deleteRefreshToken(memberId);
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
-		}
+		final Long memberId = getMemberIdForReissue(accessToken);
+		refreshTokenService.validateRefreshToken(memberId, providedRefreshToken);
 
 		return issueTokens(memberId);
 	}
@@ -135,6 +131,20 @@ public class AuthService {
 			jwtProperties.accessTokenExpireTime(),
 			refreshToken,
 			jwtProperties.refreshTokenExpireTime());
+	}
+
+	private Long getMemberIdForReissue(final String accessToken) {
+		try {
+			return jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
+		} catch (final ServerException e) {
+			if (e.getErrorResult() == ServerErrorResult.NOT_EXPIRED_TOKEN) {
+				// An attempt to reissue with a non-expired token may be a security risk.
+				// For security, we delete the refresh token.
+				final Long memberId = jwtProvider.getMemberIdFromToken(accessToken);
+				refreshTokenService.deleteRefreshToken(memberId);
+			}
+			throw e;
+		}
 	}
 
 }
