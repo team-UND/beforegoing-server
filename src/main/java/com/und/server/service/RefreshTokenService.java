@@ -5,6 +5,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.und.server.entity.RefreshToken;
+import com.und.server.exception.ServerErrorResult;
+import com.und.server.exception.ServerException;
 import com.und.server.repository.RefreshTokenRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,14 +23,24 @@ public class RefreshTokenService {
 
 	public String getRefreshToken(final Long memberId) {
 		return refreshTokenRepository.findById(memberId)
-			.map(RefreshToken::getRefreshToken)
+			.map(RefreshToken::getValue)
 			.orElse(null);
+	}
+
+	public void validateRefreshToken(final Long memberId, final String providedToken) {
+		refreshTokenRepository.findById(memberId)
+			.map(RefreshToken::getValue)
+			.filter(savedToken -> savedToken.equals(providedToken))
+			.orElseThrow(() -> {
+				deleteRefreshToken(memberId);
+				return new ServerException(ServerErrorResult.INVALID_TOKEN);
+			});
 	}
 
 	public void saveRefreshToken(final Long memberId, final String refreshToken) {
 		final RefreshToken token = RefreshToken.builder()
 			.memberId(memberId)
-			.refreshToken(refreshToken)
+			.value(refreshToken)
 			.build();
 
 		refreshTokenRepository.save(token);

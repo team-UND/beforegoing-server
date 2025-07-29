@@ -23,7 +23,7 @@ class RefreshTokenRepositoryTest {
 		// given
 		final RefreshToken token = RefreshToken.builder()
 			.memberId(1L)
-			.refreshToken("uuid")
+			.value("uuid")
 			.build();
 
 		// when
@@ -31,7 +31,7 @@ class RefreshTokenRepositoryTest {
 
 		// then
 		assertThat(result.getMemberId()).isEqualTo(1L);
-		assertThat(result.getRefreshToken()).isEqualTo("uuid");
+		assertThat(result.getValue()).isEqualTo("uuid");
 	}
 
 	@Test
@@ -40,7 +40,7 @@ class RefreshTokenRepositoryTest {
 		// given
 		final RefreshToken token = RefreshToken.builder()
 			.memberId(1L)
-			.refreshToken("uuid")
+			.value("uuid")
 			.build();
 		refreshTokenRepository.save(token);
 
@@ -50,7 +50,7 @@ class RefreshTokenRepositoryTest {
 		// then
 		assertThat(foundToken).isPresent().hasValueSatisfying(result -> {
 			assertThat(result.getMemberId()).isEqualTo(1L);
-			assertThat(result.getRefreshToken()).isEqualTo("uuid");
+			assertThat(result.getValue()).isEqualTo("uuid");
 		});
 	}
 

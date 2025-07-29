@@ -13,12 +13,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@RedisHash(value = "refreshToken", timeToLive = 604800) // Valid for 7 days
+@RedisHash(value = "refreshToken", timeToLive = 1209600) // Valid for 14 days
 public class RefreshToken {
 
 	@Id
 	private Long memberId;
 
-	private String refreshToken;
+	private String value;
 
 }
