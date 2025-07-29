@@ -71,7 +71,7 @@ public class AuthService {
 		final String accessToken = refreshTokenRequest.accessToken();
 		final String providedRefreshToken = refreshTokenRequest.refreshToken();
 
-		final Long memberId = jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
+		final Long memberId = getMemberIdForReissue(accessToken);
 		refreshTokenService.validateRefreshToken(memberId, providedRefreshToken);
 
 		return issueTokens(memberId);
@@ -131,6 +131,20 @@ public class AuthService {
 			jwtProperties.accessTokenExpireTime(),
 			refreshToken,
 			jwtProperties.refreshTokenExpireTime());
+	}
+
+	private Long getMemberIdForReissue(final String accessToken) {
+		try {
+			return jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
+		} catch (final ServerException e) {
+			if (e.getErrorResult() == ServerErrorResult.NOT_EXPIRED_TOKEN) {
+				// An attempt to reissue with a non-expired token may be a security risk.
+				// For security, we delete the refresh token.
+				final Long memberId = jwtProvider.getMemberIdFromToken(accessToken);
+				refreshTokenService.deleteRefreshToken(memberId);
+			}
+			throw e;
+		}
 	}
 
 }

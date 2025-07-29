@@ -395,10 +395,9 @@ class JwtProviderTest {
 	}
 
 	@Test
-	@DisplayName("Throws NOT_EXPIRED_TOKEN when getting member ID from a non-expired token")
-	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsNotExpiredTokenException() {
+	@DisplayName("Throws an exception when getting member ID from a non-expired token")
+	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsException() {
 		// given
-		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
 		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
@@ -409,23 +408,6 @@ class JwtProviderTest {
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.NOT_EXPIRED_TOKEN);
-	}
-
-	@Test
-	@DisplayName("Throws INVALID_TOKEN when getting member ID from a non-expired token")
-	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsInvalidTokenException() {
-		// given
-		doReturn(new String[]{"prod", "stg"}).when(environment).getActiveProfiles();
-		doReturn(secretKey).when(jwtProperties).secretKey();
-		doReturn(issuer).when(jwtProperties).issuer();
-		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
-
-		final String token = jwtProvider.generateAccessToken(1L);
-
-		// when & then
-		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
-			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
