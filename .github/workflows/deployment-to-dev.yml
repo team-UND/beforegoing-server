@@ -2,7 +2,7 @@ name: Deployment to Development Server
 
 on:
   push:
-    branches: [develop]
+    branches: [dev]
 
 env:
   AWS_IAM_ROLE_TO_ASSUME: ${{ secrets.DEV_AWS_IAM_ROLE_TO_ASSUME }}
