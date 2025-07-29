@@ -120,12 +120,7 @@ public class JwtProvider {
 		final JwtParserBuilder builder = Jwts.parser().verifyWith(jwtProperties.secretKey());
 		try {
 			parseToken(token, builder);
-			// If the token is not expired, we throw an exception.
-			if (isProdOrStgProfile()) {
-				throw new ServerException(ServerErrorResult.INVALID_TOKEN);
-			} else {
-				throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
-			}
+			throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
 		} catch (final ExpiredJwtException e) {
 			// If the token is expired, we can still extract the member ID.
 			return Long.valueOf(e.getClaims().getSubject());

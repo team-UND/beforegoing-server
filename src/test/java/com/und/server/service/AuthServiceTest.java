@@ -284,6 +284,28 @@ class AuthServiceTest {
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
 	}
 
+	@Test
+	@DisplayName("Throws an exception and deletes refresh token if the access token is non-expired")
+	void Given_NonExpiredAccessToken_When_ReissueTokens_Then_ThrowsExceptionAndDeletesToken() {
+		// given
+		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
+
+		// Simulate the case where the access token is not yet expired.
+		doThrow(new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN))
+			.when(jwtProvider).getMemberIdFromExpiredAccessToken(accessToken);
+
+		// When the exception is caught, the service should try to get the memberId from the valid token.
+		doReturn(memberId).when(jwtProvider).getMemberIdFromToken(accessToken);
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.reissueTokens(request));
+
+		// then
+		verify(refreshTokenService).deleteRefreshToken(memberId);
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.NOT_EXPIRED_TOKEN);
+	}
+
 	private void setupTokenIssuance(final String newAccessToken, final String newRefreshToken) {
 		doReturn(newAccessToken).when(jwtProvider).generateAccessToken(memberId);
 		doReturn(newRefreshToken).when(refreshTokenService).generateRefreshToken();
