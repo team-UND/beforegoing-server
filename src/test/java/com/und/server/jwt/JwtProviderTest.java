@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 
 import com.und.server.exception.ServerErrorResult;
@@ -28,12 +30,19 @@ import com.und.server.oauth.IdTokenPayload;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.WeakKeyException;
 
 @ExtendWith(MockitoExtension.class)
 class JwtProviderTest {
 
 	@Mock
 	private JwtProperties jwtProperties;
+
+	@Mock
+	private Environment environment;
 
 	private JwtProvider jwtProvider;
 
@@ -45,7 +54,7 @@ class JwtProviderTest {
 
 	@BeforeEach
 	void init() {
-		jwtProvider = new JwtProvider(jwtProperties);
+		jwtProvider = new JwtProvider(environment, jwtProperties);
 	}
 
 	@Test
@@ -106,6 +115,7 @@ class JwtProviderTest {
 	@DisplayName("Throws ServerException when audience does not match")
 	void Given_OidcToken_When_ParseWithMismatchedAudience_Then_ThrowsServerException() throws Exception {
 		// given
+		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
 		final String wrongAudience = "wrong-client";
 		final KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
 		final PublicKey publicKey = keyPair.getPublic();
@@ -283,6 +293,7 @@ class JwtProviderTest {
 	@DisplayName("Throws ServerException when token structure is invalid")
 	void Given_MalformedToken_When_GetMemberIdFromToken_Then_ThrowsServerException() {
 		// given
+		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		final String malformedToken = "this.is.not.a.jwt";
 
@@ -296,6 +307,7 @@ class JwtProviderTest {
 	@DisplayName("Throws ServerException when token signature is invalid")
 	void Given_TokenWithInvalidSignature_When_GetMemberIdFromToken_Then_ThrowsServerException() {
 		// given
+		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		final SecretKey anotherKey = Jwts.SIG.HS256.key().build();
 		final String token = Jwts.builder().subject("1").signWith(anotherKey).compact();
@@ -304,6 +316,64 @@ class JwtProviderTest {
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN_SIGNATURE);
+	}
+
+	@Test
+	@DisplayName("Throws ServerException when the verification key is too weak for the token's algorithm")
+	void Given_TokenWithStrongAlgAndProviderWithWeakKey_When_GetMemberIdFromToken_Then_ThrowsTokenKeyErrorException() {
+		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		final SecretKey weakKey = Keys.hmacShaKeyFor(
+			"this-key-is-definitely-not-long-enough".getBytes(StandardCharsets.UTF_8));
+		doReturn(weakKey).when(jwtProperties).secretKey();
+
+		final SecretKey strongSigningKey = Jwts.SIG.HS512.key().build();
+		final String tokenWithStrongAlg = Jwts.builder()
+			.subject("1")
+			.signWith(strongSigningKey)
+			.compact();
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(tokenWithStrongAlg))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.WEAK_TOKEN_KEY)
+			.cause().isInstanceOf(WeakKeyException.class);
+	}
+
+	@Test
+	@DisplayName("Throws ServerException when token uses an unsupported feature (e.g., compression)")
+	void Given_TokenWithUnsupportedFeature_When_GetMemberIdFromToken_Then_ThrowsUnsupportedTokenException() {
+		// given
+		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		final String unsupportedToken = Jwts.builder()
+			.header()
+				.add("zip", "BOGUS")
+				.and()
+			.subject("1")
+			.signWith(secretKey)
+			.compact();
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(unsupportedToken))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNSUPPORTED_TOKEN)
+			.cause().isInstanceOf(UnsupportedJwtException.class);
+	}
+
+	@Test
+	@DisplayName("Throws generic UNAUTHORIZED_ACCESS for any token error")
+	void Given_MalformedToken_When_GetMemberIdFromToken_Then_ThrowsGenericUnauthorizedAccessException() {
+		// given
+		doReturn(new String[]{"prod", "stg"}).when(environment).getActiveProfiles();
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		final String malformedToken = "this.is.not.a.jwt";
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(malformedToken))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNAUTHORIZED_ACCESS)
+			// Verify that the cause is the original exception
+			.cause().isInstanceOf(MalformedJwtException.class);
 	}
 
 	@Test
@@ -325,9 +395,27 @@ class JwtProviderTest {
 	}
 
 	@Test
-	@DisplayName("Throws ServerException when trying to get member ID from a non-expired access token")
-	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsServerException() {
+	@DisplayName("Throws NOT_EXPIRED_TOKEN when getting member ID from a non-expired token")
+	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsNotExpiredTokenException() {
 		// given
+		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		doReturn(issuer).when(jwtProperties).issuer();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+
+		final String token = jwtProvider.generateAccessToken(1L);
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.NOT_EXPIRED_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Throws INVALID_TOKEN when getting member ID from a non-expired token")
+	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsInvalidTokenException() {
+		// given
+		doReturn(new String[]{"prod", "stg"}).when(environment).getActiveProfiles();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
 		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
