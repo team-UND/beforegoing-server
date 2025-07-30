@@ -21,6 +21,7 @@ import com.und.server.oauth.OidcClient;
 import com.und.server.oauth.OidcClientFactory;
 import com.und.server.oauth.OidcProviderFactory;
 import com.und.server.oauth.Provider;
+import com.und.server.util.ProfileManager;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +37,7 @@ public class AuthService {
 	private final JwtProperties jwtProperties;
 	private final NonceService nonceService;
 	private final RefreshTokenService refreshTokenService;
+	private final ProfileManager profileManager;
 
 	// FIXME: Remove this method when deleting TestController
 	@Transactional
@@ -122,7 +124,10 @@ public class AuthService {
 			// An attempt to reissue with a non-expired token may be a security risk.
 			// For security, we delete the refresh token.
 			refreshTokenService.deleteRefreshToken(memberId);
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			if (profileManager.isProdOrStgProfile()) {
+				throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			}
+			throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
 		}
 
 		return memberId;

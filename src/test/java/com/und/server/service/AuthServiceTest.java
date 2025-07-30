@@ -37,6 +37,7 @@ import com.und.server.oauth.OidcClient;
 import com.und.server.oauth.OidcClientFactory;
 import com.und.server.oauth.OidcProviderFactory;
 import com.und.server.oauth.Provider;
+import com.und.server.util.ProfileManager;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -64,6 +65,9 @@ class AuthServiceTest {
 
 	@Mock
 	private NonceService nonceService;
+
+	@Mock
+	private ProfileManager profileManager;
 
 	private final String providerId = "dummyId";
 	private final String nickname = "dummyNickname";
@@ -305,13 +309,14 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Throws an exception and deletes refresh token if the access token is non-expired")
-	void Given_NonExpiredAccessToken_When_ReissueTokens_Then_ThrowsExceptionAndDeletesToken() {
+	@DisplayName("Throws INVALID_TOKEN and deletes refresh token for a non-expired token on prod/stg profiles")
+	void Given_NonExpiredTokenOnProd_When_ReissueTokens_Then_ThrowsInvalidToken() {
 		// given
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 		final ParsedTokenInfo nonExpiredTokenInfo = new ParsedTokenInfo(memberId, false);
 
 		doReturn(nonExpiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
+		doReturn(true).when(profileManager).isProdOrStgProfile();
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
@@ -320,6 +325,25 @@ class AuthServiceTest {
 		// then
 		verify(refreshTokenService).deleteRefreshToken(memberId);
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Throws NOT_EXPIRED_TOKEN and deletes refresh token for a non-expired token on dev/local profiles")
+	void Given_NonExpiredTokenOnDev_When_ReissueTokens_Then_ThrowsNotExpiredToken() {
+		// given
+		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
+		final ParsedTokenInfo nonExpiredTokenInfo = new ParsedTokenInfo(memberId, false);
+
+		doReturn(nonExpiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
+		doReturn(false).when(profileManager).isProdOrStgProfile();
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.reissueTokens(request));
+
+		// then
+		verify(refreshTokenService).deleteRefreshToken(memberId);
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.NOT_EXPIRED_TOKEN);
 	}
 
 	private void setupTokenIssuance(final String newAccessToken, final String newRefreshToken) {
