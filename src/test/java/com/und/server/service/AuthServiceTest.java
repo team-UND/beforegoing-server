@@ -346,6 +346,19 @@ class AuthServiceTest {
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.NOT_EXPIRED_TOKEN);
 	}
 
+	@Test
+	@DisplayName("Deletes refresh token on logout")
+	void Given_MemberId_When_Logout_Then_DeletesRefreshToken() {
+		// given
+		final Long memberId = 1L;
+
+		// when
+		authService.logout(memberId);
+
+		// then
+		verify(refreshTokenService).deleteRefreshToken(memberId);
+	}
+
 	private void setupTokenIssuance(final String newAccessToken, final String newRefreshToken) {
 		doReturn(newAccessToken).when(jwtProvider).generateAccessToken(memberId);
 		doReturn(newRefreshToken).when(refreshTokenService).generateRefreshToken();

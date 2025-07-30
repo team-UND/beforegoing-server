@@ -3,6 +3,7 @@ package com.und.server.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -329,6 +332,46 @@ class AuthControllerTest {
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("new.access.token");
 		assertThat(response.refreshToken()).isEqualTo("new.refresh.token");
+	}
+
+	@Test
+	@DisplayName("Succeeds logout and returns no content")
+	void Given_AuthenticatedUser_When_Logout_Then_ReturnsNoContent() throws Exception {
+		// given
+		final String url = "/v1/auth/logout";
+		final Long memberId = 1L;
+		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete(url)
+				.principal(auth)
+		);
+
+		// then
+		resultActions.andExpect(status().isNoContent());
+		verify(authService).logout(memberId);
+	}
+
+	@Test
+	@DisplayName("Fails logout and returns unauthorized when principal is not a Long")
+	void Given_InvalidPrincipalType_When_Logout_Then_ReturnsUnauthorized() throws Exception {
+		// given
+		final String url = "/v1/auth/logout";
+		final String invalidPrincipal = "not-a-long";
+		final Authentication auth = new UsernamePasswordAuthenticationToken(invalidPrincipal, null);
+		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete(url)
+				.principal(auth)
+		);
+
+		// then
+		resultActions.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
 	}
 
 }
