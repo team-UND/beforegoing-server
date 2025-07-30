@@ -2,10 +2,11 @@ package com.und.server.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
@@ -65,7 +66,7 @@ class JwtAuthenticationFilterTest {
 		request.addHeader("Authorization", "Bearer " + token);
 
 		final ServerErrorResult expectedError = ServerErrorResult.EXPIRED_TOKEN;
-		when(jwtProvider.getAuthentication(token)).thenThrow(new ServerException(expectedError));
+		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -95,7 +96,7 @@ class JwtAuthenticationFilterTest {
 		request.addHeader("Authorization", "Bearer " + token);
 
 		final ServerErrorResult expectedError = ServerErrorResult.INVALID_TOKEN_SIGNATURE;
-		when(jwtProvider.getAuthentication(token)).thenThrow(new ServerException(expectedError));
+		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -125,7 +126,7 @@ class JwtAuthenticationFilterTest {
 		request.addHeader("Authorization", "Bearer " + token);
 
 		final ServerErrorResult expectedError = ServerErrorResult.EXPIRED_TOKEN;
-		when(jwtProvider.getAuthentication(token)).thenThrow(new ServerException(expectedError));
+		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -150,7 +151,7 @@ class JwtAuthenticationFilterTest {
 		request.addHeader("Authorization", "Bearer " + token);
 
 		final ServerErrorResult expectedError = ServerErrorResult.EXPIRED_TOKEN;
-		when(jwtProvider.getAuthentication(token)).thenThrow(new ServerException(expectedError));
+		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -206,7 +207,7 @@ class JwtAuthenticationFilterTest {
 		request.addHeader("Authorization", "Bearer " + token);
 
 		final Authentication authentication = mock(Authentication.class);
-		when(jwtProvider.getAuthentication(token)).thenReturn(authentication);
+		doReturn(authentication).when(jwtProvider).getAuthentication(token);
 
 		// when
 		jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);

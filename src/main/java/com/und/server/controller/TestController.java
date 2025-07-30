@@ -3,7 +3,6 @@ package com.und.server.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,9 +15,11 @@ import com.und.server.dto.TestHelloResponse;
 import com.und.server.entity.Member;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
+import com.und.server.security.AuthMember;
 import com.und.server.service.AuthService;
 import com.und.server.service.MemberService;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -31,14 +32,13 @@ public class TestController {
 	private final MemberService memberService;
 
 	@PostMapping("/access")
-	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid TestAuthRequest request) {
+	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid final TestAuthRequest request) {
 		final AuthResponse response = authService.issueTokensForTest(request);
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 
 	@GetMapping("/hello")
-	public ResponseEntity<TestHelloResponse> greet(Authentication authentication) {
-		final Long memberId = (Long)authentication.getPrincipal();
+	public ResponseEntity<TestHelloResponse> greet(@Parameter(hidden = true) @AuthMember final Long memberId) {
 		final Member member = memberService.findById(memberId)
 			.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
 		final String nickname = member.getNickname() != null ? member.getNickname() : "Member";

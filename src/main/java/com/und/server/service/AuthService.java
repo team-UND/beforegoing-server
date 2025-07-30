@@ -85,6 +85,11 @@ public class AuthService {
 		return issueTokens(memberId);
 	}
 
+	@Transactional
+	public void logout(final Long memberId) {
+		refreshTokenService.deleteRefreshToken(memberId);
+	}
+
 	private Provider convertToProvider(final String providerName) {
 		try {
 			return Provider.valueOf(providerName.toUpperCase());
