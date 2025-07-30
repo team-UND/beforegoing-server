@@ -395,24 +395,27 @@ class JwtProviderTest {
 	}
 
 	@Test
-	@DisplayName("Throws an exception when getting member ID from a non-expired token")
-	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsException() {
+	@DisplayName("Parses a non-expired token for reissue and returns correct info")
+	void Given_NonExpiredToken_When_ParseTokenForReissue_Then_ReturnsInfoWithIsExpiredFalse() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
 		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
 
-		final String token = jwtProvider.generateAccessToken(1L);
+		final Long memberId = 1L;
+		final String token = jwtProvider.generateAccessToken(memberId);
 
-		// when & then
-		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
-			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.NOT_EXPIRED_TOKEN);
+		// when
+		final ParsedTokenInfo tokenInfo = jwtProvider.parseTokenForReissue(token);
+
+		// then
+		assertThat(tokenInfo.memberId()).isEqualTo(memberId);
+		assertThat(tokenInfo.isExpired()).isFalse();
 	}
 
 	@Test
-	@DisplayName("Gets member ID from an expired access token successfully")
-	void Given_ExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ReturnsCorrectMemberId() {
+	@DisplayName("Parses an expired token for reissue and returns correct info")
+	void Given_ExpiredToken_When_ParseTokenForReissue_Then_ReturnsInfoWithIsExpiredTrue() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 
@@ -420,19 +423,15 @@ class JwtProviderTest {
 		final Date now = new Date();
 		final Date issuedAt = new Date(now.getTime() - 10000);
 		final Date expiredAt = new Date(now.getTime() - 5000);
-		final String token = Jwts.builder()
-			.subject(memberId.toString())
-			.issuer(issuer)
-			.issuedAt(issuedAt)
-			.expiration(expiredAt)
-			.signWith(secretKey)
-			.compact();
+		final String token = Jwts.builder().subject(memberId.toString()).issuer(issuer).issuedAt(issuedAt)
+				.expiration(expiredAt).signWith(secretKey).compact();
 
 		// when
-		final Long extractedId = jwtProvider.getMemberIdFromExpiredAccessToken(token);
+		final ParsedTokenInfo tokenInfo = jwtProvider.parseTokenForReissue(token);
 
 		// then
-		assertThat(extractedId).isEqualTo(memberId);
+		assertThat(tokenInfo.memberId()).isEqualTo(memberId);
+		assertThat(tokenInfo.isExpired()).isTrue();
 	}
 
 }

@@ -71,7 +71,6 @@ public class JwtProvider {
 				.verifyWith(publicKey)
 				.requireIssuer(iss)
 				.requireAudience(aud);
-
 		final Claims claims = parseClaims(token, builder);
 
 		return new IdTokenPayload(claims.getSubject(), claims.get("nickname", String.class));
@@ -99,13 +98,7 @@ public class JwtProvider {
 	}
 
 	public Long getMemberIdFromToken(final String token) {
-		return Long.valueOf(parseAccessTokenClaims(token).getSubject());
-	}
-
-	private Claims parseAccessTokenClaims(final String token) {
-		final JwtParserBuilder builder = Jwts.parser()
-				.verifyWith(jwtProperties.secretKey());
-		return parseClaims(token, builder);
+		return Long.valueOf(parseClaims(token, getAccessTokenParserBuilder()).getSubject());
 	}
 
 	private Claims parseClaims(final String token, final JwtParserBuilder builder) {
@@ -116,14 +109,13 @@ public class JwtProvider {
 		}
 	}
 
-	public Long getMemberIdFromExpiredAccessToken(final String token) {
-		final JwtParserBuilder builder = Jwts.parser().verifyWith(jwtProperties.secretKey());
+	public ParsedTokenInfo parseTokenForReissue(final String token) {
 		try {
-			parseToken(token, builder);
-			throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
+			final Claims claims = parseToken(token, getAccessTokenParserBuilder());
+			return new ParsedTokenInfo(Long.valueOf(claims.getSubject()), false);
 		} catch (final ExpiredJwtException e) {
 			// If the token is expired, we can still extract the member ID.
-			return Long.valueOf(e.getClaims().getSubject());
+			return new ParsedTokenInfo(Long.valueOf(e.getClaims().getSubject()), true);
 		}
 	}
 
@@ -157,6 +149,11 @@ public class JwtProvider {
 			// Fallback for any other JWT-related exceptions.
 			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
+	}
+
+	private JwtParserBuilder getAccessTokenParserBuilder() {
+		return Jwts.parser()
+			.verifyWith(jwtProperties.secretKey());
 	}
 
 	private boolean isProdOrStgProfile() {
