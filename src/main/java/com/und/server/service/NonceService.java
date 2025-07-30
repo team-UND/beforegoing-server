@@ -3,6 +3,7 @@ package com.und.server.service;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.entity.Nonce;
 import com.und.server.exception.ServerErrorResult;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class NonceService {
 
 	private final NonceRepository nonceRepository;
@@ -22,6 +24,7 @@ public class NonceService {
 		return UUID.randomUUID().toString();
 	}
 
+	@Transactional
 	public void validateNonce(final String nonceValue, final Provider provider) {
 		nonceRepository.findById(nonceValue)
 			.filter(n -> n.getProvider() == provider)
@@ -31,6 +34,7 @@ public class NonceService {
 	}
 
 
+	@Transactional
 	public void saveNonce(final String value, final Provider provider) {
 		final Nonce nonce = Nonce.builder()
 			.value(value)
@@ -40,6 +44,7 @@ public class NonceService {
 		nonceRepository.save(nonce);
 	}
 
+	@Transactional
 	public void deleteNonce(final String value) {
 		nonceRepository.deleteById(value);
 	}
