@@ -186,4 +186,24 @@ class TestControllerTest {
 			.andExpect(jsonPath("$.message").value("Hello, Member!"));
 	}
 
+	@Test
+	@DisplayName("Fails to greet and returns unauthorized when principal is not a Long")
+	void Given_InvalidPrincipalType_When_Greet_Then_ReturnsUnauthorized() throws Exception {
+		// given
+		final String url = "/v1/test/hello";
+		final String invalidPrincipal = "not-a-long";
+		final Authentication auth = new UsernamePasswordAuthenticationToken(invalidPrincipal, null);
+		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+
+		// when
+		final ResultActions result = mockMvc.perform(
+			MockMvcRequestBuilders.get(url).principal(auth)
+		);
+
+		// then
+		result.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
+	}
+
 }

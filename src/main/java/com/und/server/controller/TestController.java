@@ -31,14 +31,16 @@ public class TestController {
 	private final MemberService memberService;
 
 	@PostMapping("/access")
-	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid TestAuthRequest request) {
+	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid final TestAuthRequest request) {
 		final AuthResponse response = authService.issueTokensForTest(request);
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 
 	@GetMapping("/hello")
-	public ResponseEntity<TestHelloResponse> greet(Authentication authentication) {
-		final Long memberId = (Long)authentication.getPrincipal();
+	public ResponseEntity<TestHelloResponse> greet(final Authentication authentication) {
+		if (!(authentication.getPrincipal() instanceof final Long memberId)) {
+			throw new ServerException(ServerErrorResult.UNAUTHORIZED_ACCESS);
+		}
 		final Member member = memberService.findById(memberId)
 			.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
 		final String nickname = member.getNickname() != null ? member.getNickname() : "Member";
