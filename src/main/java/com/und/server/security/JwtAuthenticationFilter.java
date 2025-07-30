@@ -41,7 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			} catch (final ServerException e) {
 				final boolean isPermissivePath = permissivePaths.stream().anyMatch(
-					pattern -> pathMatcher.match(pattern, request.getServletPath()));
+					pattern -> pathMatcher.match(pattern, request.getServletPath())
+				);
 
 				if (e.getErrorResult() != ServerErrorResult.EXPIRED_TOKEN || !isPermissivePath) {
 					errorResponseWriter.sendErrorResponse(response, e.getErrorResult());

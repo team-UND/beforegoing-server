@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.dto.AuthRequest;
 import com.und.server.dto.AuthResponse;
-import com.und.server.dto.HandshakeRequest;
-import com.und.server.dto.HandshakeResponse;
+import com.und.server.dto.NonceRequest;
+import com.und.server.dto.NonceResponse;
 import com.und.server.dto.RefreshTokenRequest;
 import com.und.server.service.AuthService;
 
@@ -25,10 +25,10 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/nonce")
-	public ResponseEntity<HandshakeResponse> handshake(@RequestBody @Valid final HandshakeRequest handshakeRequest) {
-		final HandshakeResponse handshakeResponse = authService.handshake(handshakeRequest);
+	public ResponseEntity<NonceResponse> handshake(@RequestBody @Valid final NonceRequest nonceRequest) {
+		final NonceResponse nonceResponse = authService.handshake(nonceRequest);
 
-		return ResponseEntity.status(HttpStatus.OK).body(handshakeResponse);
+		return ResponseEntity.status(HttpStatus.OK).body(nonceResponse);
 	}
 
 	@PostMapping("/login")

@@ -3,6 +3,7 @@ package com.und.server.service;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.entity.RefreshToken;
 import com.und.server.exception.ServerErrorResult;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RefreshTokenService {
 
 	private final RefreshTokenRepository refreshTokenRepository;
@@ -27,6 +29,7 @@ public class RefreshTokenService {
 			.orElse(null);
 	}
 
+	@Transactional
 	public void validateRefreshToken(final Long memberId, final String providedToken) {
 		refreshTokenRepository.findById(memberId)
 			.map(RefreshToken::getValue)
@@ -37,6 +40,7 @@ public class RefreshTokenService {
 			});
 	}
 
+	@Transactional
 	public void saveRefreshToken(final Long memberId, final String refreshToken) {
 		final RefreshToken token = RefreshToken.builder()
 			.memberId(memberId)
@@ -46,6 +50,7 @@ public class RefreshTokenService {
 		refreshTokenRepository.save(token);
 	}
 
+	@Transactional
 	public void deleteRefreshToken(final Long memberId) {
 		refreshTokenRepository.deleteById(memberId);
 	}

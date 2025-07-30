@@ -4,14 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 import com.und.server.oauth.IdTokenPayload;
+import com.und.server.util.ProfileManager;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -39,8 +37,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtProvider {
 
-	private final Environment environment;
 	private final JwtProperties jwtProperties;
+	private final ProfileManager profileManager;
 
 	public Map<String, String> getDecodedHeader(final String token) {
 		try {
@@ -71,7 +69,6 @@ public class JwtProvider {
 				.verifyWith(publicKey)
 				.requireIssuer(iss)
 				.requireAudience(aud);
-
 		final Claims claims = parseClaims(token, builder);
 
 		return new IdTokenPayload(claims.getSubject(), claims.get("nickname", String.class));
@@ -99,13 +96,7 @@ public class JwtProvider {
 	}
 
 	public Long getMemberIdFromToken(final String token) {
-		return Long.valueOf(parseAccessTokenClaims(token).getSubject());
-	}
-
-	private Claims parseAccessTokenClaims(final String token) {
-		final JwtParserBuilder builder = Jwts.parser()
-				.verifyWith(jwtProperties.secretKey());
-		return parseClaims(token, builder);
+		return Long.valueOf(parseClaims(token, getAccessTokenParserBuilder()).getSubject());
 	}
 
 	private Claims parseClaims(final String token, final JwtParserBuilder builder) {
@@ -116,14 +107,13 @@ public class JwtProvider {
 		}
 	}
 
-	public Long getMemberIdFromExpiredAccessToken(final String token) {
-		final JwtParserBuilder builder = Jwts.parser().verifyWith(jwtProperties.secretKey());
+	public ParsedTokenInfo parseTokenForReissue(final String token) {
 		try {
-			parseToken(token, builder);
-			throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
+			final Claims claims = parseToken(token, getAccessTokenParserBuilder());
+			return new ParsedTokenInfo(Long.valueOf(claims.getSubject()), false);
 		} catch (final ExpiredJwtException e) {
 			// If the token is expired, we can still extract the member ID.
-			return Long.valueOf(e.getClaims().getSubject());
+			return new ParsedTokenInfo(Long.valueOf(e.getClaims().getSubject()), true);
 		}
 	}
 
@@ -137,7 +127,7 @@ public class JwtProvider {
 			throw e;
 		} catch (final JwtException e) {
 			// For prod or stg environments, return a generic error to avoid leaking details.
-			if (isProdOrStgProfile()) {
+			if (profileManager.isProdOrStgProfile()) {
 				throw new ServerException(ServerErrorResult.UNAUTHORIZED_ACCESS, e);
 			}
 
@@ -159,9 +149,9 @@ public class JwtProvider {
 		}
 	}
 
-	private boolean isProdOrStgProfile() {
-		return Arrays.stream(environment.getActiveProfiles())
-			.anyMatch(Set.of("prod", "stg")::contains);
+	private JwtParserBuilder getAccessTokenParserBuilder() {
+		return Jwts.parser()
+			.verifyWith(jwtProperties.secretKey());
 	}
 
 	private String decodeBase64UrlPart(final String encodedPart) {

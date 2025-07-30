@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.dto.AuthRequest;
 import com.und.server.dto.AuthResponse;
-import com.und.server.dto.HandshakeRequest;
-import com.und.server.dto.HandshakeResponse;
+import com.und.server.dto.NonceRequest;
+import com.und.server.dto.NonceResponse;
 import com.und.server.dto.OidcPublicKeys;
 import com.und.server.dto.RefreshTokenRequest;
 import com.und.server.dto.TestAuthRequest;
@@ -15,12 +15,13 @@ import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 import com.und.server.jwt.JwtProperties;
 import com.und.server.jwt.JwtProvider;
+import com.und.server.jwt.ParsedTokenInfo;
 import com.und.server.oauth.IdTokenPayload;
 import com.und.server.oauth.OidcClient;
 import com.und.server.oauth.OidcClientFactory;
 import com.und.server.oauth.OidcProviderFactory;
 import com.und.server.oauth.Provider;
-import com.und.server.repository.MemberRepository;
+import com.und.server.util.ProfileManager;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,39 +30,40 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class AuthService {
 
-	private final MemberRepository memberRepository;
+	private final MemberService memberService;
 	private final OidcClientFactory oidcClientFactory;
 	private final OidcProviderFactory oidcProviderFactory;
 	private final JwtProvider jwtProvider;
 	private final JwtProperties jwtProperties;
 	private final NonceService nonceService;
 	private final RefreshTokenService refreshTokenService;
+	private final ProfileManager profileManager;
 
 	// FIXME: Remove this method when deleting TestController
 	@Transactional
 	public AuthResponse issueTokensForTest(final TestAuthRequest request) {
 		final Provider provider = convertToProvider(request.provider());
-		final IdTokenPayload payload = new IdTokenPayload(request.providerId(), request.nickname());
-		final Member member = findOrCreateMember(provider, payload);
+		final IdTokenPayload idTokenPayload = new IdTokenPayload(request.providerId(), request.nickname());
+		final Member member = memberService.findOrCreateMember(provider, idTokenPayload);
 
 		return issueTokens(member.getId());
 	}
 
 	@Transactional
-	public HandshakeResponse handshake(final HandshakeRequest handshakeRequest) {
+	public NonceResponse handshake(final NonceRequest nonceRequest) {
 		final String nonce = nonceService.generateNonceValue();
-		final Provider provider = convertToProvider(handshakeRequest.provider());
+		final Provider provider = convertToProvider(nonceRequest.provider());
 
 		nonceService.saveNonce(nonce, provider);
 
-		return new HandshakeResponse(nonce);
+		return new NonceResponse(nonce);
 	}
 
 	@Transactional
 	public AuthResponse login(final AuthRequest authRequest) {
 		final Provider provider = convertToProvider(authRequest.provider());
 		final IdTokenPayload idTokenPayload = validateIdTokenAndGetPayload(provider, authRequest.idToken());
-		final Member member = findOrCreateMember(provider, idTokenPayload);
+		final Member member = memberService.findOrCreateMember(provider, idTokenPayload);
 
 		return issueTokens(member.getId());
 	}
@@ -72,6 +74,12 @@ public class AuthService {
 		final String providedRefreshToken = refreshTokenRequest.refreshToken();
 
 		final Long memberId = getMemberIdForReissue(accessToken);
+
+		memberService.findById(memberId).orElseThrow(() -> {
+			refreshTokenService.deleteRefreshToken(memberId);
+			return new ServerException(ServerErrorResult.INVALID_TOKEN);
+		});
+
 		refreshTokenService.validateRefreshToken(memberId, providedRefreshToken);
 
 		return issueTokens(memberId);
@@ -95,31 +103,6 @@ public class AuthService {
 		return oidcProviderFactory.getIdTokenPayload(provider, idToken, oidcPublicKeys);
 	}
 
-	private Member findOrCreateMember(final Provider provider, final IdTokenPayload payload) {
-		final String providerId = payload.providerId();
-		final Member member = findMemberByProviderId(provider, providerId);
-
-		return member != null ? member : createMember(provider, providerId, payload.nickname());
-	}
-
-	private Member findMemberByProviderId(final Provider provider, final String providerId) {
-		return switch (provider) {
-			case KAKAO -> memberRepository.findByKakaoId(providerId).orElse(null);
-			// Add extra providers
-			default -> throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
-		};
-	}
-
-	private Member createMember(final Provider provider, final String providerId, final String nickname) {
-		final Member newMember = Member.builder()
-			.kakaoId(provider == Provider.KAKAO ? providerId : null)
-			// Add extra providers
-			.nickname(nickname)
-			.build();
-
-		return memberRepository.save(newMember);
-	}
-
 	private AuthResponse issueTokens(final Long memberId) {
 		final String accessToken = jwtProvider.generateAccessToken(memberId);
 		final String refreshToken = refreshTokenService.generateRefreshToken();
@@ -134,17 +117,20 @@ public class AuthService {
 	}
 
 	private Long getMemberIdForReissue(final String accessToken) {
-		try {
-			return jwtProvider.getMemberIdFromExpiredAccessToken(accessToken);
-		} catch (final ServerException e) {
-			if (e.getErrorResult() == ServerErrorResult.NOT_EXPIRED_TOKEN) {
-				// An attempt to reissue with a non-expired token may be a security risk.
-				// For security, we delete the refresh token.
-				final Long memberId = jwtProvider.getMemberIdFromToken(accessToken);
-				refreshTokenService.deleteRefreshToken(memberId);
+		final ParsedTokenInfo tokenInfo = jwtProvider.parseTokenForReissue(accessToken);
+		final Long memberId = tokenInfo.memberId();
+
+		if (!tokenInfo.isExpired()) {
+			// An attempt to reissue with a non-expired token may be a security risk.
+			// For security, we delete the refresh token.
+			refreshTokenService.deleteRefreshToken(memberId);
+			if (profileManager.isProdOrStgProfile()) {
+				throw new ServerException(ServerErrorResult.INVALID_TOKEN);
 			}
-			throw e;
+			throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
 		}
+
+		return memberId;
 	}
 
 }
