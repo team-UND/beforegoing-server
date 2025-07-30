@@ -24,8 +24,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.dto.AuthRequest;
 import com.und.server.dto.AuthResponse;
-import com.und.server.dto.HandshakeRequest;
-import com.und.server.dto.HandshakeResponse;
+import com.und.server.dto.NonceRequest;
+import com.und.server.dto.NonceResponse;
 import com.und.server.dto.RefreshTokenRequest;
 import com.und.server.exception.GlobalExceptionHandler;
 import com.und.server.exception.ServerErrorResult;
@@ -56,7 +56,7 @@ class AuthControllerTest {
 	void Given_HandshakeRequestWithNullProvider_When_Handshake_Then_ReturnsBadRequest() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
-		final HandshakeRequest request = new HandshakeRequest(null);
+		final NonceRequest request = new NonceRequest(null);
 		final String requestBody = objectMapper.writeValueAsString(request);
 
 		// when
@@ -77,7 +77,7 @@ class AuthControllerTest {
 	void Given_HandshakeRequestWithUnknownProvider_When_Handshake_Then_ReturnsErrorResponse() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
-		final HandshakeRequest request = new HandshakeRequest("GOOGLE");
+		final NonceRequest request = new NonceRequest("facebook");
 		final String requestBody = objectMapper.writeValueAsString(request);
 		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
 
@@ -102,8 +102,8 @@ class AuthControllerTest {
 	void Given_ValidHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
-		final HandshakeRequest request = new HandshakeRequest("kakao");
-		final HandshakeResponse response = new HandshakeResponse("generated-nonce");
+		final NonceRequest request = new NonceRequest("kakao");
+		final NonceResponse response = new NonceResponse("generated-nonce");
 
 		doReturn(response).when(authService).handshake(request);
 
@@ -166,7 +166,7 @@ class AuthControllerTest {
 	void Given_LoginRequestWithUnknownProvider_When_Login_Then_ReturnsErrorResponse() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
-		final AuthRequest request = new AuthRequest("GOOGLE", "dummy.id.token");
+		final AuthRequest request = new AuthRequest("facebook", "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
 		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
 

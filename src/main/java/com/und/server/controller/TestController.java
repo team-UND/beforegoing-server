@@ -16,8 +16,8 @@ import com.und.server.dto.TestHelloResponse;
 import com.und.server.entity.Member;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
-import com.und.server.repository.MemberRepository;
 import com.und.server.service.AuthService;
+import com.und.server.service.MemberService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class TestController {
 
 	private final AuthService authService;
-	private final MemberRepository memberRepository;
+	private final MemberService memberService;
 
 	@PostMapping("/access")
 	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid TestAuthRequest request) {
@@ -38,9 +38,9 @@ public class TestController {
 
 	@GetMapping("/hello")
 	public ResponseEntity<TestHelloResponse> greet(Authentication authentication) {
-		final Long memberId = (Long) authentication.getPrincipal();
-		final Member member = memberRepository.findById(memberId)
-				.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
+		final Long memberId = (Long)authentication.getPrincipal();
+		final Member member = memberService.findById(memberId)
+			.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
 		final String nickname = member.getNickname() != null ? member.getNickname() : "Member";
 		final TestHelloResponse response = new TestHelloResponse("Hello, " + nickname + "!");
 

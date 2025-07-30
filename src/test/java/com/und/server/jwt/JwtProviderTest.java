@@ -21,12 +21,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
 import com.und.server.oauth.IdTokenPayload;
+import com.und.server.util.ProfileManager;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -42,7 +42,7 @@ class JwtProviderTest {
 	private JwtProperties jwtProperties;
 
 	@Mock
-	private Environment environment;
+	private ProfileManager profileManager;
 
 	private JwtProvider jwtProvider;
 
@@ -54,7 +54,7 @@ class JwtProviderTest {
 
 	@BeforeEach
 	void init() {
-		jwtProvider = new JwtProvider(environment, jwtProperties);
+		jwtProvider = new JwtProvider(jwtProperties, profileManager);
 	}
 
 	@Test
@@ -115,7 +115,7 @@ class JwtProviderTest {
 	@DisplayName("Throws ServerException when audience does not match")
 	void Given_OidcToken_When_ParseWithMismatchedAudience_Then_ThrowsServerException() throws Exception {
 		// given
-		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		doReturn(false).when(profileManager).isProdOrStgProfile();
 		final String wrongAudience = "wrong-client";
 		final KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
 		final PublicKey publicKey = keyPair.getPublic();
@@ -293,7 +293,7 @@ class JwtProviderTest {
 	@DisplayName("Throws ServerException when token structure is invalid")
 	void Given_MalformedToken_When_GetMemberIdFromToken_Then_ThrowsServerException() {
 		// given
-		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		doReturn(false).when(profileManager).isProdOrStgProfile();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		final String malformedToken = "this.is.not.a.jwt";
 
@@ -307,7 +307,7 @@ class JwtProviderTest {
 	@DisplayName("Throws ServerException when token signature is invalid")
 	void Given_TokenWithInvalidSignature_When_GetMemberIdFromToken_Then_ThrowsServerException() {
 		// given
-		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		doReturn(false).when(profileManager).isProdOrStgProfile();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		final SecretKey anotherKey = Jwts.SIG.HS256.key().build();
 		final String token = Jwts.builder().subject("1").signWith(anotherKey).compact();
@@ -321,7 +321,7 @@ class JwtProviderTest {
 	@Test
 	@DisplayName("Throws ServerException when the verification key is too weak for the token's algorithm")
 	void Given_TokenWithStrongAlgAndProviderWithWeakKey_When_GetMemberIdFromToken_Then_ThrowsTokenKeyErrorException() {
-		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		doReturn(false).when(profileManager).isProdOrStgProfile();
 		final SecretKey weakKey = Keys.hmacShaKeyFor(
 			"this-key-is-definitely-not-long-enough".getBytes(StandardCharsets.UTF_8));
 		doReturn(weakKey).when(jwtProperties).secretKey();
@@ -343,7 +343,7 @@ class JwtProviderTest {
 	@DisplayName("Throws ServerException when token uses an unsupported feature (e.g., compression)")
 	void Given_TokenWithUnsupportedFeature_When_GetMemberIdFromToken_Then_ThrowsUnsupportedTokenException() {
 		// given
-		doReturn(new String[]{"local", "dev"}).when(environment).getActiveProfiles();
+		doReturn(false).when(profileManager).isProdOrStgProfile();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		final String unsupportedToken = Jwts.builder()
 			.header()
@@ -364,7 +364,7 @@ class JwtProviderTest {
 	@DisplayName("Throws generic UNAUTHORIZED_ACCESS for any token error")
 	void Given_MalformedToken_When_GetMemberIdFromToken_Then_ThrowsGenericUnauthorizedAccessException() {
 		// given
-		doReturn(new String[]{"prod", "stg"}).when(environment).getActiveProfiles();
+		doReturn(true).when(profileManager).isProdOrStgProfile();
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		final String malformedToken = "this.is.not.a.jwt";
 
@@ -395,24 +395,27 @@ class JwtProviderTest {
 	}
 
 	@Test
-	@DisplayName("Throws an exception when getting member ID from a non-expired token")
-	void Given_NonExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ThrowsException() {
+	@DisplayName("Parses a non-expired token for reissue and returns correct info")
+	void Given_NonExpiredToken_When_ParseTokenForReissue_Then_ReturnsInfoWithIsExpiredFalse() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 		doReturn(issuer).when(jwtProperties).issuer();
 		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
 
-		final String token = jwtProvider.generateAccessToken(1L);
+		final Long memberId = 1L;
+		final String token = jwtProvider.generateAccessToken(memberId);
 
-		// when & then
-		assertThatThrownBy(() -> jwtProvider.getMemberIdFromExpiredAccessToken(token))
-			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.NOT_EXPIRED_TOKEN);
+		// when
+		final ParsedTokenInfo tokenInfo = jwtProvider.parseTokenForReissue(token);
+
+		// then
+		assertThat(tokenInfo.memberId()).isEqualTo(memberId);
+		assertThat(tokenInfo.isExpired()).isFalse();
 	}
 
 	@Test
-	@DisplayName("Gets member ID from an expired access token successfully")
-	void Given_ExpiredToken_When_GetMemberIdFromExpiredAccessToken_Then_ReturnsCorrectMemberId() {
+	@DisplayName("Parses an expired token for reissue and returns correct info")
+	void Given_ExpiredToken_When_ParseTokenForReissue_Then_ReturnsInfoWithIsExpiredTrue() {
 		// given
 		doReturn(secretKey).when(jwtProperties).secretKey();
 
@@ -420,19 +423,15 @@ class JwtProviderTest {
 		final Date now = new Date();
 		final Date issuedAt = new Date(now.getTime() - 10000);
 		final Date expiredAt = new Date(now.getTime() - 5000);
-		final String token = Jwts.builder()
-			.subject(memberId.toString())
-			.issuer(issuer)
-			.issuedAt(issuedAt)
-			.expiration(expiredAt)
-			.signWith(secretKey)
-			.compact();
+		final String token = Jwts.builder().subject(memberId.toString()).issuer(issuer).issuedAt(issuedAt)
+				.expiration(expiredAt).signWith(secretKey).compact();
 
 		// when
-		final Long extractedId = jwtProvider.getMemberIdFromExpiredAccessToken(token);
+		final ParsedTokenInfo tokenInfo = jwtProvider.parseTokenForReissue(token);
 
 		// then
-		assertThat(extractedId).isEqualTo(memberId);
+		assertThat(tokenInfo.memberId()).isEqualTo(memberId);
+		assertThat(tokenInfo.isExpired()).isTrue();
 	}
 
 }

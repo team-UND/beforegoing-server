@@ -29,8 +29,8 @@ import com.und.server.dto.TestAuthRequest;
 import com.und.server.entity.Member;
 import com.und.server.exception.GlobalExceptionHandler;
 import com.und.server.exception.ServerErrorResult;
-import com.und.server.repository.MemberRepository;
 import com.und.server.service.AuthService;
+import com.und.server.service.MemberService;
 
 @ExtendWith(MockitoExtension.class)
 class TestControllerTest {
@@ -39,7 +39,7 @@ class TestControllerTest {
 	private TestController testController;
 
 	@Mock
-	private MemberRepository memberRepository;
+	private MemberService memberService;
 
 	@Mock
 	private AuthService authService;
@@ -130,7 +130,7 @@ class TestControllerTest {
 		final String url = "/v1/test/hello";
 		final Long memberId = 3L;
 
-		doReturn(Optional.empty()).when(memberRepository).findById(memberId);
+		doReturn(Optional.empty()).when(memberService).findById(memberId);
 		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
@@ -152,7 +152,7 @@ class TestControllerTest {
 		final Long memberId = 1L;
 		final Member member = Member.builder().id(memberId).nickname("Chori").build();
 
-		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findById(memberId);
 		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
@@ -173,7 +173,7 @@ class TestControllerTest {
 		final Long memberId = 2L;
 		final Member member = Member.builder().id(memberId).nickname(null).build();
 
-		doReturn(Optional.of(member)).when(memberRepository).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findById(memberId);
 		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
 
 		// when
