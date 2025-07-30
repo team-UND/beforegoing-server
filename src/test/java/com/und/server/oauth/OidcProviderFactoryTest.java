@@ -2,7 +2,7 @@ package com.und.server.oauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +50,7 @@ class OidcProviderFactoryTest {
 		// given
 		final IdTokenPayload expectedPayload = new IdTokenPayload(providerId, nickname);
 
-		when(kakaoProvider.getIdTokenPayload(token, oidcPublicKeys)).thenReturn(expectedPayload);
+		doReturn(expectedPayload).when(kakaoProvider).getIdTokenPayload(token, oidcPublicKeys);
 
 		// when
 		final IdTokenPayload actualPayload = factory.getIdTokenPayload(Provider.KAKAO, token, oidcPublicKeys);

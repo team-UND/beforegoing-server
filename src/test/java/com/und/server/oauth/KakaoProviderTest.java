@@ -1,7 +1,7 @@
 package com.und.server.oauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 
 import java.security.PublicKey;
 import java.util.Map;
@@ -51,9 +51,9 @@ class KakaoProviderTest {
 		final Map<String, String> decodedHeader = Map.of("alg", "RS256", "kid", "key1");
 		final IdTokenPayload expectedPayload = new IdTokenPayload(providerId, nickname);
 
-		when(jwtProvider.getDecodedHeader(token)).thenReturn(decodedHeader);
-		when(publicKeyProvider.generatePublicKey(decodedHeader, oidcPublicKeys)).thenReturn(publicKey);
-		when(jwtProvider.parseOidcIdToken(token, kakaoBaseUrl, kakaoAppKey, publicKey)).thenReturn(expectedPayload);
+		doReturn(decodedHeader).when(jwtProvider).getDecodedHeader(token);
+		doReturn(publicKey).when(publicKeyProvider).generatePublicKey(decodedHeader, oidcPublicKeys);
+		doReturn(expectedPayload).when(jwtProvider).parseOidcIdToken(token, kakaoBaseUrl, kakaoAppKey, publicKey);
 
 		// when
 		final IdTokenPayload actualPayload = kakaoProvider.getIdTokenPayload(token, oidcPublicKeys);

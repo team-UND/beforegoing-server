@@ -1,0 +1,67 @@
+name: Notify on Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+env:
+  DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+permissions:
+  contents: read
+
+jobs:
+  notify-on-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send PR Comment Notification
+        if: github.event.issue.pull_request
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: "A new comment has been added to the pull request 💬"
+        env:
+          DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
+          DISCORD_EMBEDS: |
+            [
+              {
+                "author": {
+                  "name": "${{ github.event.comment.user.login }}"
+                },
+                "title": "Comment on PR #${{ github.event.issue.number }}: ${{ github.event.issue.title }}",
+                "color": 10478271,
+                "description": "${{ github.event.comment.body }}\n\n[View Comment](${{ github.event.comment.html_url }})",
+                "fields": [
+                  {
+                    "name": "Pull Request",
+                    "value": "[Link](${{ github.event.issue.html_url }})",
+                    "inline": true
+                  }
+                ]
+              }
+            ]
+
+      - name: Send Issue Comment Notification
+        if: ${{ !github.event.issue.pull_request }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: "A new comment has been added to the issue 💬"
+        env:
+          DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
+          DISCORD_EMBEDS: |
+            [
+              {
+                "author": {
+                  "name": "${{ github.event.comment.user.login }}"
+                },
+                "title": "Comment on Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}",
+                "color": 10478271,
+                "description": "${{ github.event.comment.body }}\n\n[View Comment](${{ github.event.comment.html_url }})",
+                "fields": [
+                  {
+                    "name": "Issue",
+                    "value": "[Link](${{ github.event.issue.html_url }})",
+                    "inline": true
+                  }
+                ]
+              }
+            ]

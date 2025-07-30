@@ -123,7 +123,7 @@ public class JwtProvider {
 					.parseSignedClaims(token)
 					.getPayload();
 		} catch (final ExpiredJwtException e) {
-			// This must be re-thrown for getMemberIdFromExpiredAccessToken to work correctly.
+			// This must be re-thrown for parseTokenForReissue to work correctly.
 			throw e;
 		} catch (final JwtException e) {
 			// For prod or stg environments, return a generic error to avoid leaking details.

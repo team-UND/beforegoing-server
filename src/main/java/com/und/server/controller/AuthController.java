@@ -2,6 +2,7 @@ package com.und.server.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,8 +13,10 @@ import com.und.server.dto.AuthResponse;
 import com.und.server.dto.NonceRequest;
 import com.und.server.dto.NonceResponse;
 import com.und.server.dto.RefreshTokenRequest;
+import com.und.server.security.AuthMember;
 import com.und.server.service.AuthService;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -47,4 +50,9 @@ public class AuthController {
 		return ResponseEntity.status(HttpStatus.OK).body(authResponse);
 	}
 
+	@DeleteMapping("/logout")
+	public ResponseEntity<Void> logout(@Parameter(hidden = true) @AuthMember final Long memberId) {
+		authService.logout(memberId);
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
 }

@@ -1,12 +1,16 @@
 package com.und.server.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +20,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -30,6 +37,7 @@ import com.und.server.dto.RefreshTokenRequest;
 import com.und.server.exception.GlobalExceptionHandler;
 import com.und.server.exception.ServerErrorResult;
 import com.und.server.exception.ServerException;
+import com.und.server.security.AuthMemberArgumentResolver;
 import com.und.server.service.AuthService;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,12 +49,16 @@ class AuthControllerTest {
 	@Mock
 	private AuthService authService;
 
+	@Mock
+	private AuthMemberArgumentResolver authMemberArgumentResolver;
+
 	private MockMvc mockMvc;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@BeforeEach
 	void init() {
 		mockMvc = MockMvcBuilders.standaloneSetup(authController)
+			.setCustomArgumentResolvers(authMemberArgumentResolver)
 			.setControllerAdvice(new GlobalExceptionHandler())
 			.build();
 	}
@@ -331,4 +343,51 @@ class AuthControllerTest {
 		assertThat(response.refreshToken()).isEqualTo("new.refresh.token");
 	}
 
+	@Test
+	@DisplayName("Succeeds logout and returns no content")
+	void Given_AuthenticatedUser_When_Logout_Then_ReturnsNoContent() throws Exception {
+		// given
+		final String url = "/v1/auth/logout";
+		final Long memberId = 1L;
+
+		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
+		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
+
+		final Authentication auth = new UsernamePasswordAuthenticationToken(
+			memberId,
+			null,
+			Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+		);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete(url).with(authentication(auth))
+		);
+
+		// then
+		resultActions.andExpect(status().isNoContent());
+		verify(authService).logout(memberId);
+	}
+
+	@Test
+	@DisplayName("Fails logout and returns unauthorized when user is not authenticated")
+	void Given_UnauthenticatedUser_When_Logout_Then_ReturnsUnauthorized() throws Exception {
+		// given
+		final String url = "/v1/auth/logout";
+		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+
+		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
+		doThrow(new ServerException(errorResult))
+			.when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete(url)
+		);
+
+		// then
+		resultActions.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
+	}
 }
