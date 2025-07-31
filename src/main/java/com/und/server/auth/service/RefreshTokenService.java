@@ -23,12 +23,6 @@ public class RefreshTokenService {
 		return UUID.randomUUID().toString();
 	}
 
-	public String getRefreshToken(final Long memberId) {
-		return refreshTokenRepository.findById(memberId)
-			.map(RefreshToken::getValue)
-			.orElse(null);
-	}
-
 	@Transactional
 	public void validateRefreshToken(final Long memberId, final String providedToken) {
 		refreshTokenRepository.findById(memberId)
