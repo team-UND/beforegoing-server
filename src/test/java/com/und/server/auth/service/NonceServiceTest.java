@@ -36,8 +36,9 @@ class NonceServiceTest {
 		final String nonce = nonceService.generateNonceValue();
 
 		// then
-		assertThat(nonce).isNotNull();
-		assertThat(nonce).hasSize(36); // UUID format
+		assertThat(nonce)
+			.isNotNull()
+			.hasSize(36); // UUID format
 	}
 
 	@Test

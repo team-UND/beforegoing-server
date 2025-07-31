@@ -1,7 +1,6 @@
 package com.und.server.common.exception;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -39,7 +38,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			.getAllErrors()
 			.stream()
 			.map(DefaultMessageSourceResolvable::getDefaultMessage)
-			.collect(Collectors.toList());
+			.toList();
 
 		log.warn("Invalid DTO Parameter Errors: {}", errorList);
 		return this.buildErrorResponse(ServerErrorResult.INVALID_PARAMETER, errorList);

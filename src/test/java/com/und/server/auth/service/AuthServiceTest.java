@@ -350,9 +350,6 @@ class AuthServiceTest {
 	@Test
 	@DisplayName("Deletes refresh token on logout")
 	void Given_MemberId_When_Logout_Then_DeletesRefreshToken() {
-		// given
-		final Long memberId = 1L;
-
 		// when
 		authService.logout(memberId);
 

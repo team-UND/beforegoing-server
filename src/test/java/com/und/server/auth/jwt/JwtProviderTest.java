@@ -243,7 +243,7 @@ class JwtProviderTest {
 		final Map<String, String> header = jwtProvider.getDecodedHeader(token);
 
 		// then
-		assertThat(header.get("alg")).isEqualTo("HS256");
+		assertThat(header).containsEntry("alg", "HS256");
 	}
 
 	@Test
