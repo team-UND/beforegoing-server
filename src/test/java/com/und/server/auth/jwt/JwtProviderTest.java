@@ -377,6 +377,39 @@ class JwtProviderTest {
 	}
 
 	@Test
+	@DisplayName("Throws ServerException when token subject is not a valid Long")
+	void Given_TokenWithNonNumericSubject_When_GetMemberIdFromToken_Then_ThrowsServerException() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		final String token = Jwts.builder()
+			.subject("not-a-long")
+			.signWith(secretKey)
+			.compact();
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN)
+			.cause().isInstanceOf(NumberFormatException.class);
+	}
+
+	@Test
+	@DisplayName("Throws ServerException when token subject is null")
+	void Given_TokenWithNullSubject_When_GetMemberIdFromToken_Then_ThrowsServerException() {
+		// given
+		doReturn(secretKey).when(jwtProperties).secretKey();
+		final String token = Jwts.builder()
+			.claim("dummy", "value")
+			.signWith(secretKey)
+			.compact();
+
+		// when & then
+		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+	}
+
+	@Test
 	@DisplayName("Gets member ID from a valid token")
 	void Given_ValidToken_When_GetMemberIdFromToken_Then_ReturnsCorrectMemberId() {
 		// given
