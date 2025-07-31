@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.service.RefreshTokenService;
+import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.repository.MemberRepository;
@@ -26,13 +28,7 @@ public class MemberService {
 	// FIXME: Remove this method when deleting TestController
 	public List<MemberResponse> getMemberList() {
 		final List<MemberResponse> members = memberRepository.findAll()
-			.stream().map(memberEntity -> new MemberResponse(
-				memberEntity.getId(),
-				memberEntity.getNickname(),
-				memberEntity.getKakaoId(),
-				memberEntity.getCreatedAt(),
-				memberEntity.getUpdatedAt())
-			).toList();
+			.stream().map(MemberResponse::from).toList();
 
 		return members;
 	}
@@ -58,6 +54,7 @@ public class MemberService {
 	private Optional<Member> findMemberByProviderId(final Provider provider, final String providerId) {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId);
+			default -> throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
 		};
 	}
 
@@ -65,6 +62,7 @@ public class MemberService {
 		final Member.MemberBuilder memberBuilder = Member.builder().nickname(nickname);
 		switch (provider) {
 			case KAKAO -> memberBuilder.kakaoId(providerId);
+			default -> throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
 		}
 
 		return memberRepository.save(memberBuilder.build());

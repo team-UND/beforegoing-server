@@ -8,5 +8,5 @@ import jakarta.validation.constraints.NotBlank;
 @Schema(description = "Request for issuing a Nonce")
 public record NonceRequest(
 	@Schema(description = "OAuth provider name", example = "kakao")
-	@NotBlank(message = "Provider must not be null") @JsonProperty("provider") String provider
+	@NotBlank(message = "Provider name must not be blank") @JsonProperty("provider") String provider
 ) { }

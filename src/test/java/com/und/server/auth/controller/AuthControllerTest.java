@@ -81,7 +81,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Provider must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
 	@Test
@@ -149,7 +149,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Provider must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
 	@Test
@@ -170,7 +170,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("ID Token must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("ID Token must not be blank"));
 	}
 
 	@Test
@@ -280,7 +280,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Access Token must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Access Token must not be blank"));
 	}
 
 	@Test
@@ -301,7 +301,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be blank"));
 	}
 
 	@Test
