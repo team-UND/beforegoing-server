@@ -1,5 +1,6 @@
 package com.und.server.member.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -7,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
+import com.und.server.auth.service.RefreshTokenService;
+import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.repository.MemberRepository;
 
@@ -18,16 +21,38 @@ import lombok.RequiredArgsConstructor;
 public class MemberService {
 
 	private final MemberRepository memberRepository;
+	private final RefreshTokenService refreshTokenService;
+
+	// FIXME: Remove this method when deleting TestController
+	public List<MemberResponse> getMemberList() {
+		final List<MemberResponse> members = memberRepository.findAll()
+			.stream().map(memberEntity -> new MemberResponse(
+				memberEntity.getId(),
+				memberEntity.getNickname(),
+				memberEntity.getKakaoId(),
+				memberEntity.getCreatedAt(),
+				memberEntity.getUpdatedAt())
+			).toList();
+
+		return members;
+	}
 
 	@Transactional
 	public Member findOrCreateMember(final Provider provider, final IdTokenPayload payload) {
 		final String providerId = payload.providerId();
+
 		return findMemberByProviderId(provider, providerId)
 			.orElseGet(() -> createMember(provider, providerId, payload.nickname()));
 	}
 
 	public Optional<Member> findMemberById(final Long memberId) {
 		return memberRepository.findById(memberId);
+	}
+
+	@Transactional
+	public void deleteMemberById(final Long memberId) {
+		refreshTokenService.deleteRefreshToken(memberId);
+		memberRepository.deleteById(memberId);
 	}
 
 	private Optional<Member> findMemberByProviderId(final Provider provider, final String providerId) {
@@ -41,6 +66,7 @@ public class MemberService {
 		switch (provider) {
 			case KAKAO -> memberBuilder.kakaoId(providerId);
 		}
+
 		return memberRepository.save(memberBuilder.build());
 	}
 
