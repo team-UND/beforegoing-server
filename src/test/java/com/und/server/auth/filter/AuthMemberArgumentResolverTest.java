@@ -32,7 +32,7 @@ class AuthMemberArgumentResolverTest {
 	private SecurityContext securityContext;
 
 	@BeforeEach
-	void setUp() {
+	void init() {
 		SecurityContextHolder.setContext(securityContext);
 	}
 
