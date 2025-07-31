@@ -27,10 +27,8 @@ public class MemberService {
 
 	// FIXME: Remove this method when deleting TestController
 	public List<MemberResponse> getMemberList() {
-		final List<MemberResponse> members = memberRepository.findAll()
+		return memberRepository.findAll()
 			.stream().map(MemberResponse::from).toList();
-
-		return members;
 	}
 
 	@Transactional
