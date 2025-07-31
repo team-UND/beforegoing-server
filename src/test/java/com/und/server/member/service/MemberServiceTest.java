@@ -81,12 +81,12 @@ class MemberServiceTest {
 
 	@Test
 	@DisplayName("Returns an empty Optional when finding a non-existent member by ID")
-	void Given_NonExistingMemberId_When_FindById_Then_ReturnsEmptyOptional() {
+	void Given_NonExistingMemberId_When_FindMemberById_Then_ReturnsEmptyOptional() {
 		// given
 		doReturn(Optional.empty()).when(memberRepository).findById(memberId);
 
 		// when
-		final Optional<Member> foundMemberOptional = memberService.findById(memberId);
+		final Optional<Member> foundMemberOptional = memberService.findMemberById(memberId);
 
 		// then
 		assertThat(foundMemberOptional).isEmpty();

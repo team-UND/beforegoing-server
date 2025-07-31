@@ -39,7 +39,7 @@ public class TestController {
 
 	@GetMapping("/hello")
 	public ResponseEntity<TestHelloResponse> greet(@Parameter(hidden = true) @AuthMember final Long memberId) {
-		final Member member = memberService.findById(memberId)
+		final Member member = memberService.findMemberById(memberId)
 			.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
 		final String nickname = member.getNickname() != null ? member.getNickname() : "Member";
 		final TestHelloResponse response = new TestHelloResponse("Hello, " + nickname + "!");

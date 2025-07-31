@@ -76,7 +76,7 @@ public class AuthService {
 
 		final Long memberId = getMemberIdForReissue(accessToken);
 
-		memberService.findById(memberId).orElseThrow(() -> {
+		memberService.findMemberById(memberId).orElseThrow(() -> {
 			refreshTokenService.deleteRefreshToken(memberId);
 			return new ServerException(ServerErrorResult.INVALID_TOKEN);
 		});

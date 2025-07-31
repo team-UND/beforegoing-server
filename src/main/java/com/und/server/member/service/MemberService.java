@@ -28,7 +28,7 @@ public class MemberService {
 			.orElseGet(() -> createMember(provider, providerId, payload.nickname()));
 	}
 
-	public Optional<Member> findById(final Long memberId) {
+	public Optional<Member> findMemberById(final Long memberId) {
 		return memberRepository.findById(memberId);
 	}
 

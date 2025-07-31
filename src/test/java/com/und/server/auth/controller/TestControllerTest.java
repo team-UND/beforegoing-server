@@ -139,7 +139,7 @@ class TestControllerTest {
 		final String url = "/v1/test/hello";
 		final Long memberId = 3L;
 
-		doReturn(Optional.empty()).when(memberService).findById(memberId);
+		doReturn(Optional.empty()).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
@@ -186,7 +186,7 @@ class TestControllerTest {
 		final Long memberId = 1L;
 		final Member member = Member.builder().id(memberId).nickname("Chori").build();
 
-		doReturn(Optional.of(member)).when(memberService).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
@@ -210,7 +210,7 @@ class TestControllerTest {
 		final Long memberId = 2L;
 		final Member member = Member.builder().id(memberId).nickname(null).build();
 
-		doReturn(Optional.of(member)).when(memberService).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
