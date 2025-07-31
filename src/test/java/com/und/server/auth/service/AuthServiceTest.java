@@ -323,7 +323,6 @@ class AuthServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		// then
 		verify(refreshTokenService).deleteRefreshToken(memberId);
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
 	}
@@ -342,7 +341,6 @@ class AuthServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		// then
 		verify(refreshTokenService).deleteRefreshToken(memberId);
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.NOT_EXPIRED_TOKEN);
 	}
