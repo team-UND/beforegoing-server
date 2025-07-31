@@ -1,6 +1,7 @@
 package com.und.server.scenario.entity;
 
-import com.und.server.entity.Member;
+
+import com.und.server.member.entity.Member;
 import com.und.server.notification.entity.Notification;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,10 +1,10 @@
 package com.und.server.scenario.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.exception.GlobalExceptionHandler;
+import com.und.server.auth.filter.AuthMemberArgumentResolver;
+import com.und.server.common.exception.GlobalExceptionHandler;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
-import com.und.server.security.AuthMemberArgumentResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

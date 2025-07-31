@@ -1,8 +1,9 @@
 package com.und.server.scenario.controller;
 
+import com.und.server.auth.filter.AuthMember;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
-import com.und.server.security.AuthMember;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
