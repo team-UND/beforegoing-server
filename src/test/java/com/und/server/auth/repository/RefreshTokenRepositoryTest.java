@@ -16,7 +16,7 @@ import com.und.server.auth.entity.RefreshToken;
 class RefreshTokenRepositoryTest {
 
 	@Autowired
-	RefreshTokenRepository refreshTokenRepository;
+	private RefreshTokenRepository refreshTokenRepository;
 
 	@Test
 	@DisplayName("Saves a refresh token and verifies its properties")
