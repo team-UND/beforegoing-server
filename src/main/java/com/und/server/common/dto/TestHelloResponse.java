@@ -1,4 +1,4 @@
-package com.und.server.auth.dto;
+package com.und.server.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

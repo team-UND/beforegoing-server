@@ -1,5 +1,7 @@
-package com.und.server.auth.controller;
+package com.und.server.common.controller;
 
+
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.dto.AuthResponse;
-import com.und.server.auth.dto.TestAuthRequest;
-import com.und.server.auth.dto.TestHelloResponse;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.auth.service.AuthService;
+import com.und.server.common.dto.TestAuthRequest;
+import com.und.server.common.dto.TestHelloResponse;
 import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.service.MemberService;
 
@@ -45,6 +48,13 @@ public class TestController {
 		final TestHelloResponse response = new TestHelloResponse("Hello, " + nickname + "!");
 
 		return ResponseEntity.status(HttpStatus.OK).body(response);
+	}
+
+	@GetMapping("/members")
+	public ResponseEntity<List<MemberResponse>> getMemberList() {
+		final List<MemberResponse> members = memberService.getMemberList();
+
+		return ResponseEntity.status(HttpStatus.OK).body(members);
 	}
 
 }
