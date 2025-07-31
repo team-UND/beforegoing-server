@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
-import com.und.server.common.exception.ServerErrorResult;
-import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.member.repository.MemberRepository;
 
@@ -35,14 +33,15 @@ public class MemberService {
 	private Optional<Member> findMemberByProviderId(final Provider provider, final String providerId) {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId);
-			default -> throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
 		};
 	}
 
 	private Member createMember(final Provider provider, final String providerId, final String nickname) {
-		return memberRepository.save(Member.builder()
-			.kakaoId(provider == Provider.KAKAO ? providerId : null)
-			.nickname(nickname)
-			.build());
+		final Member.MemberBuilder memberBuilder = Member.builder().nickname(nickname);
+		switch (provider) {
+			case KAKAO -> memberBuilder.kakaoId(providerId);
+		}
+		return memberRepository.save(memberBuilder.build());
 	}
+
 }
