@@ -78,19 +78,15 @@ class AuthMemberArgumentResolverTest {
 	}
 
 	@Test
-	@DisplayName("Resolves memberId successfully when principal is a Long")
-	void Given_ValidPrincipal_When_ResolveArgument_Then_ReturnsMemberId() {
+	@DisplayName("Throws ServerException when authentication is null")
+	void Given_NullAuthentication_When_ResolveArgument_Then_ThrowsServerException() {
 		// given
-		final Long memberId = 1L;
-		final UsernamePasswordAuthenticationToken authentication
-			= new UsernamePasswordAuthenticationToken(memberId, null);
-		doReturn(authentication).when(securityContext).getAuthentication();
+		doReturn(null).when(securityContext).getAuthentication();
 
-		// when
-		final Object result = authMemberArgumentResolver.resolveArgument(parameter, null, null, null);
-
-		// then
-		assertThat(result).isEqualTo(memberId);
+		// when & then
+		assertThatThrownBy(() -> authMemberArgumentResolver.resolveArgument(parameter, null, null, null))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNAUTHORIZED_ACCESS);
 	}
 
 	@Test
@@ -107,4 +103,21 @@ class AuthMemberArgumentResolverTest {
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNAUTHORIZED_ACCESS);
 	}
+
+	@Test
+	@DisplayName("Resolves memberId successfully when principal is a Long")
+	void Given_ValidPrincipal_When_ResolveArgument_Then_ReturnsMemberId() {
+		// given
+		final Long memberId = 1L;
+		final UsernamePasswordAuthenticationToken authentication
+			= new UsernamePasswordAuthenticationToken(memberId, null);
+		doReturn(authentication).when(securityContext).getAuthentication();
+
+		// when
+		final Object result = authMemberArgumentResolver.resolveArgument(parameter, null, null, null);
+
+		// then
+		assertThat(result).isEqualTo(memberId);
+	}
+
 }
