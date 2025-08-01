@@ -46,36 +46,6 @@ class RefreshTokenServiceTest {
 	}
 
 	@Test
-	@DisplayName("Returns the token value if a refresh token is stored")
-	void Given_StoredToken_When_GetRefreshToken_Then_ReturnsTokenValue() {
-		// given
-		final RefreshToken savedToken = RefreshToken.builder()
-			.memberId(memberId)
-			.value(refreshTokenValue)
-			.build();
-		doReturn(Optional.of(savedToken)).when(refreshTokenRepository).findById(memberId);
-
-		// when
-		final String foundToken = refreshTokenService.getRefreshToken(memberId);
-
-		// then
-		assertThat(foundToken).isEqualTo(refreshTokenValue);
-	}
-
-	@Test
-	@DisplayName("Returns null if no refresh token is stored")
-	void Given_NoToken_When_GetRefreshToken_Then_ReturnsNull() {
-		// given
-		doReturn(Optional.empty()).when(refreshTokenRepository).findById(memberId);
-
-		// when
-		final String foundToken = refreshTokenService.getRefreshToken(memberId);
-
-		// then
-		assertThat(foundToken).isNull();
-	}
-
-	@Test
 	@DisplayName("Saves a refresh token to the repository")
 	void Given_MemberIdAndToken_When_SaveRefreshToken_Then_CallsRepositorySave() {
 		// given

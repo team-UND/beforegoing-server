@@ -1,21 +1,21 @@
-package com.und.server.auth.dto;
+package com.und.server.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 @Schema(description = "Request for issuing test tokens")
 public record TestAuthRequest(
 	@Schema(description = "OAuth provider name", example = "kakao")
-	@NotNull(message = "Provider must not be null") @JsonProperty("provider")
+	@NotBlank(message = "Provider name must not be blank") @JsonProperty("provider")
 	String provider,
 
 	@Schema(description = "Unique ID from the provider", example = "123456789")
-	@NotNull(message = "Provider ID must not be null") @JsonProperty("provider_id")
+	@NotBlank(message = "Provider ID must not be blank") @JsonProperty("provider_id")
 	String providerId,
 
 	@Schema(description = "User's nickname", example = "Chori")
-	@NotNull(message = "Nickname must not be null") @JsonProperty("nickname")
+	@NotBlank(message = "Nickname must not be blank") @JsonProperty("nickname")
 	String nickname
 ) { }
