@@ -12,6 +12,7 @@ import com.und.server.auth.service.RefreshTokenService;
 import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
+import com.und.server.member.dto.NicknameRequest;
 import com.und.server.member.entity.Member;
 import com.und.server.member.repository.MemberRepository;
 
@@ -34,17 +35,39 @@ public class MemberService {
 	@Transactional
 	public Member findOrCreateMember(final Provider provider, final IdTokenPayload payload) {
 		final String providerId = payload.providerId();
+		validateProviderIdIsNotNull(providerId);
 
 		return findMemberByProviderId(provider, providerId)
 			.orElseGet(() -> createMember(provider, providerId, payload.nickname()));
 	}
 
-	public Optional<Member> findMemberById(final Long memberId) {
-		return memberRepository.findById(memberId);
+	public Member findMemberById(final Long memberId) {
+		validateMemberIdIsNotNull(memberId);
+
+		return memberRepository.findById(memberId)
+			.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
+	}
+
+	public void validateMemberExists(final Long memberId) {
+		validateMemberIdIsNotNull(memberId);
+
+		if (!memberRepository.existsById(memberId)) {
+			throw new ServerException(ServerErrorResult.MEMBER_NOT_FOUND);
+		}
+	}
+
+	@Transactional
+	public MemberResponse updateNickname(final Long memberId, final NicknameRequest nicknameRequest) {
+		final Member member = findMemberById(memberId);
+		member.updateNickname(nicknameRequest.nickname());
+
+		return MemberResponse.from(member);
 	}
 
 	@Transactional
 	public void deleteMemberById(final Long memberId) {
+		validateMemberIdIsNotNull(memberId);
+
 		refreshTokenService.deleteRefreshToken(memberId);
 		memberRepository.deleteById(memberId);
 	}
@@ -64,6 +87,18 @@ public class MemberService {
 		}
 
 		return memberRepository.save(memberBuilder.build());
+	}
+
+	private void validateMemberIdIsNotNull(final Long memberId) {
+		if (memberId == null) {
+			throw new ServerException(ServerErrorResult.INVALID_MEMBER_ID);
+		}
+	}
+
+	private void validateProviderIdIsNotNull(final String providerId) {
+		if (providerId == null) {
+			throw new ServerException(ServerErrorResult.INVALID_PROVIDER_ID);
+		}
 	}
 
 }
