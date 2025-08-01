@@ -34,6 +34,7 @@ public class MemberService {
 
 	@Transactional
 	public Member findOrCreateMember(final Provider provider, final IdTokenPayload payload) {
+		validateProviderIsNotNull(provider);
 		final String providerId = payload.providerId();
 		validateProviderIdIsNotNull(providerId);
 
@@ -92,6 +93,12 @@ public class MemberService {
 	private void validateMemberIdIsNotNull(final Long memberId) {
 		if (memberId == null) {
 			throw new ServerException(ServerErrorResult.INVALID_MEMBER_ID);
+		}
+	}
+
+	private void validateProviderIsNotNull(final Provider provider) {
+		if (provider == null) {
+			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
 		}
 	}
 

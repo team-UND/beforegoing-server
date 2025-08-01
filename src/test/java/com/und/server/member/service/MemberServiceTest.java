@@ -105,6 +105,19 @@ class MemberServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws an exception when finding or creating a member with a null provider")
+	void Given_NullProvider_When_FindOrCreateMember_Then_ThrowsException() {
+		// given
+		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> memberService.findOrCreateMember(null, payload));
+
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+	}
+
+	@Test
 	@DisplayName("Throws an exception when finding or creating a member with a null provider ID")
 	void Given_NullProviderId_When_FindOrCreateMember_Then_ThrowsException() {
 		// given
