@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
+import com.und.server.auth.service.RefreshTokenService;
+import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.repository.MemberRepository;
 
@@ -28,6 +31,9 @@ class MemberServiceTest {
 
 	@Mock
 	private MemberRepository memberRepository;
+
+	@Mock
+	private RefreshTokenService refreshTokenService;
 
 	private final Long memberId = 1L;
 	private final String providerId = "test-provider-id";
@@ -81,14 +87,47 @@ class MemberServiceTest {
 
 	@Test
 	@DisplayName("Returns an empty Optional when finding a non-existent member by ID")
-	void Given_NonExistingMemberId_When_FindById_Then_ReturnsEmptyOptional() {
+	void Given_NonExistingMemberId_When_FindMemberById_Then_ReturnsEmptyOptional() {
 		// given
 		doReturn(Optional.empty()).when(memberRepository).findById(memberId);
 
 		// when
-		final Optional<Member> foundMemberOptional = memberService.findById(memberId);
+		final Optional<Member> foundMemberOptional = memberService.findMemberById(memberId);
 
 		// then
 		assertThat(foundMemberOptional).isEmpty();
 	}
+
+	@Test
+	@DisplayName("Retrieves all members and returns them as a list of MemberResponse DTOs")
+	void Given_ExistingMembers_When_GetMemberList_Then_ReturnsListOfMemberResponses() {
+		// given
+		final Member member1 = Member.builder().id(1L).kakaoId("kakao1").nickname("user1").build();
+		final Member member2 = Member.builder().id(2L).kakaoId("kakao2").nickname("user2").build();
+		doReturn(List.of(member1, member2)).when(memberRepository).findAll();
+
+		// when
+		final List<MemberResponse> memberList = memberService.getMemberList();
+
+		// then
+		assertThat(memberList).hasSize(2);
+		assertThat(memberList.get(0).id()).isEqualTo(1L);
+		assertThat(memberList.get(1).id()).isEqualTo(2L);
+		verify(memberRepository).findAll();
+	}
+
+	@Test
+	@DisplayName("Deletes a member and their refresh token by ID")
+	void Given_MemberId_When_DeleteMemberById_Then_DeletesMemberAndRefreshToken() {
+		// given
+		final Long memberIdToDelete = 1L;
+
+		// when
+		memberService.deleteMemberById(memberIdToDelete);
+
+		// then
+		verify(memberRepository).deleteById(memberIdToDelete);
+		verify(refreshTokenService).deleteRefreshToken(memberIdToDelete);
+	}
+
 }

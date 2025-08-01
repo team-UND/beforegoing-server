@@ -9,7 +9,6 @@ import com.und.server.auth.dto.NonceRequest;
 import com.und.server.auth.dto.NonceResponse;
 import com.und.server.auth.dto.OidcPublicKeys;
 import com.und.server.auth.dto.RefreshTokenRequest;
-import com.und.server.auth.dto.TestAuthRequest;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.auth.jwt.ParsedTokenInfo;
@@ -18,6 +17,7 @@ import com.und.server.auth.oauth.OidcClient;
 import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
 import com.und.server.auth.oauth.Provider;
+import com.und.server.common.dto.TestAuthRequest;
 import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
@@ -76,7 +76,7 @@ public class AuthService {
 
 		final Long memberId = getMemberIdForReissue(accessToken);
 
-		memberService.findById(memberId).orElseThrow(() -> {
+		memberService.findMemberById(memberId).orElseThrow(() -> {
 			refreshTokenService.deleteRefreshToken(memberId);
 			return new ServerException(ServerErrorResult.INVALID_TOKEN);
 		});

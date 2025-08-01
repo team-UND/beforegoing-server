@@ -25,7 +25,6 @@ import com.und.server.auth.dto.NonceRequest;
 import com.und.server.auth.dto.NonceResponse;
 import com.und.server.auth.dto.OidcPublicKeys;
 import com.und.server.auth.dto.RefreshTokenRequest;
-import com.und.server.auth.dto.TestAuthRequest;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.auth.jwt.ParsedTokenInfo;
@@ -34,6 +33,7 @@ import com.und.server.auth.oauth.OidcClient;
 import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
 import com.und.server.auth.oauth.Provider;
+import com.und.server.common.dto.TestAuthRequest;
 import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
@@ -231,7 +231,7 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.empty()).when(memberService).findById(memberId);
+		doReturn(Optional.empty()).when(memberService).findMemberById(memberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
@@ -251,7 +251,7 @@ class AuthServiceTest {
 		final Member member = Member.builder().id(memberId).build();
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.of(member)).when(memberService).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
 		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
 			.when(refreshTokenService).validateRefreshToken(memberId, "wrong.refresh.token");
 
@@ -271,7 +271,7 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.of(member)).when(memberService).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
 		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
 			.when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
 
@@ -294,7 +294,7 @@ class AuthServiceTest {
 		final Member member = Member.builder().id(memberId).build();
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.of(member)).when(memberService).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
 		doNothing().when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
 		setupTokenIssuance(newAccessToken, newRefreshToken);
 
@@ -323,7 +323,6 @@ class AuthServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		// then
 		verify(refreshTokenService).deleteRefreshToken(memberId);
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
 	}
@@ -342,7 +341,6 @@ class AuthServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		// then
 		verify(refreshTokenService).deleteRefreshToken(memberId);
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.NOT_EXPIRED_TOKEN);
 	}

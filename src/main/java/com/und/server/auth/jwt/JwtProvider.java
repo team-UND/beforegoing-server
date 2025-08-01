@@ -71,7 +71,10 @@ public class JwtProvider {
 				.requireAudience(aud);
 		final Claims claims = parseClaims(token, builder);
 
-		return new IdTokenPayload(claims.getSubject(), claims.get("nickname", String.class));
+		return new IdTokenPayload(
+			getValidSubject(claims),
+			claims.get("nickname", String.class)
+		);
 	}
 
 	public String generateAccessToken(final Long memberId) {
@@ -96,7 +99,8 @@ public class JwtProvider {
 	}
 
 	public Long getMemberIdFromToken(final String token) {
-		return Long.valueOf(parseClaims(token, getAccessTokenParserBuilder()).getSubject());
+		final Claims claims = parseClaims(token, getAccessTokenParserBuilder());
+		return getMemberIdFromClaims(claims);
 	}
 
 	private Claims parseClaims(final String token, final JwtParserBuilder builder) {
@@ -110,10 +114,10 @@ public class JwtProvider {
 	public ParsedTokenInfo parseTokenForReissue(final String token) {
 		try {
 			final Claims claims = parseToken(token, getAccessTokenParserBuilder());
-			return new ParsedTokenInfo(Long.valueOf(claims.getSubject()), false);
+			return new ParsedTokenInfo(getMemberIdFromClaims(claims), false);
 		} catch (final ExpiredJwtException e) {
 			// If the token is expired, we can still extract the member ID.
-			return new ParsedTokenInfo(Long.valueOf(e.getClaims().getSubject()), true);
+			return new ParsedTokenInfo(getMemberIdFromClaims(e.getClaims()), true);
 		}
 	}
 
@@ -160,6 +164,24 @@ public class JwtProvider {
 
 	private Date toDate(final LocalDateTime dateTime) {
 		return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+	}
+
+	private Long getMemberIdFromClaims(final Claims claims) {
+		final String subject = getValidSubject(claims);
+		try {
+			return Long.valueOf(subject);
+		} catch (final NumberFormatException e) {
+			// The subject was not a valid Long, which is unexpected for our tokens.
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
+		}
+	}
+
+	private String getValidSubject(final Claims claims) {
+		final String subject = claims.getSubject();
+		if (subject == null) {
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+		}
+		return subject;
 	}
 
 }
