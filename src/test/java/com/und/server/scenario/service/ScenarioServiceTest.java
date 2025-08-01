@@ -2,7 +2,7 @@ package com.und.server.scenario.service;
 
 
 import com.und.server.member.entity.Member;
-import com.und.server.notification.entity.NotifType;
+import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.entity.Notification;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
