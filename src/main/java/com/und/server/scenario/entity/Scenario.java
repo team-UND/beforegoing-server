@@ -1,6 +1,7 @@
 package com.und.server.scenario.entity;
 
 
+import com.und.server.common.entity.BaseTimeEntity;
 import com.und.server.member.entity.Member;
 import com.und.server.notification.entity.Notification;
 import jakarta.persistence.*;
@@ -34,7 +35,7 @@ public class Scenario extends BaseTimeEntity {
 	@Column(nullable = false)
 	private Integer order;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "notification_id")
 	private Notification notification;
 
