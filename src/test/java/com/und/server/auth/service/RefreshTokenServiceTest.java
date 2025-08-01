@@ -63,6 +63,58 @@ class RefreshTokenServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws an exception when saving a null token")
+	void Given_NullToken_When_SaveRefreshToken_Then_ThrowsException() {
+		// when
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> refreshTokenService.saveRefreshToken(memberId, null));
+
+		// then
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Throws an exception when validating with a null token")
+	void Given_NullToken_When_ValidateRefreshToken_Then_ThrowsException() {
+		// when
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> refreshTokenService.validateRefreshToken(memberId, null));
+
+		// then
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+	}
+
+	@Test
+	@DisplayName("Throws an exception when saving a refresh token with a null member ID")
+	void Given_NullMemberId_When_SaveRefreshToken_Then_ThrowsException() {
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> refreshTokenService.saveRefreshToken(null, refreshTokenValue));
+
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+	}
+
+	@Test
+	@DisplayName("Throws an exception when validating a refresh token with a null member ID")
+	void Given_NullMemberId_When_ValidateRefreshToken_Then_ThrowsException() {
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> refreshTokenService.validateRefreshToken(null, refreshTokenValue));
+
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+	}
+
+	@Test
+	@DisplayName("Throws an exception when deleting a refresh token with a null member ID")
+	void Given_NullMemberId_When_DeleteRefreshToken_Then_ThrowsException() {
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> refreshTokenService.deleteRefreshToken(null));
+
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+	}
+
+	@Test
 	@DisplayName("Succeeds validation if the provided token matches the stored one")
 	void Given_MatchingToken_When_ValidateRefreshToken_Then_Succeeds() {
 		// given
@@ -89,6 +141,25 @@ class RefreshTokenServiceTest {
 		// when
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> refreshTokenService.validateRefreshToken(memberId, "wrong-token"));
+
+		// then
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		verify(refreshTokenRepository).deleteById(memberId);
+	}
+
+	@Test
+	@DisplayName("Throws an exception if the stored token value is null")
+	void Given_StoredTokenWithValueNull_When_ValidateRefreshToken_Then_ThrowsException() {
+		// given
+		final RefreshToken savedTokenWithNullValue = RefreshToken.builder()
+			.memberId(memberId)
+			.value(null)
+			.build();
+		doReturn(Optional.of(savedTokenWithNullValue)).when(refreshTokenRepository).findById(memberId);
+
+		// when
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> refreshTokenService.validateRefreshToken(memberId, refreshTokenValue));
 
 		// then
 		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);

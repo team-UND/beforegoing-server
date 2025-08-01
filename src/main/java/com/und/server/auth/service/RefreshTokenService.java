@@ -25,9 +25,12 @@ public class RefreshTokenService {
 
 	@Transactional
 	public void validateRefreshToken(final Long memberId, final String providedToken) {
+		validateMemberIdIsNotNull(memberId);
+		validateTokenValueIsNotNull(providedToken);
+
 		refreshTokenRepository.findById(memberId)
 			.map(RefreshToken::getValue)
-			.filter(savedToken -> savedToken.equals(providedToken))
+			.filter(savedToken -> providedToken.equals(savedToken))
 			.orElseThrow(() -> {
 				deleteRefreshToken(memberId);
 				return new ServerException(ServerErrorResult.INVALID_TOKEN);
@@ -35,10 +38,13 @@ public class RefreshTokenService {
 	}
 
 	@Transactional
-	public void saveRefreshToken(final Long memberId, final String refreshToken) {
+	public void saveRefreshToken(final Long memberId, final String value) {
+		validateMemberIdIsNotNull(memberId);
+		validateTokenValueIsNotNull(value);
+
 		final RefreshToken token = RefreshToken.builder()
 			.memberId(memberId)
-			.value(refreshToken)
+			.value(value)
 			.build();
 
 		refreshTokenRepository.save(token);
@@ -46,6 +52,21 @@ public class RefreshTokenService {
 
 	@Transactional
 	public void deleteRefreshToken(final Long memberId) {
+		validateMemberIdIsNotNull(memberId);
+
 		refreshTokenRepository.deleteById(memberId);
 	}
+
+	private void validateMemberIdIsNotNull(final Long memberId) {
+		if (memberId == null) {
+			throw new ServerException(ServerErrorResult.INVALID_MEMBER_ID);
+		}
+	}
+
+	private void validateTokenValueIsNotNull(final String token) {
+		if (token == null) {
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+		}
+	}
+
 }

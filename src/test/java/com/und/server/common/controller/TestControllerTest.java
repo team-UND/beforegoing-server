@@ -4,13 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,8 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -135,25 +131,23 @@ class TestControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fails to greet and returns unauthorized when the authenticated member is not found")
-	void Given_AuthenticatedUserNotFoundInDb_When_Greet_Then_ReturnsUnauthorized() throws Exception {
+	@DisplayName("Fails to greet and returns not found when the authenticated member is not found")
+	void Given_AuthenticatedUserNotFoundInDb_When_Greet_Then_ReturnsNotFound() throws Exception {
 		// given
 		final String url = "/v1/test/hello";
 		final Long memberId = 3L;
 
-		doReturn(Optional.empty()).when(memberService).findMemberById(memberId);
+		doThrow(new ServerException(ServerErrorResult.MEMBER_NOT_FOUND)).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
-		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
-
 		// when
 		final ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get(url).with(authentication(auth))
+			MockMvcRequestBuilders.get(url)
 		);
 
 		// then
-		result.andExpect(status().isUnauthorized())
+		result.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.MEMBER_NOT_FOUND.name()))
 			.andExpect(jsonPath("$.message").value(ServerErrorResult.MEMBER_NOT_FOUND.getMessage()));
 	}
@@ -188,15 +182,13 @@ class TestControllerTest {
 		final Long memberId = 1L;
 		final Member member = Member.builder().id(memberId).nickname("Chori").build();
 
-		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
+		doReturn(member).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
-		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
-
 		// when
 		final ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get(url).with(authentication(auth))
+			MockMvcRequestBuilders.get(url)
 		);
 
 		// then
@@ -212,15 +204,13 @@ class TestControllerTest {
 		final Long memberId = 2L;
 		final Member member = Member.builder().id(memberId).nickname(null).build();
 
-		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
+		doReturn(member).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
-		final Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
-
 		// when
 		final ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get(url).with(authentication(auth))
+			MockMvcRequestBuilders.get(url)
 		);
 
 		// then
