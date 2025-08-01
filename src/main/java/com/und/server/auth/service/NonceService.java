@@ -25,12 +25,12 @@ public class NonceService {
 	}
 
 	@Transactional
-	public void validateNonce(final String nonceValue, final Provider provider) {
-		nonceRepository.findById(nonceValue)
+	public void validateNonce(final String value, final Provider provider) {
+		nonceRepository.findById(value)
 			.filter(n -> n.getProvider() == provider)
 			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_NONCE));
 
-		nonceRepository.deleteById(nonceValue);
+		nonceRepository.deleteById(value);
 	}
 
 

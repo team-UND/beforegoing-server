@@ -81,7 +81,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Provider must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
 	@Test
@@ -149,7 +149,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Provider must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
 	@Test
@@ -170,7 +170,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("ID Token must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("ID Token must not be blank"));
 	}
 
 	@Test
@@ -280,7 +280,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Access Token must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Access Token must not be blank"));
 	}
 
 	@Test
@@ -301,7 +301,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
-			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be null"));
+			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be blank"));
 	}
 
 	@Test
@@ -344,6 +344,28 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Fails logout and returns unauthorized when user is not authenticated")
+	void Given_UnauthenticatedUser_When_Logout_Then_ReturnsUnauthorized() throws Exception {
+		// given
+		final String url = "/v1/auth/logout";
+		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+
+		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
+		doThrow(new ServerException(errorResult))
+			.when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete(url)
+		);
+
+		// then
+		resultActions.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
+	}
+
+	@Test
 	@DisplayName("Succeeds logout and returns no content")
 	void Given_AuthenticatedUser_When_Logout_Then_ReturnsNoContent() throws Exception {
 		// given
@@ -369,25 +391,4 @@ class AuthControllerTest {
 		verify(authService).logout(memberId);
 	}
 
-	@Test
-	@DisplayName("Fails logout and returns unauthorized when user is not authenticated")
-	void Given_UnauthenticatedUser_When_Logout_Then_ReturnsUnauthorized() throws Exception {
-		// given
-		final String url = "/v1/auth/logout";
-		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
-
-		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
-		doThrow(new ServerException(errorResult))
-			.when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
-
-		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.delete(url)
-		);
-
-		// then
-		resultActions.andExpect(status().isUnauthorized())
-			.andExpect(jsonPath("$.code").value(errorResult.name()))
-			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
-	}
 }

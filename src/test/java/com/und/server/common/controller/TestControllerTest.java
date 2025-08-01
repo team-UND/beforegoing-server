@@ -1,4 +1,4 @@
-package com.und.server.auth.controller;
+package com.und.server.common.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +29,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.auth.dto.AuthResponse;
-import com.und.server.auth.dto.TestAuthRequest;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;
+import com.und.server.common.dto.TestAuthRequest;
 import com.und.server.common.exception.GlobalExceptionHandler;
 import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.service.MemberService;
 
@@ -139,7 +141,7 @@ class TestControllerTest {
 		final String url = "/v1/test/hello";
 		final Long memberId = 3L;
 
-		doReturn(Optional.empty()).when(memberService).findById(memberId);
+		doReturn(Optional.empty()).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
@@ -186,7 +188,7 @@ class TestControllerTest {
 		final Long memberId = 1L;
 		final Member member = Member.builder().id(memberId).nickname("Chori").build();
 
-		doReturn(Optional.of(member)).when(memberService).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
@@ -210,7 +212,7 @@ class TestControllerTest {
 		final Long memberId = 2L;
 		final Member member = Member.builder().id(memberId).nickname(null).build();
 
-		doReturn(Optional.of(member)).when(memberService).findById(memberId);
+		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
@@ -226,4 +228,29 @@ class TestControllerTest {
 			.andExpect(jsonPath("$.message").value("Hello, Member!"));
 	}
 
+	@Test
+	@DisplayName("Retrieves all members and returns them as a list of MemberResponse DTOs")
+	void Given_ExistingMembers_When_GetMemberList_Then_ReturnsListOfMemberResponses() throws Exception {
+		// given
+		final String url = "/v1/test/members";
+		final List<MemberResponse> expectedResponse = List.of(
+			new MemberResponse(1L, "user1", "123", null, null),
+			new MemberResponse(2L, "user2", "456", null, null)
+		);
+		doReturn(expectedResponse).when(memberService).getMemberList();
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get(url)
+		);
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$").isArray())
+			.andExpect(jsonPath("$.length()").value(2))
+			.andExpect(jsonPath("$[0].id").value(1L))
+			.andExpect(jsonPath("$[0].nickname").value("user1"))
+			.andExpect(jsonPath("$[1].id").value(2L))
+			.andExpect(jsonPath("$[1].nickname").value("user2"));
+	}
 }
