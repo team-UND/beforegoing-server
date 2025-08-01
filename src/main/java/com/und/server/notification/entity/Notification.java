@@ -1,6 +1,7 @@
 package com.und.server.notification.entity;
 
-import com.und.server.scenario.entity.BaseTimeEntity;
+import com.und.server.common.entity.BaseTimeEntity;
+import com.und.server.notification.constants.NotifType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,5 +24,10 @@ public class Notification extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private NotifType notifType;
+
+
+	public boolean isActive() {
+		return isActive;
+	}
 
 }
