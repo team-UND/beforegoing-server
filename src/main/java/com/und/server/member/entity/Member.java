@@ -43,4 +43,8 @@ public class Member {
 	@Column
 	private LocalDateTime updatedAt;
 
+	public void updateNickname(final String nickname) {
+		this.nickname = nickname;
+	}
+
 }

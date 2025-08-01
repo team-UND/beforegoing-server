@@ -10,8 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -224,6 +222,28 @@ class AuthServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws an exception on token reissue if the token contains an invalid member ID")
+	void Given_TokenWithInvalidMemberId_When_ReissueTokens_Then_ThrowsExceptionAndDoesNotDeleteToken() {
+		// given
+		final Long nullMemberId = null;
+		final ParsedTokenInfo invalidTokenInfo = new ParsedTokenInfo(nullMemberId, true);
+		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
+
+		doReturn(invalidTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
+		doThrow(new ServerException(ServerErrorResult.INVALID_MEMBER_ID))
+			.when(memberService).validateMemberExists(nullMemberId);
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> authService.reissueTokens(request));
+
+		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		// Crucially, we should not attempt to delete a refresh token with a null ID.
+		verify(refreshTokenService, never()).deleteRefreshToken(any());
+		verify(refreshTokenService, never()).validateRefreshToken(any(), any());
+	}
+
+	@Test
 	@DisplayName("Throws an exception on token reissue if the member does not exist")
 	void Given_NonExistentMember_When_ReissueTokens_Then_ThrowsExceptionAndDeletesToken() {
 		// given
@@ -231,7 +251,8 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.empty()).when(memberService).findMemberById(memberId);
+		doThrow(new ServerException(ServerErrorResult.MEMBER_NOT_FOUND))
+			.when(memberService).validateMemberExists(memberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
@@ -248,10 +269,9 @@ class AuthServiceTest {
 		// given
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, "wrong.refresh.token");
 		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
-		final Member member = Member.builder().id(memberId).build();
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
+		doNothing().when(memberService).validateMemberExists(memberId);
 		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
 			.when(refreshTokenService).validateRefreshToken(memberId, "wrong.refresh.token");
 
@@ -267,11 +287,10 @@ class AuthServiceTest {
 	void Given_NoStoredRefreshToken_When_ReissueTokens_Then_ThrowsException() {
 		// given
 		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
-		final Member member = Member.builder().id(memberId).build();
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
+		doNothing().when(memberService).validateMemberExists(memberId);
 		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
 			.when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
 
@@ -291,10 +310,9 @@ class AuthServiceTest {
 		final String newAccessToken = "new-access-token";
 		final String newRefreshToken = "new-refresh-token";
 		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
-		final Member member = Member.builder().id(memberId).build();
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doReturn(Optional.of(member)).when(memberService).findMemberById(memberId);
+		doNothing().when(memberService).validateMemberExists(memberId);
 		doNothing().when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
 		setupTokenIssuance(newAccessToken, newRefreshToken);
 

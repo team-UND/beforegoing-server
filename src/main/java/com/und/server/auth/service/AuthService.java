@@ -76,10 +76,17 @@ public class AuthService {
 
 		final Long memberId = getMemberIdForReissue(accessToken);
 
-		memberService.findMemberById(memberId).orElseThrow(() -> {
-			refreshTokenService.deleteRefreshToken(memberId);
-			return new ServerException(ServerErrorResult.INVALID_TOKEN);
-		});
+		try {
+			memberService.validateMemberExists(memberId);
+		} catch (final ServerException e) {
+			if (e.getErrorResult() == ServerErrorResult.MEMBER_NOT_FOUND) {
+				// The member ID is not null, but the member doesn't exist.
+				// This is a security concern, so delete the orphaned refresh token.
+				refreshTokenService.deleteRefreshToken(memberId);
+			}
+			// For both MEMBER_NOT_FOUND and INVALID_MEMBER_ID, treat it as an invalid token situation.
+			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
+		}
 
 		refreshTokenService.validateRefreshToken(memberId, providedRefreshToken);
 
@@ -94,7 +101,7 @@ public class AuthService {
 	private Provider convertToProvider(final String providerName) {
 		try {
 			return Provider.valueOf(providerName.toUpperCase());
-		} catch (IllegalArgumentException e) {
+		} catch (final IllegalArgumentException e) {
 			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
 		}
 	}
@@ -128,7 +135,7 @@ public class AuthService {
 
 		if (!tokenInfo.isExpired()) {
 			// An attempt to reissue with a non-expired token may be a security risk.
-			// For security, we delete the refresh token.
+			// For security, delete the refresh token.
 			refreshTokenService.deleteRefreshToken(memberId);
 			if (profileManager.isProdOrStgProfile()) {
 				throw new ServerException(ServerErrorResult.INVALID_TOKEN);

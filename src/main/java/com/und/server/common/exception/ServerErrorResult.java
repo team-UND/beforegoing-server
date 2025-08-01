@@ -12,6 +12,7 @@ public enum ServerErrorResult {
 	INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid Parameter"),
 	INVALID_NONCE(HttpStatus.BAD_REQUEST, "Invalid nonce"),
 	INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "Invalid Provider"),
+	INVALID_PROVIDER_ID(HttpStatus.BAD_REQUEST, "Invalid Provider ID"),
 	PUBLIC_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "Public Key Not Found"),
 	INVALID_PUBLIC_KEY(HttpStatus.BAD_REQUEST, "Invalid Public Key"),
 	EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "Expired Token"),
@@ -22,8 +23,8 @@ public enum ServerErrorResult {
 	WEAK_TOKEN_KEY(HttpStatus.INTERNAL_SERVER_ERROR, "Token Key is Weak"),
 	INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Invalid Token"),
 	UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "Unauthorized Access"),
-	// FIXME: Remove MEMBER_NOT_FOUND when deleting TestController
-	MEMBER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Member Not Found"),
+	INVALID_MEMBER_ID(HttpStatus.BAD_REQUEST, "Invalid Member ID"),
+	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Member Not Found"),
 	UNKNOWN_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown Exception");
 
 	private final HttpStatus httpStatus;
