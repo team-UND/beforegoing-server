@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-	private ResponseEntity<Object> buildErrorResponse(final ErrorCode errorResult, final Object message) {
+	private ResponseEntity<Object> buildErrorResponse(final ErrorResult errorResult, final Object message) {
 		return ResponseEntity.status(errorResult.getHttpStatus())
 			.body(new ErrorResponse(errorResult.name(), message));
 	}
@@ -46,12 +46,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler({ServerException.class})
 	public ResponseEntity<Object> handleRestApiException(final ServerException exception) {
-		final ErrorCode errorCode = exception.getErrorResult();
+		final ErrorResult errorResult = exception.getErrorResult();
 		log.warn("ServerException occur: ", exception);
 
 		return this.buildErrorResponse(
-			errorCode,
-			exception.getMessage()
+			errorResult,
+			errorResult.getMessage()
 		);
 	}
 

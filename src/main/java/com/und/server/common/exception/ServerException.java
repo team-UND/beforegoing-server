@@ -5,16 +5,16 @@ import lombok.Getter;
 @Getter
 public class ServerException extends RuntimeException {
 
-	private final ErrorCode errorResult;
+	private final ErrorResult errorResult;
 
-	public ServerException(final ErrorCode errorCode) {
-		super(errorCode.getMessage());
-		this.errorResult = errorCode;
+	public ServerException(final ErrorResult errorResult) {
+		super(errorResult.getMessage());
+		this.errorResult = errorResult;
 	}
 
-	public ServerException(final ErrorCode errorCode, final Throwable cause) {
-		super(errorCode.getMessage(), cause);
-		this.errorResult = errorCode;
+	public ServerException(final ErrorResult errorResult, final Throwable cause) {
+		super(errorResult.getMessage(), cause);
+		this.errorResult = errorResult;
 	}
 
 }
