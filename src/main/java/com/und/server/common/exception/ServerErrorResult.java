@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ServerErrorResult {
+public enum ServerErrorResult implements ErrorResult {
 
 	INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid Parameter"),
 	INVALID_NONCE(HttpStatus.BAD_REQUEST, "Invalid nonce"),
