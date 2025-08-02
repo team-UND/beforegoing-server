@@ -1,12 +1,14 @@
 package com.und.server.notification.service;
 
-import com.und.server.notification.dto.NotificationDetailResponse;
-import com.und.server.notification.entity.Notification;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.und.server.notification.dto.NotificationDetailResponse;
+import com.und.server.notification.entity.Notification;
+
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service

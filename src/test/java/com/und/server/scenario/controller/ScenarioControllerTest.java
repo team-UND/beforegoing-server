@@ -1,10 +1,12 @@
 package com.und.server.scenario.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.auth.filter.AuthMemberArgumentResolver;
-import com.und.server.common.exception.GlobalExceptionHandler;
-import com.und.server.scenario.dto.response.ScenarioResponse;
-import com.und.server.scenario.service.ScenarioService;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,12 +19,11 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.auth.filter.AuthMemberArgumentResolver;
+import com.und.server.common.exception.GlobalExceptionHandler;
+import com.und.server.scenario.dto.response.ScenarioResponse;
+import com.und.server.scenario.service.ScenarioService;
 
 @ExtendWith(MockitoExtension.class)
 class ScenarioControllerTest {

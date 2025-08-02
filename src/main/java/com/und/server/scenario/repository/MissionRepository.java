@@ -1,10 +1,11 @@
 package com.und.server.scenario.repository;
 
-import com.und.server.scenario.entity.Mission;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import com.und.server.scenario.entity.Mission;
 
 public interface MissionRepository extends JpaRepository<Mission, Long> {
 

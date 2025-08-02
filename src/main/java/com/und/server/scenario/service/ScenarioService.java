@@ -1,5 +1,10 @@
 package com.und.server.scenario.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.und.server.member.entity.Member;
 import com.und.server.notification.dto.NotificationDetailResponse;
 import com.und.server.notification.entity.Notification;
@@ -8,11 +13,8 @@ import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.repository.ScenarioRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

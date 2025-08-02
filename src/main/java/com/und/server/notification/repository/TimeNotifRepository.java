@@ -1,9 +1,10 @@
 package com.und.server.notification.repository;
 
-import com.und.server.notification.entity.TimeNotif;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import com.und.server.notification.entity.TimeNotif;
 
 public interface TimeNotifRepository extends JpaRepository<TimeNotif, Long> {
 

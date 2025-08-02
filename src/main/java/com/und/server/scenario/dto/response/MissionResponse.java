@@ -1,10 +1,16 @@
 package com.und.server.scenario.dto.response;
 
+import java.util.List;
+
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.entity.Mission;
-import lombok.*;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor

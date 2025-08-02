@@ -1,10 +1,10 @@
 package com.und.server.notification.service;
 
+import java.util.List;
+
 import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.dto.NotificationDetailResponse;
 import com.und.server.notification.entity.Notification;
-
-import java.util.List;
 
 public interface NotificationResolver {
 

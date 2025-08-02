@@ -1,12 +1,10 @@
 package com.und.server.scenario.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.und.server.member.entity.Member;
-import com.und.server.notification.constants.NotifType;
-import com.und.server.notification.entity.Notification;
-import com.und.server.scenario.dto.response.ScenarioResponse;
-import com.und.server.scenario.entity.Scenario;
-import com.und.server.scenario.repository.ScenarioRepository;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,10 +12,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.und.server.member.entity.Member;
+import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.entity.Notification;
+import com.und.server.scenario.dto.response.ScenarioResponse;
+import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.repository.ScenarioRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ScenarioServiceTest {
