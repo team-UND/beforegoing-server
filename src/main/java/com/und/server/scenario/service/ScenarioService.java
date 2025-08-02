@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.notification.dto.NotificationDetailResponse;
 import com.und.server.notification.entity.Notification;
@@ -12,6 +13,7 @@ import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.ScenarioRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -30,15 +32,15 @@ public class ScenarioService {
 		return ScenarioResponse.listOf(scenarioList);
 	}
 
-	/// memberId로 검증하는 부분을 모듈화할수없나 커스텀 어노테이션?
+
 	@Transactional(readOnly = true)
 	public ScenarioDetailResponse findScenarioByScenarioId(Long memberId, Long scenarioId) {
 		Scenario scenario = scenarioRepository.findById(scenarioId)
-			.orElseThrow(() -> new IllegalArgumentException());
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		Member member = scenario.getMember();
 		if (!memberId.equals(member.getId())) {
-			throw new IllegalArgumentException();
+			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
 		}
 
 		Notification notification = scenario.getNotification();

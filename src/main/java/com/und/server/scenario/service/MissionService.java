@@ -5,9 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
+import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,7 @@ public class MissionService {
 		for (Mission mission : missionList) {
 			Member member = mission.getScenario().getMember();
 			if (!memberId.equals(member.getId())) {
-				break; //에외처리
+				throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
 			}
 		}
 
