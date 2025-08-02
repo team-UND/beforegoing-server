@@ -5,12 +5,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,9 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -375,15 +370,9 @@ class AuthControllerTest {
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
-		final Authentication auth = new UsernamePasswordAuthenticationToken(
-			memberId,
-			null,
-			Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-		);
-
 		// when
 		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.delete(url).with(authentication(auth))
+			MockMvcRequestBuilders.delete(url)
 		);
 
 		// then

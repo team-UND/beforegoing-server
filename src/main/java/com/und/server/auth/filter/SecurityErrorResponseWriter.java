@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.common.dto.ErrorResponse;
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.common.exception.ErrorResult;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class SecurityErrorResponseWriter {
 
 	public void sendErrorResponse(
 		final HttpServletResponse response,
-		final ServerErrorResult errorResult
+		final ErrorResult errorResult
 	) throws IOException {
 		response.setStatus(errorResult.getHttpStatus().value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);

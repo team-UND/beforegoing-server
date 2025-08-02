@@ -26,6 +26,9 @@ public class NonceService {
 
 	@Transactional
 	public void validateNonce(final String value, final Provider provider) {
+		validateNonceValue(value);
+		validateProvider(provider);
+
 		nonceRepository.findById(value)
 			.filter(n -> n.getProvider() == provider)
 			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_NONCE));
@@ -33,9 +36,11 @@ public class NonceService {
 		nonceRepository.deleteById(value);
 	}
 
-
 	@Transactional
 	public void saveNonce(final String value, final Provider provider) {
+		validateNonceValue(value);
+		validateProvider(provider);
+
 		final Nonce nonce = Nonce.builder()
 			.value(value)
 			.provider(provider)
@@ -44,9 +49,16 @@ public class NonceService {
 		nonceRepository.save(nonce);
 	}
 
-	@Transactional
-	public void deleteNonce(final String value) {
-		nonceRepository.deleteById(value);
+	private void validateNonceValue(final String value) {
+		if (value == null) {
+			throw new ServerException(ServerErrorResult.INVALID_NONCE);
+		}
+	}
+
+	private void validateProvider(final Provider provider) {
+		if (provider == null) {
+			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+		}
 	}
 
 }

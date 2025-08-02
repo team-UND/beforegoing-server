@@ -16,8 +16,6 @@ import com.und.server.auth.filter.AuthMember;
 import com.und.server.auth.service.AuthService;
 import com.und.server.common.dto.TestAuthRequest;
 import com.und.server.common.dto.TestHelloResponse;
-import com.und.server.common.exception.ServerErrorResult;
-import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.service.MemberService;
@@ -42,8 +40,7 @@ public class TestController {
 
 	@GetMapping("/hello")
 	public ResponseEntity<TestHelloResponse> greet(@Parameter(hidden = true) @AuthMember final Long memberId) {
-		final Member member = memberService.findMemberById(memberId)
-			.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
+		final Member member = memberService.findMemberById(memberId);
 		final String nickname = member.getNickname() != null ? member.getNickname() : "Member";
 		final TestHelloResponse response = new TestHelloResponse("Hello, " + nickname + "!");
 
