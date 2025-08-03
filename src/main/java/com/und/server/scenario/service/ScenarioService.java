@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
-import com.und.server.notification.dto.NotificationDetailResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
+import com.und.server.scenario.dto.NotificationInfoDto;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
@@ -24,6 +24,7 @@ public class ScenarioService {
 
 	private final NotificationService notificationService;
 	private final ScenarioRepository scenarioRepository;
+
 
 	@Transactional(readOnly = true)
 	public List<ScenarioResponse> findScenariosByMemberId(Long memberId) {
@@ -45,11 +46,11 @@ public class ScenarioService {
 
 		Notification notification = scenario.getNotification();
 		if (!notification.isActive()) {
-			return ScenarioDetailResponse.of(scenario, List.of());
+			return ScenarioDetailResponse.of(scenario, null);
 		}
-		List<NotificationDetailResponse> notifDetailList = notificationService.findNotificationDetails(notification);
+		NotificationInfoDto notifInfo = notificationService.findNotificationDetails(notification);
 
-		return ScenarioDetailResponse.of(scenario, notifDetailList);
+		return ScenarioDetailResponse.of(scenario, notifInfo);
 	}
 
 }

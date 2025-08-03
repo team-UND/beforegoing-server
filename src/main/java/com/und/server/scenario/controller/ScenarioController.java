@@ -24,6 +24,7 @@ public class ScenarioController {
 
 	private final ScenarioService scenarioService;
 
+
 	@GetMapping("/scenarios")
 	public ResponseEntity<List<ScenarioResponse>> getScenarios(@AuthMember Long memberId) {
 		List<ScenarioResponse> scenarioList = scenarioService.findScenariosByMemberId(memberId);
@@ -31,7 +32,7 @@ public class ScenarioController {
 		return ResponseEntity.ok().body(scenarioList);
 	}
 
-	/// 디테일
+
 	@GetMapping("/scenarios/{scenarioId}")
 	public ResponseEntity<ScenarioDetailResponse> getScenarioDetail(@AuthMember Long memberId,
 																	@PathVariable Long scenarioId

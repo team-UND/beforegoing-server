@@ -1,12 +1,10 @@
 package com.und.server.notification.service;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.und.server.notification.dto.NotificationDetailResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.scenario.dto.NotificationInfoDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,10 +12,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class NotificationService {
 
-	private final NotificationResolverManager notificationResolverManager;
+	private final NotificationResolverSelector notificationResolverManager;
 
 	@Transactional(readOnly = true)
-	public List<NotificationDetailResponse> findNotificationDetails(Notification notification) {
+	public NotificationInfoDto findNotificationDetails(Notification notification) {
 		return notificationResolverManager.resolve(notification);
 	}
 
