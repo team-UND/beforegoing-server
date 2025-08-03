@@ -1,15 +1,13 @@
 package com.und.server.notification.service;
 
-import java.util.List;
-
 import com.und.server.notification.constants.NotifType;
-import com.und.server.notification.dto.NotificationDetailResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.scenario.dto.NotificationInfoDto;
 
 public interface NotificationResolver {
 
 	boolean supports(NotifType notifType);
 
-	List<NotificationDetailResponse> resolve(Notification notification);
+	NotificationInfoDto resolve(Notification notification);
 
 }
