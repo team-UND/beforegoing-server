@@ -6,7 +6,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +24,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		final HttpServletResponse response,
 		final AuthenticationException authException
 	) throws IOException {
-		errorResponseWriter.sendErrorResponse(response, ServerErrorResult.UNAUTHORIZED_ACCESS);
+		errorResponseWriter.sendErrorResponse(response, AuthErrorResult.UNAUTHORIZED_ACCESS);
 	}
 }

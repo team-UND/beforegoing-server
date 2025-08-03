@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.IdTokenPayload;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
 
@@ -45,7 +45,7 @@ public class JwtProvider {
 			final String decodedHeader = decodeBase64UrlPart(token.split("\\.")[0]);
 			return new ObjectMapper().readValue(decodedHeader, new TypeReference<>() { });
 		} catch (final Exception e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
+			throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
@@ -55,7 +55,7 @@ public class JwtProvider {
 			final Map<String, Object> claims = new ObjectMapper().readValue(payloadJson, new TypeReference<>() { });
 			return (String) claims.get("nonce");
 		} catch (final Exception e) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
+			throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
@@ -107,7 +107,7 @@ public class JwtProvider {
 		try {
 			return parseToken(token, builder);
 		} catch (final ExpiredJwtException e) {
-			throw new ServerException(ServerErrorResult.EXPIRED_TOKEN, e);
+			throw new ServerException(AuthErrorResult.EXPIRED_TOKEN, e);
 		}
 	}
 
@@ -132,24 +132,22 @@ public class JwtProvider {
 		} catch (final JwtException e) {
 			// For prod or stg environments, return a generic error to avoid leaking details.
 			if (profileManager.isProdOrStgProfile()) {
-				throw new ServerException(ServerErrorResult.UNAUTHORIZED_ACCESS, e);
+				throw new ServerException(AuthErrorResult.UNAUTHORIZED_ACCESS, e);
 			}
 
 			// For non-production environments, provide detailed error messages.
 			if (e instanceof MalformedJwtException) {
-				throw new ServerException(ServerErrorResult.MALFORMED_TOKEN, e);
+				throw new ServerException(AuthErrorResult.MALFORMED_TOKEN, e);
+			} else if (e instanceof UnsupportedJwtException) {
+				throw new ServerException(AuthErrorResult.UNSUPPORTED_TOKEN, e);
+			} else if (e instanceof WeakKeyException) {
+				throw new ServerException(AuthErrorResult.WEAK_TOKEN_KEY, e);
+			} else if (e instanceof SignatureException) {
+				throw new ServerException(AuthErrorResult.INVALID_TOKEN_SIGNATURE, e);
+			} else {
+				// Fallback for any other JWT-related exceptions.
+				throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 			}
-			if (e instanceof UnsupportedJwtException) {
-				throw new ServerException(ServerErrorResult.UNSUPPORTED_TOKEN, e);
-			}
-			if (e instanceof WeakKeyException) {
-				throw new ServerException(ServerErrorResult.WEAK_TOKEN_KEY, e);
-			}
-			if (e instanceof SignatureException) {
-				throw new ServerException(ServerErrorResult.INVALID_TOKEN_SIGNATURE, e);
-			}
-			// Fallback for any other JWT-related exceptions.
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
@@ -172,14 +170,14 @@ public class JwtProvider {
 			return Long.valueOf(subject);
 		} catch (final NumberFormatException e) {
 			// The subject was not a valid Long, which is unexpected for our tokens.
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
+			throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
 	private String getValidSubject(final Claims claims) {
 		final String subject = claims.getSubject();
 		if (subject == null) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			throw new ServerException(AuthErrorResult.INVALID_TOKEN);
 		}
 		return subject;
 	}

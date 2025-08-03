@@ -9,6 +9,7 @@ import com.und.server.auth.dto.NonceRequest;
 import com.und.server.auth.dto.NonceResponse;
 import com.und.server.auth.dto.OidcPublicKeys;
 import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.auth.jwt.ParsedTokenInfo;
@@ -18,10 +19,10 @@ import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.common.dto.TestAuthRequest;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
 import com.und.server.member.entity.Member;
+import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;
 
 import lombok.RequiredArgsConstructor;
@@ -79,13 +80,13 @@ public class AuthService {
 		try {
 			memberService.validateMemberExists(memberId);
 		} catch (final ServerException e) {
-			if (e.getErrorResult() == ServerErrorResult.MEMBER_NOT_FOUND) {
+			if (e.getErrorResult() == MemberErrorResult.MEMBER_NOT_FOUND) {
 				// The member ID is not null, but the member doesn't exist.
 				// This is a security concern, so delete the orphaned refresh token.
 				refreshTokenService.deleteRefreshToken(memberId);
 			}
 			// For both MEMBER_NOT_FOUND and INVALID_MEMBER_ID, treat it as an invalid token situation.
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN, e);
+			throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 		}
 
 		refreshTokenService.validateRefreshToken(memberId, providedRefreshToken);
@@ -102,7 +103,7 @@ public class AuthService {
 		try {
 			return Provider.valueOf(providerName.toUpperCase());
 		} catch (final IllegalArgumentException e) {
-			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+			throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		}
 	}
 
@@ -138,9 +139,9 @@ public class AuthService {
 			// For security, delete the refresh token.
 			refreshTokenService.deleteRefreshToken(memberId);
 			if (profileManager.isProdOrStgProfile()) {
-				throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+				throw new ServerException(AuthErrorResult.INVALID_TOKEN);
 			}
-			throw new ServerException(ServerErrorResult.NOT_EXPIRED_TOKEN);
+			throw new ServerException(AuthErrorResult.NOT_EXPIRED_TOKEN);
 		}
 
 		return memberId;

@@ -1,15 +1,16 @@
-package com.und.server.common.exception;
+package com.und.server.auth.exception;
 
 import org.springframework.http.HttpStatus;
+
+import com.und.server.common.exception.ErrorResult;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ServerErrorResult implements ErrorResult {
+public enum AuthErrorResult implements ErrorResult {
 
-	INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid Parameter"),
 	INVALID_NONCE(HttpStatus.BAD_REQUEST, "Invalid nonce"),
 	INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "Invalid Provider"),
 	INVALID_PROVIDER_ID(HttpStatus.BAD_REQUEST, "Invalid Provider ID"),
@@ -22,10 +23,7 @@ public enum ServerErrorResult implements ErrorResult {
 	UNSUPPORTED_TOKEN(HttpStatus.BAD_REQUEST, "Unsupported Token"),
 	WEAK_TOKEN_KEY(HttpStatus.INTERNAL_SERVER_ERROR, "Token Key is Weak"),
 	INVALID_TOKEN(HttpStatus.BAD_REQUEST, "Invalid Token"),
-	UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "Unauthorized Access"),
-	INVALID_MEMBER_ID(HttpStatus.BAD_REQUEST, "Invalid Member ID"),
-	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Member Not Found"),
-	UNKNOWN_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown Exception");
+	UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "Unauthorized Access");
 
 	private final HttpStatus httpStatus;
 	private final String message;

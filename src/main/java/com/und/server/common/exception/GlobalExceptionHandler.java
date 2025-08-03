@@ -41,7 +41,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			.toList();
 
 		log.warn("Invalid DTO Parameter Errors: {}", errorList);
-		return this.buildErrorResponse(ServerErrorResult.INVALID_PARAMETER, errorList);
+		return this.buildErrorResponse(CommonErrorResult.INVALID_PARAMETER, errorList);
 	}
 
 	@ExceptionHandler({ServerException.class})
@@ -60,8 +60,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		log.warn("Exception occur: ", exception);
 
 		return this.buildErrorResponse(
-			ServerErrorResult.UNKNOWN_EXCEPTION,
-			ServerErrorResult.UNKNOWN_EXCEPTION.getMessage()
+			CommonErrorResult.UNKNOWN_EXCEPTION,
+			CommonErrorResult.UNKNOWN_EXCEPTION.getMessage()
 		);
 	}
 

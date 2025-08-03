@@ -23,8 +23,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.IdTokenPayload;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
 
@@ -66,7 +66,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getDecodedHeader(invalidToken))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -79,7 +79,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getDecodedHeader(token))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -91,7 +91,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.extractNonce(invalidToken))
 				.isInstanceOf(ServerException.class)
-				.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+				.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -133,7 +133,7 @@ class JwtProviderTest {
 		assertThatThrownBy(() -> {
 			jwtProvider.parseOidcIdToken(token, issuer, wrongAudience, publicKey);
 		}).isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -286,7 +286,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.EXPIRED_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.EXPIRED_TOKEN);
 	}
 
 	@Test
@@ -300,7 +300,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(malformedToken))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.MALFORMED_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.MALFORMED_TOKEN);
 	}
 
 	@Test
@@ -315,7 +315,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN_SIGNATURE);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_TOKEN_SIGNATURE);
 	}
 
 	@Test
@@ -335,7 +335,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(tokenWithStrongAlg))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.WEAK_TOKEN_KEY)
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.WEAK_TOKEN_KEY)
 			.cause().isInstanceOf(WeakKeyException.class);
 	}
 
@@ -356,7 +356,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(unsupportedToken))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNSUPPORTED_TOKEN)
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.UNSUPPORTED_TOKEN)
 			.cause().isInstanceOf(UnsupportedJwtException.class);
 	}
 
@@ -371,7 +371,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(malformedToken))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNAUTHORIZED_ACCESS)
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.UNAUTHORIZED_ACCESS)
 			// Verify that the cause is the original exception
 			.cause().isInstanceOf(MalformedJwtException.class);
 	}
@@ -389,7 +389,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN)
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_TOKEN)
 			.cause().isInstanceOf(NumberFormatException.class);
 	}
 
@@ -406,7 +406,7 @@ class JwtProviderTest {
 		// when & then
 		assertThatThrownBy(() -> jwtProvider.getMemberIdFromToken(token))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_TOKEN);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test

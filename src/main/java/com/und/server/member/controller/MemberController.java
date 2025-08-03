@@ -14,6 +14,7 @@ import com.und.server.member.dto.NicknameRequest;
 import com.und.server.member.service.MemberService;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +36,7 @@ public class MemberController {
 	}
 
 	@DeleteMapping("/member")
+	@ApiResponse(responseCode = "204", description = "Delete member successful")
 	public ResponseEntity<Void> deleteMember(@Parameter(hidden = true) @AuthMember final Long memberId) {
 		memberService.deleteMemberById(memberId);
 

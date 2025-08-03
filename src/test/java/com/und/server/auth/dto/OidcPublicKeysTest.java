@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 class OidcPublicKeysTest {
@@ -23,7 +23,7 @@ class OidcPublicKeysTest {
 		// when & then
 		assertThatThrownBy(() -> oidcPublicKeys.matchingKey("kid3", "RS256"))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.PUBLIC_KEY_NOT_FOUND);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.PUBLIC_KEY_NOT_FOUND);
 	}
 
 	@Test
@@ -36,7 +36,7 @@ class OidcPublicKeysTest {
 		// when & then
 		assertThatThrownBy(() -> oidcPublicKeys.matchingKey("kid1", "RS512"))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.PUBLIC_KEY_NOT_FOUND);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.PUBLIC_KEY_NOT_FOUND);
 	}
 
 	@Test

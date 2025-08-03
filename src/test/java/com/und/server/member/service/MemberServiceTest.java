@@ -18,14 +18,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.service.RefreshTokenService;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.dto.NicknameRequest;
 import com.und.server.member.entity.Member;
+import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.repository.MemberRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -101,7 +102,7 @@ class MemberServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> memberService.findOrCreateMember(unsupportedProvider, payload));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
@@ -114,7 +115,7 @@ class MemberServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> memberService.findOrCreateMember(null, payload));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
@@ -127,7 +128,7 @@ class MemberServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> memberService.findOrCreateMember(provider, payloadWithNullId));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER_ID);
 	}
 
 	@Test
@@ -140,7 +141,7 @@ class MemberServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> memberService.findMemberById(memberId));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.MEMBER_NOT_FOUND);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.MEMBER_NOT_FOUND);
 	}
 
 	@Test
@@ -150,7 +151,7 @@ class MemberServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> memberService.findMemberById(null));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
@@ -159,7 +160,7 @@ class MemberServiceTest {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> memberService.validateMemberExists(null));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
@@ -171,7 +172,7 @@ class MemberServiceTest {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> memberService.validateMemberExists(memberId));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.MEMBER_NOT_FOUND);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.MEMBER_NOT_FOUND);
 	}
 
 	@Test

@@ -22,9 +22,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.common.dto.ErrorResponse;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 
 import jakarta.servlet.FilterChain;
@@ -65,7 +65,7 @@ class JwtAuthenticationFilterTest {
 		request.setServletPath(protectedPath);
 		request.addHeader("Authorization", "Bearer " + token);
 
-		final ServerErrorResult expectedError = ServerErrorResult.EXPIRED_TOKEN;
+		final AuthErrorResult expectedError = AuthErrorResult.EXPIRED_TOKEN;
 		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when
@@ -95,7 +95,7 @@ class JwtAuthenticationFilterTest {
 		request.setServletPath(path);
 		request.addHeader("Authorization", "Bearer " + token);
 
-		final ServerErrorResult expectedError = ServerErrorResult.INVALID_TOKEN_SIGNATURE;
+		final AuthErrorResult expectedError = AuthErrorResult.INVALID_TOKEN_SIGNATURE;
 		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when
@@ -125,7 +125,7 @@ class JwtAuthenticationFilterTest {
 		request.setServletPath(loginPath);
 		request.addHeader("Authorization", "Bearer " + token);
 
-		final ServerErrorResult expectedError = ServerErrorResult.EXPIRED_TOKEN;
+		final AuthErrorResult expectedError = AuthErrorResult.EXPIRED_TOKEN;
 		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when
@@ -150,7 +150,7 @@ class JwtAuthenticationFilterTest {
 		request.setServletPath(permissivePath);
 		request.addHeader("Authorization", "Bearer " + token);
 
-		final ServerErrorResult expectedError = ServerErrorResult.EXPIRED_TOKEN;
+		final AuthErrorResult expectedError = AuthErrorResult.EXPIRED_TOKEN;
 		doThrow(new ServerException(expectedError)).when(jwtProvider).getAuthentication(token);
 
 		// when

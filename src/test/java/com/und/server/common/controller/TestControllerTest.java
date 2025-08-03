@@ -25,14 +25,15 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.auth.dto.AuthResponse;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;
 import com.und.server.common.dto.TestAuthRequest;
 import com.und.server.common.exception.GlobalExceptionHandler;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
+import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;
 
 @ExtendWith(MockitoExtension.class)
@@ -137,7 +138,7 @@ class TestControllerTest {
 		final String url = "/v1/test/hello";
 		final Long memberId = 3L;
 
-		doThrow(new ServerException(ServerErrorResult.MEMBER_NOT_FOUND)).when(memberService).findMemberById(memberId);
+		doThrow(new ServerException(MemberErrorResult.MEMBER_NOT_FOUND)).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
@@ -148,8 +149,8 @@ class TestControllerTest {
 
 		// then
 		result.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.MEMBER_NOT_FOUND.name()))
-			.andExpect(jsonPath("$.message").value(ServerErrorResult.MEMBER_NOT_FOUND.getMessage()));
+			.andExpect(jsonPath("$.code").value(MemberErrorResult.MEMBER_NOT_FOUND.name()))
+			.andExpect(jsonPath("$.message").value(MemberErrorResult.MEMBER_NOT_FOUND.getMessage()));
 	}
 
 	@Test
@@ -157,7 +158,7 @@ class TestControllerTest {
 	void Given_UnauthenticatedUser_When_Greet_Then_ReturnsUnauthorized() throws Exception {
 		// given
 		final String url = "/v1/test/hello";
-		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doThrow(new ServerException(errorResult))

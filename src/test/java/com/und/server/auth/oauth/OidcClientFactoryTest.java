@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,7 +32,7 @@ class OidcClientFactoryTest {
 		// when & then
 		assertThatThrownBy(() -> oidcClientFactory.getOidcClient(null))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_PROVIDER);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
