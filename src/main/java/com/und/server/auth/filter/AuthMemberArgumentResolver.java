@@ -9,7 +9,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @Component
@@ -26,7 +26,7 @@ public class AuthMemberArgumentResolver implements HandlerMethodArgumentResolver
 		final NativeWebRequest webRequest, final WebDataBinderFactory binderFactory) {
 		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null || !(authentication.getPrincipal() instanceof final Long memberId)) {
-			throw new ServerException(ServerErrorResult.UNAUTHORIZED_ACCESS);
+			throw new ServerException(AuthErrorResult.UNAUTHORIZED_ACCESS);
 		}
 		return memberId;
 	}

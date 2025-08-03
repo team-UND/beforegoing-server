@@ -23,6 +23,7 @@ import com.und.server.auth.dto.NonceRequest;
 import com.und.server.auth.dto.NonceResponse;
 import com.und.server.auth.dto.OidcPublicKeys;
 import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.auth.jwt.ParsedTokenInfo;
@@ -32,10 +33,10 @@ import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.common.dto.TestAuthRequest;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
 import com.und.server.member.entity.Member;
+import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;
 
 @ExtendWith(MockitoExtension.class)
@@ -127,7 +128,7 @@ class AuthServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.handshake(nonceRequest));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
@@ -160,7 +161,7 @@ class AuthServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.login(authRequest));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
@@ -230,14 +231,14 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(invalidTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doThrow(new ServerException(ServerErrorResult.INVALID_MEMBER_ID))
+		doThrow(new ServerException(MemberErrorResult.INVALID_MEMBER_ID))
 			.when(memberService).validateMemberExists(nullMemberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		// Crucially, we should not attempt to delete a refresh token with a null ID.
 		verify(refreshTokenService, never()).deleteRefreshToken(any());
 		verify(refreshTokenService, never()).validateRefreshToken(any(), any());
@@ -251,14 +252,14 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doThrow(new ServerException(ServerErrorResult.MEMBER_NOT_FOUND))
+		doThrow(new ServerException(MemberErrorResult.MEMBER_NOT_FOUND))
 			.when(memberService).validateMemberExists(memberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenService).deleteRefreshToken(memberId);
 		verify(refreshTokenService, never()).validateRefreshToken(any(), any());
 	}
@@ -272,14 +273,14 @@ class AuthServiceTest {
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
 		doNothing().when(memberService).validateMemberExists(memberId);
-		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
+		doThrow(new ServerException(AuthErrorResult.INVALID_TOKEN))
 			.when(refreshTokenService).validateRefreshToken(memberId, "wrong.refresh.token");
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> authService.reissueTokens(request));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -291,7 +292,7 @@ class AuthServiceTest {
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
 		doNothing().when(memberService).validateMemberExists(memberId);
-		doThrow(new ServerException(ServerErrorResult.INVALID_TOKEN))
+		doThrow(new ServerException(AuthErrorResult.INVALID_TOKEN))
 			.when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
 
 		// when & then
@@ -299,7 +300,7 @@ class AuthServiceTest {
 			() -> authService.reissueTokens(request));
 
 		verify(jwtProvider, never()).generateAccessToken(any());
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -342,7 +343,7 @@ class AuthServiceTest {
 			() -> authService.reissueTokens(request));
 
 		verify(refreshTokenService).deleteRefreshToken(memberId);
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -360,7 +361,7 @@ class AuthServiceTest {
 			() -> authService.reissueTokens(request));
 
 		verify(refreshTokenService).deleteRefreshToken(memberId);
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.NOT_EXPIRED_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.NOT_EXPIRED_TOKEN);
 	}
 
 	@Test

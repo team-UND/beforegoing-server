@@ -29,10 +29,11 @@ import com.und.server.auth.dto.AuthResponse;
 import com.und.server.auth.dto.NonceRequest;
 import com.und.server.auth.dto.NonceResponse;
 import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;
+import com.und.server.common.exception.CommonErrorResult;
 import com.und.server.common.exception.GlobalExceptionHandler;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,7 +76,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
@@ -86,7 +87,7 @@ class AuthControllerTest {
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("facebook");
 		final String requestBody = objectMapper.writeValueAsString(request);
-		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
+		final AuthErrorResult errorResult = AuthErrorResult.INVALID_PROVIDER;
 
 		doThrow(new ServerException(errorResult))
 			.when(authService).handshake(request);
@@ -143,7 +144,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
@@ -164,7 +165,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("ID Token must not be blank"));
 	}
 
@@ -175,7 +176,7 @@ class AuthControllerTest {
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("facebook", "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
-		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
+		final AuthErrorResult errorResult = AuthErrorResult.INVALID_PROVIDER;
 
 		doThrow(new ServerException(errorResult))
 			.when(authService).login(request);
@@ -200,7 +201,7 @@ class AuthControllerTest {
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("kakao", "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
-		final ServerErrorResult errorResult = ServerErrorResult.UNKNOWN_EXCEPTION;
+		final CommonErrorResult errorResult = CommonErrorResult.UNKNOWN_EXCEPTION;
 
 		doThrow(new RuntimeException("A wild unexpected error appeared!"))
 			.when(authService).login(request);
@@ -274,7 +275,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Access Token must not be blank"));
 	}
 
@@ -295,7 +296,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be blank"));
 	}
 
@@ -343,7 +344,7 @@ class AuthControllerTest {
 	void Given_UnauthenticatedUser_When_Logout_Then_ReturnsUnauthorized() throws Exception {
 		// given
 		final String url = "/v1/auth/logout";
-		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doThrow(new ServerException(errorResult))

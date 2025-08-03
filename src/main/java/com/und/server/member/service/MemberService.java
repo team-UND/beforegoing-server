@@ -6,14 +6,15 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.service.RefreshTokenService;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.dto.NicknameRequest;
 import com.und.server.member.entity.Member;
+import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -46,14 +47,14 @@ public class MemberService {
 		validateMemberIdIsNotNull(memberId);
 
 		return memberRepository.findById(memberId)
-			.orElseThrow(() -> new ServerException(ServerErrorResult.MEMBER_NOT_FOUND));
+			.orElseThrow(() -> new ServerException(MemberErrorResult.MEMBER_NOT_FOUND));
 	}
 
 	public void validateMemberExists(final Long memberId) {
 		validateMemberIdIsNotNull(memberId);
 
 		if (!memberRepository.existsById(memberId)) {
-			throw new ServerException(ServerErrorResult.MEMBER_NOT_FOUND);
+			throw new ServerException(MemberErrorResult.MEMBER_NOT_FOUND);
 		}
 	}
 
@@ -76,7 +77,7 @@ public class MemberService {
 	private Optional<Member> findMemberByProviderId(final Provider provider, final String providerId) {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId);
-			default -> throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+			default -> throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		};
 	}
 
@@ -84,7 +85,7 @@ public class MemberService {
 		final Member.MemberBuilder memberBuilder = Member.builder().nickname(nickname);
 		switch (provider) {
 			case KAKAO -> memberBuilder.kakaoId(providerId);
-			default -> throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+			default -> throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		}
 
 		return memberRepository.save(memberBuilder.build());
@@ -92,19 +93,19 @@ public class MemberService {
 
 	private void validateMemberIdIsNotNull(final Long memberId) {
 		if (memberId == null) {
-			throw new ServerException(ServerErrorResult.INVALID_MEMBER_ID);
+			throw new ServerException(MemberErrorResult.INVALID_MEMBER_ID);
 		}
 	}
 
 	private void validateProviderIsNotNull(final Provider provider) {
 		if (provider == null) {
-			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+			throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		}
 	}
 
 	private void validateProviderIdIsNotNull(final String providerId) {
 		if (providerId == null) {
-			throw new ServerException(ServerErrorResult.INVALID_PROVIDER_ID);
+			throw new ServerException(AuthErrorResult.INVALID_PROVIDER_ID);
 		}
 	}
 

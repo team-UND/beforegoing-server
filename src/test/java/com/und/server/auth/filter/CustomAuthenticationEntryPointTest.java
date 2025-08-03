@@ -10,8 +10,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.dto.ErrorResponse;
-import com.und.server.common.exception.ServerErrorResult;
 
 class CustomAuthenticationEntryPointTest {
 
@@ -30,7 +30,7 @@ class CustomAuthenticationEntryPointTest {
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		final MockHttpServletResponse response = new MockHttpServletResponse();
 		final AuthenticationException authException = mock(AuthenticationException.class);
-		final ServerErrorResult expectedError = ServerErrorResult.UNAUTHORIZED_ACCESS;
+		final AuthErrorResult expectedError = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		// when
 		customAuthenticationEntryPoint.commence(request, response, authException);

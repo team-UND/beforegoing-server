@@ -18,9 +18,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.auth.entity.RefreshToken;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.repository.RefreshTokenRepository;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.exception.MemberErrorResult;
 
 @ExtendWith(MockitoExtension.class)
 class RefreshTokenServiceTest {
@@ -70,7 +71,7 @@ class RefreshTokenServiceTest {
 			() -> refreshTokenService.saveRefreshToken(memberId, null));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -81,7 +82,7 @@ class RefreshTokenServiceTest {
 			() -> refreshTokenService.validateRefreshToken(memberId, null));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -91,7 +92,7 @@ class RefreshTokenServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> refreshTokenService.saveRefreshToken(null, refreshTokenValue));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
@@ -101,7 +102,7 @@ class RefreshTokenServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> refreshTokenService.validateRefreshToken(null, refreshTokenValue));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
@@ -111,7 +112,7 @@ class RefreshTokenServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> refreshTokenService.deleteRefreshToken(null));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
@@ -143,7 +144,7 @@ class RefreshTokenServiceTest {
 			() -> refreshTokenService.validateRefreshToken(memberId, "wrong-token"));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenRepository).deleteById(memberId);
 	}
 
@@ -162,7 +163,7 @@ class RefreshTokenServiceTest {
 			() -> refreshTokenService.validateRefreshToken(memberId, refreshTokenValue));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenRepository).deleteById(memberId);
 	}
 
@@ -177,7 +178,7 @@ class RefreshTokenServiceTest {
 			() -> refreshTokenService.validateRefreshToken(memberId, refreshTokenValue));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenRepository).deleteById(memberId);
 	}
 

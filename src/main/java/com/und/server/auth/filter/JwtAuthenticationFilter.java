@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProvider;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 
 import jakarta.servlet.FilterChain;
@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					pattern -> pathMatcher.match(pattern, request.getServletPath())
 				);
 
-				if (e.getErrorResult() != ServerErrorResult.EXPIRED_TOKEN || !isPermissivePath) {
+				if (e.getErrorResult() != AuthErrorResult.EXPIRED_TOKEN || !isPermissivePath) {
 					errorResponseWriter.sendErrorResponse(response, e.getErrorResult());
 					return;
 				}
