@@ -7,10 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
-import com.und.server.scenario.dto.response.MissionResponse;
+import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
+import com.und.server.scenario.util.MissionTypeGrouper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,10 +21,11 @@ import lombok.RequiredArgsConstructor;
 public class MissionService {
 
 	private final MissionRepository missionRepository;
+	private final MissionTypeGrouper missionTypeGrouper;
 
 	@Transactional(readOnly = true)
-	public List<MissionResponse> findMissionsByScenarioId(Long memberId, Long scenarioId) {
-		List<Mission> missionList = missionRepository.findAllByScenarioIdOrderByOrder(scenarioId);
+	public MissionGroupResponse findMissionsByScenarioId(Long memberId, Long scenarioId) {
+		List<Mission> missionList = missionRepository.findAllByScenarioId(scenarioId);
 
 		for (Mission mission : missionList) {
 			Member member = mission.getScenario().getMember();
@@ -31,6 +34,12 @@ public class MissionService {
 			}
 		}
 
-		return MissionResponse.listOf(missionList);
+		List<Mission> groupedBasicMissionList =
+			missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC);
+		List<Mission> groupedTodayMissionList =
+			missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY);
+
+		return MissionGroupResponse.of(groupedBasicMissionList, groupedTodayMissionList);
 	}
+
 }

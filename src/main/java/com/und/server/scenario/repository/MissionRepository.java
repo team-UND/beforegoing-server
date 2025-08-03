@@ -10,6 +10,6 @@ import com.und.server.scenario.entity.Mission;
 public interface MissionRepository extends JpaRepository<Mission, Long> {
 
 	@EntityGraph(attributePaths = {"scenario"})
-	List<Mission> findAllByScenarioIdOrderByOrder(Long scenarioId);
+	List<Mission> findAllByScenarioId(Long scenarioId);
 
 }
