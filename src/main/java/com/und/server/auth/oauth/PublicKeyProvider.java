@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.und.server.auth.dto.OidcPublicKey;
 import com.und.server.auth.dto.OidcPublicKeys;
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @Component
@@ -37,7 +37,7 @@ public class PublicKeyProvider {
 
 			return KeyFactory.getInstance(matchingKey.kty()).generatePublic(publicKeySpec);
 		} catch (final IllegalArgumentException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-			throw new ServerException(ServerErrorResult.INVALID_PUBLIC_KEY, e);
+			throw new ServerException(AuthErrorResult.INVALID_PUBLIC_KEY, e);
 		}
 	}
 

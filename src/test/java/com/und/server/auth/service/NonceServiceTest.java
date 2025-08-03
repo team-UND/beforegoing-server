@@ -19,9 +19,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.auth.entity.Nonce;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.repository.NonceRepository;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,7 +53,7 @@ class NonceServiceTest {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> nonceService.validateNonce(null, provider));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_NONCE);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_NONCE);
 	}
 
 	@Test
@@ -62,7 +62,7 @@ class NonceServiceTest {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> nonceService.validateNonce(nonceValue, null));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
@@ -71,7 +71,7 @@ class NonceServiceTest {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> nonceService.saveNonce(null, provider));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_NONCE);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_NONCE);
 	}
 
 	@Test
@@ -80,7 +80,7 @@ class NonceServiceTest {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> nonceService.saveNonce(nonceValue, null));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_PROVIDER);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
@@ -104,7 +104,7 @@ class NonceServiceTest {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> nonceService.validateNonce(nonceValue, provider));
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_NONCE);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_NONCE);
 	}
 
 	@Test
@@ -122,7 +122,7 @@ class NonceServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> nonceService.validateNonce(nonceValue, differentProvider));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_NONCE);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_NONCE);
 		// The nonce should not be deleted if the provider does not match
 		verify(nonceRepository, never()).deleteById(nonceValue);
 	}

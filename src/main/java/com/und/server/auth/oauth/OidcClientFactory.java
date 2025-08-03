@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @Component
@@ -21,7 +21,7 @@ public class OidcClientFactory {
 
 	public OidcClient getOidcClient(final Provider provider) {
 		return Optional.ofNullable(oidcClients.get(provider))
-			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_PROVIDER));
+			.orElseThrow(() -> new ServerException(AuthErrorResult.INVALID_PROVIDER));
 	}
 
 }

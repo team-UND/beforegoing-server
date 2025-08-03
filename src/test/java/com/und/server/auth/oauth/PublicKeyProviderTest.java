@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.auth.dto.OidcPublicKey;
 import com.und.server.auth.dto.OidcPublicKeys;
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +42,7 @@ class PublicKeyProviderTest {
 		// then
 		assertThatThrownBy(() -> publicKeyProvider.generatePublicKey(header, oidcPublicKeys))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_PUBLIC_KEY);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_PUBLIC_KEY);
 	}
 
 	@Test
