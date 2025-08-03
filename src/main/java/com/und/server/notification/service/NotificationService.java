@@ -12,11 +12,11 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class NotificationService {
 
-	private final NotificationResolverSelector notificationResolverManager;
+	private final NotificationResolverSelector notificationResolverSelector;
 
 	@Transactional(readOnly = true)
 	public NotificationInfoDto findNotificationDetails(Notification notification) {
-		return notificationResolverManager.resolve(notification);
+		return notificationResolverSelector.resolve(notification);
 	}
 
 }
