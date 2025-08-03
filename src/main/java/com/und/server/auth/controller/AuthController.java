@@ -17,6 +17,7 @@ import com.und.server.auth.filter.AuthMember;
 import com.und.server.auth.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -51,8 +52,10 @@ public class AuthController {
 	}
 
 	@DeleteMapping("/logout")
+	@ApiResponse(responseCode = "204", description = "Logout successful")
 	public ResponseEntity<Void> logout(@Parameter(hidden = true) @AuthMember final Long memberId) {
 		authService.logout(memberId);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
+
 }
