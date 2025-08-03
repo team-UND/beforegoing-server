@@ -20,6 +20,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import com.und.server.common.entity.BaseTimeEntity;
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
@@ -32,7 +34,7 @@ import lombok.NoArgsConstructor;
 	}
 )
 @Entity
-public class LocationNotif {
+public class LocationNotif extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

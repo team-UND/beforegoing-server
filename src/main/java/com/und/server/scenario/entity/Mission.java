@@ -2,6 +2,7 @@ package com.und.server.scenario.entity;
 
 import java.time.LocalDate;
 
+import com.und.server.common.entity.BaseTimeEntity;
 import com.und.server.scenario.constants.MissionType;
 
 import jakarta.persistence.Column;
@@ -28,7 +29,7 @@ import lombok.NoArgsConstructor;
 
 @Table
 @Entity
-public class Mission {
+public class Mission extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +45,7 @@ public class Mission {
 	@Column(nullable = false)
 	private Boolean isChecked;
 
-	@Column(nullable = false)
+	@Column
 	private Integer order;
 
 	@Column
