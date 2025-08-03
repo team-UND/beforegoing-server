@@ -22,6 +22,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.common.exception.GlobalExceptionHandler;
+import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.dto.NofitDayOfWeekResponse;
+import com.und.server.notification.dto.TimeNotifResponse;
+import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
 
@@ -40,6 +44,7 @@ class ScenarioControllerTest {
 	private MockMvc mockMvc;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
+
 	@BeforeEach
 	void setUp() {
 		mockMvc = MockMvcBuilders.standaloneSetup(scenarioController)
@@ -48,8 +53,9 @@ class ScenarioControllerTest {
 			.build();
 	}
 
+
 	@Test
-	void Given_MemberId_WHen_GetScenario_Than_ReturnScenario() throws Exception {
+	void Given_MemberId_When_GetScenario_Than_ReturnScenario() throws Exception {
 		// given
 		final String url = "/v1/scenarios";
 		final Long memberId = 1L;
@@ -73,6 +79,50 @@ class ScenarioControllerTest {
 			.andExpect(jsonPath("$.length()").value(2))
 			.andExpect(jsonPath("$[0].scenarioId").value(1))
 			.andExpect(jsonPath("$[0].scenarioName").value("시나리오1"));
+	}
+
+
+	@Test
+	void Given_MemberIdAndScenarioId_When_GetScenarioDetail_Then_ReturnScenarioDetailResponse() throws Exception {
+		// given
+		final Long memberId = 1L;
+		final Long scenarioId = 10L;
+		final String url = "/v1/scenarios/" + scenarioId;
+
+		final TimeNotifResponse notifDetail = TimeNotifResponse.builder()
+			.hour(9)
+			.minute(30)
+			.build();
+
+		final ScenarioDetailResponse response = ScenarioDetailResponse.builder()
+			.scenarioId(scenarioId)
+			.scenarioName("기상 루틴")
+			.memo("간단한 메모")
+			.notificationId(100L)
+			.isActive(true)
+			.notificationType(NotifType.TIME)
+			.isEveryDay(true)
+			.dayOfWeekOrdinalList(List.of(new NofitDayOfWeekResponse(1L, 1)))
+			.notificationDetail(notifDetail)
+			.missionList(List.of())
+			.build();
+
+		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
+		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
+		doReturn(response).when(scenarioService).findScenarioByScenarioId(memberId, scenarioId);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get(url)
+				.accept(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.scenarioId").value(scenarioId))
+			.andExpect(jsonPath("$.scenarioName").value("기상 루틴"))
+			.andExpect(jsonPath("$.notificationDetail.hour").value(9))
+			.andExpect(jsonPath("$.notificationDetail.minute").value(30));
 	}
 
 }
