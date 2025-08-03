@@ -10,6 +10,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -24,7 +25,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 
-@Table
+@Table(
+	name = "time_notif",
+	indexes = {
+		@Index(name = "idx_day_time_notif", columnList = "day_of_week, hour, minute")
+	}
+)
 @Entity
 public class TimeNotif {
 
@@ -38,7 +44,7 @@ public class TimeNotif {
 
 	@Enumerated(EnumType.ORDINAL)
 	@Column
-	private DayOfWeek dayOfWeek; //null일경우 매일
+	private DayOfWeek dayOfWeek;
 
 	@Column
 	private Integer hour;
