@@ -34,7 +34,7 @@ public class MissionTypeGrouper {
 		return switch (type) {
 
 			case BASIC -> Comparator.comparing(Mission::getOrder);
-			case TODAY -> Comparator.comparing(Mission::getOrder).reversed();
+			case TODAY -> Comparator.comparing(Mission::getCreatedAt).reversed();
 
 			default -> throw new ServerException(ScenarioErrorResult.UNSUPPORTED_MISSION_TYPE);
 		};
