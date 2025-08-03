@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.common.exception.GlobalExceptionHandler;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.service.MissionService;
 
@@ -56,21 +57,25 @@ class MissionControllerTest {
 		final Long scenarioId = 10L;
 		final String url = "/v1/scenarios/" + scenarioId + "/missions";
 
-		List<MissionResponse> response = List.of(
-			MissionResponse.builder()
-				.missionId(101L)
-				.content("기상")
-				.isChecked(false)
-				.order(1)
-				.missionType(MissionType.BASIC)
-				.build(),
-			MissionResponse.builder()
-				.missionId(102L)
-				.content("양치")
-				.isChecked(true)
-				.order(2)
-				.missionType(MissionType.TODAY)
-				.build()
+		MissionGroupResponse response = new MissionGroupResponse(
+			List.of(
+				MissionResponse.builder()
+					.missionId(101L)
+					.content("기상")
+					.isChecked(false)
+					.order(1)
+					.missionType(MissionType.BASIC)
+					.build()
+			),
+			List.of(
+				MissionResponse.builder()
+					.missionId(102L)
+					.content("양치")
+					.isChecked(true)
+					.order(2)
+					.missionType(MissionType.TODAY)
+					.build()
+			)
 		);
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
@@ -85,11 +90,12 @@ class MissionControllerTest {
 
 		// then
 		resultActions.andExpect(status().isOk())
-			.andExpect(jsonPath("$.length()").value(2))
-			.andExpect(jsonPath("$[0].missionId").value(101))
-			.andExpect(jsonPath("$[0].content").value("기상"))
-			.andExpect(jsonPath("$[1].missionId").value(102))
-			.andExpect(jsonPath("$[1].isChecked").value(true));
+			.andExpect(jsonPath("$.basicMissionList.length()").value(1))
+			.andExpect(jsonPath("$.basicMissionList[0].missionId").value(101))
+			.andExpect(jsonPath("$.basicMissionList[0].content").value("기상"))
+			.andExpect(jsonPath("$.todayMissionList.length()").value(1))
+			.andExpect(jsonPath("$.todayMissionList[0].missionId").value(102))
+			.andExpect(jsonPath("$.todayMissionList[0].isChecked").value(true));
 	}
 
 }

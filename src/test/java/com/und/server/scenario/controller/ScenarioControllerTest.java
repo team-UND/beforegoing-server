@@ -104,7 +104,7 @@ class ScenarioControllerTest {
 			.isEveryDay(true)
 			.dayOfWeekOrdinalList(List.of(new NofitDayOfWeekResponse(1L, 1)))
 			.notificationDetail(notifDetail)
-			.missionList(List.of())
+			.basicMissionList(List.of())
 			.build();
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());

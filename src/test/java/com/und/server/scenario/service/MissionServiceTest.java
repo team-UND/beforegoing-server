@@ -15,11 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
+import com.und.server.scenario.util.MissionTypeGrouper;
 
 @ExtendWith(MockitoExtension.class)
 class MissionServiceTest {
@@ -29,6 +31,9 @@ class MissionServiceTest {
 
 	@Mock
 	private MissionRepository missionRepository;
+
+	@Mock
+	private MissionTypeGrouper missionTypeGrouper;
 
 
 	@Test
@@ -64,17 +69,29 @@ class MissionServiceTest {
 
 		List<Mission> missionList = List.of(mission1, mission2);
 
-		Mockito.when(missionRepository.findAllByScenarioIdOrderByOrder(scenarioId))
+		Mockito.when(missionRepository.findAllByScenarioId(scenarioId))
 			.thenReturn(missionList);
 
+		Mockito.when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(List.of(mission1));
+
+		Mockito.when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(List.of(mission2));
+
 		// when
-		List<MissionResponse> result = missionService.findMissionsByScenarioId(memberId, scenarioId);
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId);
 
 		// then
-		assertThat(result).hasSize(2);
-		assertThat(result.get(0).getContent()).isEqualTo("Wake up");
-		assertThat(result.get(1).getContent()).isEqualTo("Drink water");
+		List<MissionResponse> basicMissions = result.basicMissionList();
+		List<MissionResponse> todayMissions = result.todayMissionList();
+
+		assertThat(basicMissions).hasSize(1);
+		assertThat(basicMissions.get(0).getContent()).isEqualTo("Wake up");
+
+		assertThat(todayMissions).hasSize(1);
+		assertThat(todayMissions.get(0).getContent()).isEqualTo("Drink water");
 	}
+
 
 	@Test
 	void givenUnauthorizedUser_whenFindMissionsByScenarioId_thenThrowUnauthorizedException() {
@@ -98,7 +115,7 @@ class MissionServiceTest {
 			.missionType(MissionType.BASIC)
 			.build();
 
-		Mockito.when(missionRepository.findAllByScenarioIdOrderByOrder(scenarioId))
+		Mockito.when(missionRepository.findAllByScenarioId(scenarioId))
 			.thenReturn(List.of(mission));
 
 		// when & then

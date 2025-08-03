@@ -21,12 +21,14 @@ import com.und.server.notification.dto.NofitDayOfWeekResponse;
 import com.und.server.notification.dto.TimeNotifResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
+import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.NotificationInfoDto;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.ScenarioRepository;
+import com.und.server.scenario.util.MissionTypeGrouper;
 
 @ExtendWith(MockitoExtension.class)
 class ScenarioServiceTest {
@@ -39,6 +41,9 @@ class ScenarioServiceTest {
 
 	@Mock
 	private ScenarioRepository scenarioRepository;
+
+	@Mock
+	private MissionTypeGrouper missionTypeGrouper;
 
 
 	@Test
@@ -94,6 +99,7 @@ class ScenarioServiceTest {
 		assertThat(result.get(1).getScenarioName()).isEqualTo("시나리오B");
 	}
 
+
 	@Test
 	void Given_validScenario_When_findScenarioByScenarioId_Then_returnResponse() {
 		// given
@@ -117,7 +123,7 @@ class ScenarioServiceTest {
 			.memo("메모")
 			.order(1)
 			.notification(notification)
-			.missionList(List.of())
+			.missionList(List.of()) // 비어 있어도 OK
 			.build();
 
 		final TimeNotifResponse notifDetail = TimeNotifResponse.builder()
@@ -131,8 +137,11 @@ class ScenarioServiceTest {
 			notifDetail
 		);
 
+		// mock
 		Mockito.when(scenarioRepository.findById(scenarioId)).thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(notifInfoDto);
+		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC))
+			.thenReturn(List.of());
 
 		// when
 		ScenarioDetailResponse response = scenarioService.findScenarioByScenarioId(memberId, scenarioId);
