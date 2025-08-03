@@ -30,10 +30,4 @@ public class TimeNotifResponse extends NotificationDetailResponse {
 			.build();
 	}
 
-	public static List<NotificationDetailResponse> listOf(List<TimeNotif> timeNotifList) {
-		return timeNotifList.stream()
-			.map(TimeNotifResponse::of)
-			.toList();
-	}
-
 }
