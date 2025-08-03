@@ -9,12 +9,15 @@ import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
+import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.NotificationInfoDto;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
+import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.ScenarioRepository;
+import com.und.server.scenario.util.MissionTypeGrouper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +27,7 @@ public class ScenarioService {
 
 	private final NotificationService notificationService;
 	private final ScenarioRepository scenarioRepository;
+	private final MissionTypeGrouper missionTypeGrouper;
 
 
 	@Transactional(readOnly = true)
@@ -44,13 +48,25 @@ public class ScenarioService {
 			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
 		}
 
+		List<Mission> groupdBasicMissionList =
+			missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC);
+
 		Notification notification = scenario.getNotification();
 		if (!notification.isActive()) {
-			return ScenarioDetailResponse.of(scenario, null);
+			return ScenarioDetailResponse.of(
+				scenario,
+				groupdBasicMissionList,
+				null
+			);
 		}
+
 		NotificationInfoDto notifInfo = notificationService.findNotificationDetails(notification);
 
-		return ScenarioDetailResponse.of(scenario, notifInfo);
+		return ScenarioDetailResponse.of(
+			scenario,
+			groupdBasicMissionList,
+			notifInfo
+		);
 	}
 
 }
