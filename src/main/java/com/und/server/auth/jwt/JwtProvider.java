@@ -138,18 +138,16 @@ public class JwtProvider {
 			// For non-production environments, provide detailed error messages.
 			if (e instanceof MalformedJwtException) {
 				throw new ServerException(AuthErrorResult.MALFORMED_TOKEN, e);
-			}
-			if (e instanceof UnsupportedJwtException) {
+			} else if (e instanceof UnsupportedJwtException) {
 				throw new ServerException(AuthErrorResult.UNSUPPORTED_TOKEN, e);
-			}
-			if (e instanceof WeakKeyException) {
+			} else if (e instanceof WeakKeyException) {
 				throw new ServerException(AuthErrorResult.WEAK_TOKEN_KEY, e);
-			}
-			if (e instanceof SignatureException) {
+			} else if (e instanceof SignatureException) {
 				throw new ServerException(AuthErrorResult.INVALID_TOKEN_SIGNATURE, e);
+			} else {
+				// Fallback for any other JWT-related exceptions.
+				throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 			}
-			// Fallback for any other JWT-related exceptions.
-			throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 		}
 	}
 
