@@ -11,8 +11,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum NotificationErrorResult implements ErrorResult {
 
-	UNSUPPORTED_NOTIFICATION(
-		HttpStatus.BAD_REQUEST, "Unsupported notification type");
+	UNSUPPORTED_NOTIF(
+		HttpStatus.BAD_REQUEST, "Unsupported notification type"),
+	NOT_FOUND_NOTIF(
+		HttpStatus.NOT_FOUND, "Notification not found"
+	);
 
 
 	private final HttpStatus httpStatus;
