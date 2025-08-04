@@ -69,4 +69,10 @@ public class ScenarioService {
 		);
 	}
 
+	@Transactional(readOnly = true)
+	public Scenario findScenarioByScenarioId(Long scenarioId) {
+		return scenarioRepository.findById(scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+	}
+
 }
