@@ -145,7 +145,7 @@ jobs:
               {
                 "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Succeeded",
-                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: [View on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
                 "color": 10478271,
                 "fields": [
                   { "name": "Cluster", "value": "`${{ env.ECS_CLUSTER }}`", "inline": true },
@@ -188,7 +188,7 @@ jobs:
               {
                 "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Failed",
-                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n**Action**: Attempted to roll back to the previous stable task definition.",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: [View on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n**Action**: Attempted to roll back to the previous stable task definition.",
                 "color": 13458524,
                 "fields": [
                   { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
