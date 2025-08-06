@@ -2,6 +2,8 @@ package com.und.server.notification.entity;
 
 import java.time.DayOfWeek;
 
+import com.und.server.common.entity.BaseTimeEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,8 +22,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.und.server.common.entity.BaseTimeEntity;
-
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
@@ -30,11 +30,11 @@ import com.und.server.common.entity.BaseTimeEntity;
 @Table(
 	name = "time_notif",
 	indexes = {
-		@Index(name = "idx_day_time_notif", columnList = "day_of_week, hour, minute")
+		@Index(name = "idx_day_location_notif", columnList = "day_of_week, start_hour, start_minute")
 	}
 )
 @Entity
-public class TimeNotif extends BaseTimeEntity {
+public class LocationNotification extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,9 +49,24 @@ public class TimeNotif extends BaseTimeEntity {
 	private DayOfWeek dayOfWeek;
 
 	@Column
-	private Integer hour;
+	private Double latitude;
 
 	@Column
-	private Integer minute;
+	private Double longitude;
+
+	@Column
+	private Integer trackingRadiusKm;
+
+	@Column
+	private Integer startHour;
+
+	@Column
+	private Integer startMinute;
+
+	@Column
+	private Integer endHour;
+
+	@Column
+	private Integer endMinute;
 
 }
