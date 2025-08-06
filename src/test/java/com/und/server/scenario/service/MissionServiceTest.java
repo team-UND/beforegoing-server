@@ -174,6 +174,7 @@ class MissionServiceTest {
 
 		List<MissionRequest> requests = List.of(mission1, mission2);
 
+		@SuppressWarnings("unchecked")
 		ArgumentCaptor<List<Mission>> captor = ArgumentCaptor.forClass(List.class);
 
 		missionService.addBasicMission(scenario, requests);
