@@ -23,7 +23,6 @@ public class MissionResponse {
 	private Long missionId;
 	private String content;
 	private Boolean isChecked;
-	private Integer order;
 	private MissionType missionType;
 
 
@@ -32,7 +31,6 @@ public class MissionResponse {
 			.missionId(mission.getId())
 			.content(mission.getContent())
 			.isChecked(mission.getIsChecked())
-			.order(mission.getOrder())
 			.missionType(mission.getMissionType())
 			.build();
 	}

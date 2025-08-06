@@ -3,15 +3,12 @@ package com.und.server.scenario.dto.response;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.und.server.notification.constants.NotifMethodType;
-import com.und.server.notification.constants.NotifType;
-import com.und.server.notification.dto.NofitDayOfWeekResponse;
-import com.und.server.notification.dto.NotificationDetailResponse;
-import com.und.server.notification.entity.Notification;
-import com.und.server.scenario.dto.NotificationInfoDto;
-import com.und.server.scenario.entity.Mission;
-import com.und.server.scenario.entity.Scenario;
+import com.und.server.notification.dto.response.NotificationConditionResponse;
+import com.und.server.notification.dto.response.NotificationResponse;
+import com.und.server.notification.dto.response.TimeNotificationResponse;
 
+import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,39 +30,16 @@ public class ScenarioDetailResponse {
 	private String memo;
 	private List<MissionResponse> basicMissionList;
 
-	private Long notificationId;
-	private Boolean isActive;
-	private NotifType notificationType;
-	private NotifMethodType notificationMethodType;
-	private Boolean isEveryDay;
-	private List<NofitDayOfWeekResponse> dayOfWeekOrdinalList;
-	private NotificationDetailResponse notificationDetail;
+	private NotificationResponse notification;
 
-
-	public static ScenarioDetailResponse of(Scenario scenario,
-											List<Mission> basicMissionList,
-											NotificationInfoDto notifInfo
-	) {
-		Notification notification = scenario.getNotification();
-
-		ScenarioDetailResponse result = ScenarioDetailResponse.builder()
-			.scenarioId(scenario.getId())
-			.scenarioName(scenario.getScenarioName())
-			.memo(scenario.getMemo())
-			.basicMissionList(MissionResponse.listOf(basicMissionList))
-			.notificationId(notification.getId())
-			.isActive(notification.isActive())
-			.notificationType(notification.getNotifType())
-			.notificationMethodType(notification.getNotifMethodType())
-			.build();
-
-		if (notifInfo != null) {
-			result.setIsEveryDay(notifInfo.isEveryDay());
-			result.setDayOfWeekOrdinalList(notifInfo.dayOfWeekOrdinalList());
-			result.setNotificationDetail(notifInfo.notificationDetail());
+	@Schema(
+		description = "알림 상세 정보",
+		oneOf = {TimeNotificationResponse.class},
+		discriminatorProperty = "notificationType",
+		discriminatorMapping = {
+			@DiscriminatorMapping(value = "TIME", schema = TimeNotificationResponse.class)
 		}
-
-		return result;
-	}
+	)
+	private NotificationConditionResponse notificationCondition;
 
 }
