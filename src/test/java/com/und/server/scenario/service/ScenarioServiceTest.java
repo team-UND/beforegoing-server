@@ -40,6 +40,7 @@ import com.und.server.scenario.dto.requeset.TodayMissionRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.exception.ReorderRequiredException;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGrouper;
@@ -149,7 +150,7 @@ class ScenarioServiceTest {
 			.memo("메모")
 			.order(1)
 			.notification(notification)
-			.missionList(List.of()) // 비어 있어도 OK
+			.missionList(List.of())
 			.build();
 
 		final TimeNotificationResponse notifDetail = TimeNotificationResponse.builder()
@@ -345,5 +346,68 @@ class ScenarioServiceTest {
 		assertThat(saved.getNotification()).isEqualTo(savedNotification);
 		assertThat(saved.getMember()).isEqualTo(member);
 	}
+
+
+	@Test
+	void Given_ReorderRequired_When_AddScenario_Then_ReorderAndRetry() {
+		// given
+		Long memberId = 1L;
+		int reorderedOrder = 5000;
+
+		Member member = Member.builder().id(memberId).build();
+		given(em.getReference(Member.class, memberId)).willReturn(member);
+
+		NotificationRequest notifRequest = NotificationRequest.builder()
+			.isActive(true)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.ALARM)
+			.build();
+
+		TimeNotificationRequest condition = TimeNotificationRequest.builder()
+			.hour(7)
+			.minute(0)
+			.build();
+
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("Evening")
+			.memo("Routine")
+			.basicMissionList(List.of())
+			.notification(notifRequest)
+			.notificationCondition(condition)
+			.build();
+
+		Notification savedNotification = Notification.builder()
+			.id(11L)
+			.isActive(true)
+			.notifType(NotifType.TIME)
+			.notifMethodType(NotifMethodType.ALARM)
+			.build();
+
+
+		given(notificationService.addNotification(notifRequest, condition))
+			.willReturn(savedNotification);
+		given(orderCalculator.getOrder(anyInt(), isNull()))
+			.willThrow(new ReorderRequiredException())
+			.willReturn(reorderedOrder);
+		given(scenarioRepository.findMaxOrderByMemberIdAndNotifType(memberId, NotifType.TIME))
+			.willReturn(Optional.of(10_000_000));
+
+		Scenario s1 = Scenario.builder().id(1L).order(10_000_000).build();
+		given(scenarioRepository.findByMemberIdAndNotification_NotifTypeOrderByOrder(memberId, NotifType.TIME))
+			.willReturn(List.of(s1));
+
+		ArgumentCaptor<Scenario> captor = ArgumentCaptor.forClass(Scenario.class);
+
+		// when
+		scenarioService.addScenario(memberId, scenarioRequest);
+
+		// then
+		verify(scenarioRepository).saveAll(any());
+		verify(scenarioRepository).save(captor.capture());
+
+		Scenario saved = captor.getValue();
+		assertThat(saved.getOrder()).isEqualTo(reorderedOrder);
+	}
+
 
 }
