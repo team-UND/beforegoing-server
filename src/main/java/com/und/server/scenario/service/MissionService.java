@@ -33,6 +33,9 @@ public class MissionService {
 	public MissionGroupResponse findMissionsByScenarioId(Long memberId, Long scenarioId) {
 		List<Mission> missionList = missionRepository.findAllByScenarioId(scenarioId);
 
+		if (missionList == null || missionList.isEmpty()) {
+			return MissionGroupResponse.of(List.of(), List.of());
+		}
 		for (Mission mission : missionList) {
 			Member member = mission.getScenario().getMember();
 			if (!memberId.equals(member.getId())) {
@@ -78,5 +81,7 @@ public class MissionService {
 
 		missionRepository.saveAll(missionList);
 	}
+
+//	public void updateBasicMission(Scenario scenario, List<MissionRequest> missionInfoList) {}
 
 }
