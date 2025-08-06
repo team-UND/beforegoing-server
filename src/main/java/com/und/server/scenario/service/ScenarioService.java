@@ -124,7 +124,7 @@ public class ScenarioService {
 
 
 	public void validateScenarioAccessMember(Long requestMemberId, Scenario scenario) {
-		if (scenario.isAccessibleMember(requestMemberId)) {
+		if (!scenario.isAccessibleMember(requestMemberId)) {
 			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
 		}
 	}
