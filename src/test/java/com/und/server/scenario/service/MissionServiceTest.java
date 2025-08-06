@@ -2,11 +2,14 @@ package com.und.server.scenario.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -15,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.requeset.MissionRequest;
+import com.und.server.scenario.dto.requeset.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
@@ -122,6 +127,84 @@ class MissionServiceTest {
 		assertThatThrownBy(() -> missionService.findMissionsByScenarioId(requestMemberId, scenarioId))
 			.isInstanceOf(ServerException.class)
 			.hasMessageContaining(ScenarioErrorResult.UNAUTHORIZED_ACCESS.getMessage());
+	}
+
+
+	@Test
+	void Given_ScenarioAndTodayMissionRequest_When_AddTodayMission_Then_SaveSingleMission() {
+		// given
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(Member.builder().id(1L).build())
+			.build();
+
+		TodayMissionRequest request = new TodayMissionRequest("Stretch");
+
+		ArgumentCaptor<Mission> captor = ArgumentCaptor.forClass(Mission.class);
+
+		// when
+		missionService.addTodayMission(scenario, request);
+
+		// then
+		verify(missionRepository).save(captor.capture());
+
+		Mission saved = captor.getValue();
+
+		assertThat(saved.getScenario()).isEqualTo(scenario);
+		assertThat(saved.getContent()).isEqualTo("Stretch");
+		assertThat(saved.getMissionType()).isEqualTo(MissionType.TODAY);
+		assertThat(saved.getIsChecked()).isFalse();
+	}
+
+
+	@Test
+	void Given_ScenarioAndValidBasicMissionRequestList_When_AddBasicMission_Then_SaveAllMissions() {
+		Scenario scenario = Scenario.builder()
+			.id(2L)
+			.member(Member.builder().id(2L).build())
+			.build();
+
+		MissionRequest mission1 = new MissionRequest();
+		mission1.setContent("Meditate");
+		mission1.setMissionType(MissionType.BASIC);
+
+		MissionRequest mission2 = new MissionRequest();
+		mission2.setContent("Read");
+		mission2.setMissionType(MissionType.BASIC);
+
+		List<MissionRequest> requests = List.of(mission1, mission2);
+
+		ArgumentCaptor<List<Mission>> captor = ArgumentCaptor.forClass(List.class);
+
+		missionService.addBasicMission(scenario, requests);
+
+		verify(missionRepository).saveAll(captor.capture());
+
+		List<Mission> savedMissions = captor.getValue();
+
+		assertThat(savedMissions).hasSize(2);
+		assertThat(savedMissions.get(0).getContent()).isEqualTo("Meditate");
+		assertThat(savedMissions.get(0).getOrder()).isEqualTo(1000);
+		assertThat(savedMissions.get(1).getContent()).isEqualTo("Read");
+		assertThat(savedMissions.get(1).getOrder()).isEqualTo(2000);
+	}
+
+
+	@Test
+	void Given_EmptyBasicMissionList_When_AddBasicMission_Then_DoNothing() {
+		// given
+		Scenario scenario = Scenario.builder()
+			.id(3L)
+			.member(Member.builder().id(3L).build())
+			.build();
+
+		List<MissionRequest> emptyList = List.of();
+
+		// when
+		missionService.addBasicMission(scenario, emptyList);
+
+		// then
+		verifyNoInteractions(missionRepository);
 	}
 
 }
