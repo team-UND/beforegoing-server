@@ -108,12 +108,12 @@ public class ScenarioService {
 		int maxScenarioOrder = getMaxScenarioOrder(memberId, notifInfo);
 
 		try {
-			return orderCalculator.calculateOrder(null, maxScenarioOrder);
+			return orderCalculator.getOrder(maxScenarioOrder, null);
 		} catch (ReorderRequiredException e) {
 			reorderScenarios(memberId, notifInfo.getNotificationType());
 			int newMaxOrder = getMaxScenarioOrder(memberId, notifInfo);
 
-			return orderCalculator.calculateOrder(null, newMaxOrder);
+			return orderCalculator.getOrder(newMaxOrder, null);
 		}
 	}
 

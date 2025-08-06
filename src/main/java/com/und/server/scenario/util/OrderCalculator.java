@@ -31,7 +31,7 @@ public class OrderCalculator {
 	private static final int MIN_GAP = 100;
 
 
-	public int calculateOrder(Integer prevOrder, Integer nextOrder) {
+	public int getOrder(Integer prevOrder, Integer nextOrder) {
 		int resultOrder = 0;
 
 		if (prevOrder == null && nextOrder == null) {
