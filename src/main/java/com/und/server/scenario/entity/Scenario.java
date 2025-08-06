@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -37,7 +38,7 @@ public class Scenario extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
 
@@ -47,6 +48,7 @@ public class Scenario extends BaseTimeEntity {
 	@Column(length = 15)
 	private String memo;
 
+	@Setter
 	@Column(nullable = false)
 	private Integer order;
 
@@ -56,5 +58,10 @@ public class Scenario extends BaseTimeEntity {
 
 	@OneToMany(mappedBy = "scenario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Mission> missionList;
+
+
+	public boolean isAccessibleMember(Long memberId) {
+		return memberId.equals(this.member.getId());
+	}
 
 }
