@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class NotificationService {
 
-	public static final int EVERYDAY = 7;
 	private final NotificationRepository notificationRepository;
 	private final NotificationConditionSelector notificationConditionSelector;
 

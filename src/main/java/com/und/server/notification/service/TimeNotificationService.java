@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class TimeNotificationService implements NotificationConditionService {
 
+	public static final int EVERYDAY = 7;
 	private final TimeNotificationRepository timeNotifRepository;
 
 
@@ -86,7 +87,7 @@ public class TimeNotificationService implements NotificationConditionService {
 
 		TimeNotificationRequest timeNotifInfo = (TimeNotificationRequest) notifDetailInfo;
 
-		boolean isEveryday = dayOfWeekOrdinalList.size() == NotificationService.EVERYDAY;
+		boolean isEveryday = dayOfWeekOrdinalList.size() == EVERYDAY;
 		if (isEveryday) {
 			TimeNotification timeNotif = timeNotifInfo.toEntity(notification, null);
 			timeNotifRepository.save(timeNotif);
