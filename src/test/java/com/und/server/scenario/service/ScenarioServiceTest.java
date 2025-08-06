@@ -3,12 +3,19 @@ package com.und.server.scenario.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -16,25 +23,38 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
+import com.und.server.notification.constants.NotifMethodType;
 import com.und.server.notification.constants.NotifType;
-import com.und.server.notification.dto.NofitDayOfWeekResponse;
-import com.und.server.notification.dto.TimeNotifResponse;
+import com.und.server.notification.dto.NotificationInfoDto;
+import com.und.server.notification.dto.request.NotificationDayOfWeekRequest;
+import com.und.server.notification.dto.request.NotificationRequest;
+import com.und.server.notification.dto.request.TimeNotificationRequest;
+import com.und.server.notification.dto.response.NotificationDayOfWeekResponse;
+import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
-import com.und.server.scenario.dto.NotificationInfoDto;
+import com.und.server.scenario.dto.requeset.MissionRequest;
+import com.und.server.scenario.dto.requeset.ScenarioDetailRequest;
+import com.und.server.scenario.dto.requeset.TodayMissionRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGrouper;
+import com.und.server.scenario.util.OrderCalculator;
+
+import jakarta.persistence.EntityManager;
 
 @ExtendWith(MockitoExtension.class)
 class ScenarioServiceTest {
 
 	@InjectMocks
 	private ScenarioService scenarioService;
+
+	@Mock
+	private MissionService missionService;
 
 	@Mock
 	private NotificationService notificationService;
@@ -44,6 +64,12 @@ class ScenarioServiceTest {
 
 	@Mock
 	private MissionTypeGrouper missionTypeGrouper;
+
+	@Mock
+	private OrderCalculator orderCalculator;
+
+	@Mock
+	private EntityManager em;
 
 
 	@Test
@@ -87,10 +113,10 @@ class ScenarioServiceTest {
 
 		//when
 		Mockito
-			.when(scenarioRepository.findByMemberIdOrderByOrder(memberId))
+			.when(scenarioRepository.findByMemberIdAndNotification_NotifTypeOrderByOrder(memberId, NotifType.TIME))
 			.thenReturn(scenarioList);
 
-		List<ScenarioResponse> result = scenarioService.findScenariosByMemberId(memberId);
+		List<ScenarioResponse> result = scenarioService.findScenariosByMemberId(memberId, NotifType.TIME);
 
 		//then
 		assertNotNull(result);
@@ -126,14 +152,14 @@ class ScenarioServiceTest {
 			.missionList(List.of()) // 비어 있어도 OK
 			.build();
 
-		final TimeNotifResponse notifDetail = TimeNotifResponse.builder()
+		final TimeNotificationResponse notifDetail = TimeNotificationResponse.builder()
 			.hour(8)
 			.minute(30)
 			.build();
 
 		final NotificationInfoDto notifInfoDto = new NotificationInfoDto(
 			true,
-			List.of(new NofitDayOfWeekResponse(1L, 1)),
+			List.of(new NotificationDayOfWeekResponse(1L, 1)),
 			notifDetail
 		);
 
@@ -149,8 +175,8 @@ class ScenarioServiceTest {
 		// then
 		assertNotNull(response);
 		assertThat(response.getScenarioId()).isEqualTo(scenarioId);
-		assertThat(response.getNotificationDetail()).isInstanceOf(TimeNotifResponse.class);
-		TimeNotifResponse detail = (TimeNotifResponse) response.getNotificationDetail();
+		assertThat(response.getNotificationCondition()).isInstanceOf(TimeNotificationResponse.class);
+		TimeNotificationResponse detail = (TimeNotificationResponse) response.getNotificationCondition();
 		assertThat(detail.getHour()).isEqualTo(8);
 		assertThat(detail.getMinute()).isEqualTo(30);
 	}
@@ -198,6 +224,126 @@ class ScenarioServiceTest {
 		assertThatThrownBy(() -> scenarioService.findScenarioByScenarioId(memberId, scenarioId))
 			.isInstanceOf(ServerException.class)
 			.hasMessageContaining(ScenarioErrorResult.UNAUTHORIZED_ACCESS.getMessage());
+	}
+
+
+	@Test
+	void Given_ValidMemberAndScenario_When_AddTodayMissionToScenario_Then_InvokeMissionService() {
+		Long memberId = 1L;
+		Long scenarioId = 10L;
+
+		Member member = Member.builder().id(memberId).build();
+
+		Scenario scenario = Scenario.builder()
+			.id(scenarioId)
+			.member(member)
+			.build();
+
+		TodayMissionRequest request = new TodayMissionRequest("Stretch");
+
+		Mockito.when(scenarioRepository.findById(scenarioId))
+			.thenReturn(Optional.of(scenario));
+
+		scenarioService.addTodayMissionToScenario(memberId, scenarioId, request);
+
+		verify(missionService).addTodayMission(scenario, request);
+	}
+
+
+	@Test
+	void Given_OtherUserScenario_When_AddTodayMissionToScenario_Then_ThrowUnauthorizedException() {
+		Long requestMemberId = 1L;
+		Long scenarioId = 10L;
+
+		Member otherUser = Member.builder().id(999L).build();
+
+		Scenario scenario = Scenario.builder()
+			.id(scenarioId)
+			.member(otherUser)
+			.build();
+
+		TodayMissionRequest request = new TodayMissionRequest("Stretch");
+
+		Mockito.when(scenarioRepository.findById(scenarioId))
+			.thenReturn(Optional.of(scenario));
+
+		assertThatThrownBy(() ->
+			scenarioService.addTodayMissionToScenario(requestMemberId, scenarioId, request)
+		).isInstanceOf(ServerException.class)
+			.hasMessageContaining(ScenarioErrorResult.UNAUTHORIZED_ACCESS.getMessage());
+	}
+
+
+	@Test
+	void Given_ValidRequest_When_AddScenario_Then_SaveScenarioAndAddMissions() {
+		//given
+		Long memberId = 1L;
+		int calculatedOrder = 3000;
+
+		Member member = Member.builder().id(memberId).build();
+		given(em.getReference(Member.class, memberId)).willReturn(member);
+
+		MissionRequest mission1 = new MissionRequest();
+		mission1.setContent("Run");
+		mission1.setMissionType(MissionType.BASIC);
+
+		MissionRequest mission2 = new MissionRequest();
+		mission2.setContent("Read");
+		mission2.setMissionType(MissionType.BASIC);
+
+		List<MissionRequest> missionList = List.of(mission1, mission2);
+
+		NotificationRequest notifRequest = NotificationRequest.builder()
+			.isActive(true)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.ALARM)
+			.dayOfWeekOrdinalList(List.of(
+				new NotificationDayOfWeekRequest(1L, 1),
+				new NotificationDayOfWeekRequest(2L, 2)
+			))
+			.build();
+
+		TimeNotificationRequest condition = TimeNotificationRequest.builder()
+			.hour(9)
+			.minute(0)
+			.build();
+
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("Morning")
+			.memo("Routine")
+			.basicMissionList(missionList)
+			.notification(notifRequest)
+			.notificationCondition(condition)
+			.build();
+
+		Notification savedNotification = Notification.builder()
+			.id(10L)
+			.isActive(true)
+			.notifType(NotifType.TIME)
+			.notifMethodType(NotifMethodType.ALARM)
+			.build();
+
+		given(notificationService.addNotification(notifRequest, condition)).willReturn(savedNotification);
+
+		given(orderCalculator.getOrder(anyInt(), isNull())).willReturn(calculatedOrder);
+
+		ArgumentCaptor<Scenario> scenarioCaptor = ArgumentCaptor.forClass(Scenario.class);
+
+		// when
+		scenarioService.addScenario(memberId, scenarioRequest);
+
+		// then
+		verify(notificationService).addNotification(notifRequest, condition);
+		verify(missionService).addBasicMission(any(Scenario.class), eq(missionList));
+		verify(scenarioRepository).save(scenarioCaptor.capture());
+
+		Scenario saved = scenarioCaptor.getValue();
+
+		assertThat(saved.getScenarioName()).isEqualTo("Morning");
+		assertThat(saved.getMemo()).isEqualTo("Routine");
+		assertThat(saved.getOrder()).isEqualTo(calculatedOrder);
+		assertThat(saved.getNotification()).isEqualTo(savedNotification);
+		assertThat(saved.getMember()).isEqualTo(member);
 	}
 
 }
