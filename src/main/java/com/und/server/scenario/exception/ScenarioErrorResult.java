@@ -15,7 +15,9 @@ public enum ScenarioErrorResult implements ErrorResult {
 	UNAUTHORIZED_ACCESS(
 		HttpStatus.UNAUTHORIZED, "Unauthorized access"),
 	UNSUPPORTED_MISSION_TYPE(
-		HttpStatus.BAD_REQUEST, "Unsupported mission type");
+		HttpStatus.BAD_REQUEST, "Unsupported mission type"),
+	REORDER_REQUIRED(
+		HttpStatus.BAD_REQUEST, "Reorder required");
 
 
 	private final HttpStatus httpStatus;
