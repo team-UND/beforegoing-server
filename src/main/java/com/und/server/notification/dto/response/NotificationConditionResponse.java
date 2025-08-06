@@ -1,4 +1,4 @@
-package com.und.server.notification.dto;
+package com.und.server.notification.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	property = "notificationType"
 )
 @JsonSubTypes({
-	@JsonSubTypes.Type(value = TimeNotifResponse.class, name = "TIME")
+	@JsonSubTypes.Type(value = TimeNotificationResponse.class, name = "TIME")
 })
-public abstract class NotificationDetailResponse {
+public interface NotificationConditionResponse {
 }

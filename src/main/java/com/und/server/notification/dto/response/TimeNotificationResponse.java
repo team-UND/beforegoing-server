@@ -1,8 +1,6 @@
-package com.und.server.notification.dto;
+package com.und.server.notification.dto.response;
 
-import java.util.List;
-
-import com.und.server.notification.entity.TimeNotif;
+import com.und.server.notification.entity.TimeNotification;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,14 +15,14 @@ import lombok.ToString;
 @Getter
 @Builder
 @ToString
-public class TimeNotifResponse extends NotificationDetailResponse {
+public class TimeNotificationResponse implements NotificationConditionResponse {
 
 	private Integer hour;
 	private Integer minute;
 
 
-	public static NotificationDetailResponse of(TimeNotif timeNotif) {
-		return TimeNotifResponse.builder()
+	public static NotificationConditionResponse of(TimeNotification timeNotif) {
+		return TimeNotificationResponse.builder()
 			.hour(timeNotif.getHour())
 			.minute(timeNotif.getMinute())
 			.build();
