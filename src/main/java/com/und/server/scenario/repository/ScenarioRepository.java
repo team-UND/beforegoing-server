@@ -23,7 +23,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 			SELECT MAX(s.order)
 			FROM Scenario s
 			WHERE s.member.id = :memberId
-			  AND s.notification.notifType = :notifType
+				AND s.notification.notifType = :notifType
 		""")
 	Optional<Integer> findMaxOrderByMemberIdAndNotifType(Long memberId, NotifType notifType);
 

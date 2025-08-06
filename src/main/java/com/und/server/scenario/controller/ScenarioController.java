@@ -32,7 +32,7 @@ public class ScenarioController {
 	private final ScenarioService scenarioService;
 
 
-	@GetMapping("/scenarios") ///미션 타입이 있어야하지 않나?
+	@GetMapping("/scenarios")
 	public ResponseEntity<List<ScenarioResponse>> getScenarios(
 		@AuthMember Long memberId,
 		@RequestParam NotifType notifType
