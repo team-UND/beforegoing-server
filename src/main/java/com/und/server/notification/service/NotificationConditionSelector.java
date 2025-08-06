@@ -32,11 +32,11 @@ public class NotificationConditionSelector {
 	public void addNotif(
 		Notification notification,
 		List<Integer> dayOfWeekOrdinalList,
-		NotificationConditionRequest timeNotifInfo
+		NotificationConditionRequest notifConditionInfo
 	) {
 		for (NotificationConditionService service : services) {
 			if (service.supports(notification.getNotifType())) {
-				service.addNotifDetail(notification, dayOfWeekOrdinalList, timeNotifInfo);
+				service.addNotifDetail(notification, dayOfWeekOrdinalList, notifConditionInfo);
 				return;
 			}
 		}
