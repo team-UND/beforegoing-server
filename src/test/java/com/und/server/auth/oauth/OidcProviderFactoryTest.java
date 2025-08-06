@@ -22,6 +22,9 @@ class OidcProviderFactoryTest {
 	private KakaoProvider kakaoProvider;
 
 	@Mock
+	private AppleProvider appleProvider;
+
+	@Mock
 	private OidcPublicKeys oidcPublicKeys;
 
 	private OidcProviderFactory factory;
@@ -32,7 +35,7 @@ class OidcProviderFactoryTest {
 
 	@BeforeEach
 	void init() {
-		factory = new OidcProviderFactory(kakaoProvider);
+		factory = new OidcProviderFactory(kakaoProvider, appleProvider);
 	}
 
 	@Test
@@ -40,8 +43,8 @@ class OidcProviderFactoryTest {
 	void Given_NullProvider_When_GetIdTokenPayload_Then_ThrowsServerException() {
 		// when & then
 		assertThatThrownBy(() -> factory.getIdTokenPayload(null, token, oidcPublicKeys))
-			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_PROVIDER);
+				.isInstanceOf(ServerException.class)
+				.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test

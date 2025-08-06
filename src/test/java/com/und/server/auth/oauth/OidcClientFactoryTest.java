@@ -19,11 +19,14 @@ class OidcClientFactoryTest {
 	@Mock
 	private KakaoClient kakaoClient;
 
+	@Mock
+	private AppleClient appleClient;
+
 	private OidcClientFactory oidcClientFactory;
 
 	@BeforeEach
 	void init() {
-		oidcClientFactory = new OidcClientFactory(kakaoClient);
+		oidcClientFactory = new OidcClientFactory(kakaoClient, appleClient);
 	}
 
 	@Test
@@ -31,8 +34,8 @@ class OidcClientFactoryTest {
 	void Given_NullProvider_When_GetOidcClient_Then_ThrowsServerException() {
 		// when & then
 		assertThatThrownBy(() -> oidcClientFactory.getOidcClient(null))
-			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_PROVIDER);
+				.isInstanceOf(ServerException.class)
+				.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
