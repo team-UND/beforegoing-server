@@ -73,6 +73,7 @@ public class ScenarioService {
 		return getScenarioDetailResponse(scenario, groupdBasicMissionList, notifInfo);
 	}
 
+
 	@Transactional
 	public void addTodayMissionToScenario(Long memberId, Long scenarioId, TodayMissionRequest missionAddInfo) {
 		Scenario scenario = findScenarioByScenarioId(scenarioId);
@@ -123,7 +124,7 @@ public class ScenarioService {
 	}
 
 
-	public void validateScenarioAccessMember(Long requestMemberId, Scenario scenario) {
+	private void validateScenarioAccessMember(Long requestMemberId, Scenario scenario) {
 		if (!scenario.isAccessibleMember(requestMemberId)) {
 			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
 		}
