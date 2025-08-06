@@ -32,7 +32,7 @@ public class NotificationService {
 	@Transactional
 	public Notification addNotification(
 		NotificationRequest notifInfo,
-		NotificationConditionRequest notifDetailInfo
+		NotificationConditionRequest notifConditionInfo
 	) {
 		Notification notification = notifInfo.toEntity();
 		notificationRepository.save(notification);
@@ -40,7 +40,7 @@ public class NotificationService {
 		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList().stream()
 			.map(NotificationDayOfWeekRequest::getDayOfWeekOrdinal)
 			.toList();
-		notificationConditionSelector.addNotif(notification, dayOfWeekOrdinalList, notifDetailInfo);
+		notificationConditionSelector.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 
 		return notification;
 	}
