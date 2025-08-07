@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Builder
 
 @Table(
-	name = "time_notif",
+	name = "location_notification",
 	indexes = {
 		@Index(name = "idx_day_location_notif", columnList = "day_of_week, start_hour, start_minute")
 	}
