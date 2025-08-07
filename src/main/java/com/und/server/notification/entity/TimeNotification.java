@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -48,9 +49,11 @@ public class TimeNotification extends BaseTimeEntity {
 	@Column
 	private DayOfWeek dayOfWeek;
 
+	@Setter
 	@Column
 	private Integer hour;
 
+	@Setter
 	@Column
 	private Integer minute;
 

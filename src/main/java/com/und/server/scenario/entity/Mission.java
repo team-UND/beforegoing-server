@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -42,9 +43,11 @@ public class Mission extends BaseTimeEntity {
 	@Column(nullable = false, length = 10)
 	private String content;
 
+	@Setter
 	@Column(nullable = false)
 	private Boolean isChecked;
 
+	@Setter
 	@Column
 	private Integer order;
 

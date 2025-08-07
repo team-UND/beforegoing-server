@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -31,13 +32,16 @@ public class Notification extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Setter
 	@Column(nullable = false)
 	private Boolean isActive;
 
+	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private NotifType notifType;
 
+	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private NotifMethodType notifMethodType;

@@ -42,9 +42,11 @@ public class Scenario extends BaseTimeEntity {
 	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
 
+	@Setter
 	@Column(nullable = false, length = 10)
 	private String scenarioName;
 
+	@Setter
 	@Column(length = 15)
 	private String memo;
 
@@ -52,6 +54,7 @@ public class Scenario extends BaseTimeEntity {
 	@Column(nullable = false)
 	private Integer order;
 
+	@Setter
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "notification_id")
 	private Notification notification;
