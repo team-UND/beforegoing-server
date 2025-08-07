@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
-import com.und.server.notification.dto.request.NotificationDayOfWeekRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.repository.NotificationRepository;
@@ -36,12 +35,41 @@ public class NotificationService {
 		Notification notification = notifInfo.toEntity();
 		notificationRepository.save(notification);
 
-		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList().stream()
-			.map(NotificationDayOfWeekRequest::getDayOfWeekOrdinal)
-			.toList();
+		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
 		notificationConditionSelector.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 
 		return notification;
+	}
+
+
+	@Transactional
+	public Notification updateNotification(
+		Notification oldNotification,
+		NotificationRequest notifInfo,
+		NotificationConditionRequest notifConditionInfo
+	) {
+		oldNotification.setNotifType(notifInfo.getNotificationType());
+		oldNotification.setNotifMethodType(notifInfo.getNotificationMethodType());
+		oldNotification.setIsActive(notifInfo.getIsActive());
+
+		if (!notifInfo.getIsActive()) {
+			notificationConditionSelector.deleteNotif(notifInfo.getNotificationType(), oldNotification.getId());
+			return oldNotification;
+		}
+
+		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
+
+		boolean isChangeNotifType = oldNotification.getNotifType() != notifInfo.getNotificationType();
+		if (isChangeNotifType) {
+			notificationConditionSelector.deleteNotif(oldNotification.getNotifType(), oldNotification.getId());
+			Notification changedNotification = notifInfo.toEntity();
+			notificationConditionSelector.addNotif(changedNotification, dayOfWeekOrdinalList, notifConditionInfo);
+			return changedNotification;
+		}
+
+		notificationConditionSelector.updateNotif(oldNotification, dayOfWeekOrdinalList, notifConditionInfo);
+
+		return oldNotification;
 	}
 
 }

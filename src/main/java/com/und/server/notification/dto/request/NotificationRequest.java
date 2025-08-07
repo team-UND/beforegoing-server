@@ -6,6 +6,8 @@ import com.und.server.notification.constants.NotifMethodType;
 import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.entity.Notification;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -35,7 +37,9 @@ public class NotificationRequest {
 	private NotifMethodType notificationMethodType;
 
 	@Size(max = 7, message = "DayOfWeek list must contain at most 7 items")
-	private List<NotificationDayOfWeekRequest> dayOfWeekOrdinalList;
+	private List<
+		@Min(value = 0, message = "DayOfWeek must be between 0 and 6")
+		@Max(value = 6, message = "DayOfWeek must be between 0 and 6") Integer> dayOfWeekOrdinalList;
 
 
 	public Notification toEntity() {

@@ -2,6 +2,9 @@ package com.und.server.scenario.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,8 +75,8 @@ public class MissionService {
 		}
 
 		List<Mission> missionList = new ArrayList<>();
-		int order = OrderCalculator.START_ORDER;
 
+		int order = OrderCalculator.START_ORDER;
 		for (MissionRequest missionInfo : missionInfoList) {
 			missionList.add(missionInfo.toEntity(scenario, order));
 			order += OrderCalculator.DEFAULT_ORDER;
@@ -82,6 +85,49 @@ public class MissionService {
 		missionRepository.saveAll(missionList);
 	}
 
-//	public void updateBasicMission(Scenario scenario, List<MissionRequest> missionInfoList) {}
+
+	@Transactional
+	public void updateBasicMission(Scenario oldSCenario, List<MissionRequest> missionInfoList) {
+		List<Mission> oldMissionList =
+			missionTypeGrouper.groupAndSortByType(oldSCenario.getMissionList(), MissionType.BASIC);
+
+		if (missionInfoList.isEmpty()) {
+			missionRepository.deleteAll(oldMissionList);
+			return;
+		}
+
+		Map<Long, Mission> existingMissions = oldMissionList.stream()
+			.collect(Collectors.toMap(Mission::getId, mission -> mission));
+		Set<Long> existingMissionIds = existingMissions.keySet();
+		List<Long> requestedMissionIds = new ArrayList<>();
+
+		List<Mission> toAddList = new ArrayList<>();
+		List<Mission> toUpdateList = new ArrayList<>();
+
+		int order = OrderCalculator.START_ORDER;
+		for (MissionRequest missionInfo : missionInfoList) {
+			Long missionId = missionInfo.getMissionId();
+
+			if (missionId == null) {
+				toAddList.add(missionInfo.toEntity(oldSCenario, order));
+			} else {
+				Mission existingMission = existingMissions.get(missionId);
+				if (existingMission != null) {
+					existingMission.setOrder(order);
+					toUpdateList.add(existingMission);
+					requestedMissionIds.add(missionId);
+				}
+			}
+			order += OrderCalculator.DEFAULT_ORDER;
+		}
+
+		List<Long> toDeleteIdList = existingMissionIds.stream()
+			.filter(id -> !requestedMissionIds.contains(id))
+			.toList();
+
+		missionRepository.deleteAllById(toDeleteIdList);
+		missionRepository.saveAll(toAddList);
+		missionRepository.saveAll(toUpdateList);
+	}
 
 }

@@ -13,8 +13,16 @@ public interface NotificationConditionService {
 
 	NotificationInfoDto findNotifByNotifType(Notification notification);
 
-	void addNotifDetail(Notification notification,
-						List<Integer> dayOfWeekOrdinalList,
-						NotificationConditionRequest notifDetailInfo);
+	void addNotif(
+		Notification notification,
+		List<Integer> dayOfWeekOrdinalList,
+		NotificationConditionRequest notifDetailInfo);
+
+	void deleteNotif(Long notificationId);
+
+	void updateNotif(
+		Notification oldNotification,
+		List<Integer> dayOfWeekOrdinalList,
+		NotificationConditionRequest notifDetailInfo);
 
 }

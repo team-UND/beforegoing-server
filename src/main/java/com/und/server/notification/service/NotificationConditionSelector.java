@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.und.server.common.exception.ServerException;
+import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.entity.Notification;
@@ -36,7 +37,33 @@ public class NotificationConditionSelector {
 	) {
 		for (NotificationConditionService service : services) {
 			if (service.supports(notification.getNotifType())) {
-				service.addNotifDetail(notification, dayOfWeekOrdinalList, notifConditionInfo);
+				service.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
+				return;
+			}
+		}
+		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
+	}
+
+
+	public void deleteNotif(NotifType notfType, Long notificationId) {
+		for (NotificationConditionService service : services) {
+			if (service.supports(notfType)) {
+				service.deleteNotif(notificationId);
+				return;
+			}
+		}
+		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
+	}
+
+
+	public void updateNotif(
+		Notification notification,
+		List<Integer> dayOfWeekOrdinalList,
+		NotificationConditionRequest notifConditionInfo
+	) {
+		for (NotificationConditionService service : services) {
+			if (service.supports(notification.getNotifType())) {
+				service.updateNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 				return;
 			}
 		}

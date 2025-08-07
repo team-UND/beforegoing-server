@@ -14,6 +14,7 @@ import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.request.MissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionResponse;
@@ -121,6 +122,27 @@ public class ScenarioService {
 	private Integer getMaxScenarioOrder(Long memberId, NotificationRequest notifInfo) {
 		return scenarioRepository.findMaxOrderByMemberIdAndNotifType(memberId, notifInfo.getNotificationType())
 			.orElse(OrderCalculator.START_ORDER);
+	}
+
+
+	@Transactional
+	public void updateScenario(Long memberId, Long scenarioId, ScenarioDetailRequest scenarioInfo) {
+		Scenario oldSCenario = scenarioRepository.findById(scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+		validateScenarioAccessMember(memberId, oldSCenario);
+
+		Notification newNotification = notificationService.updateNotification(
+			oldSCenario.getNotification(),
+			scenarioInfo.getNotification(),
+			scenarioInfo.getNotificationCondition()
+		);
+
+		List<MissionRequest> newBasicMissionList = scenarioInfo.getBasicMissionList();
+		missionService.updateBasicMission(oldSCenario, newBasicMissionList);
+
+		oldSCenario.setScenarioName(scenarioInfo.getScenarioName());
+		oldSCenario.setMemo(scenarioInfo.getMemo());
+		oldSCenario.setNotification(newNotification);
 	}
 
 

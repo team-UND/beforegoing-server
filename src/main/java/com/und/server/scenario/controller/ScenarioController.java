@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -64,15 +65,16 @@ public class ScenarioController {
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
-//
-//	@PutMapping("/scenarios/{scenarioId}")
-//	public ResponseEntity<Void> updateScenario(
-//		@AuthMember Long memberId,
-//		@PathVariable Long scenarioId,
-//		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
-//	) {
-//		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-//	}
 
-	//시나리오 순서 변경
+	@PutMapping("/scenarios/{scenarioId}")
+	public ResponseEntity<Void> updateScenario(
+		@AuthMember Long memberId,
+		@PathVariable Long scenarioId,
+		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
+	) {
+		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
 }
