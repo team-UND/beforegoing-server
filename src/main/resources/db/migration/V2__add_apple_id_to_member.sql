@@ -1,0 +1,1 @@
+ALTER TABLE member ADD COLUMN apple_id VARCHAR(255);
