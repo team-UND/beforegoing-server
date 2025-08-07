@@ -1,4 +1,4 @@
-package com.und.server.scenario.dto.requeset;
+package com.und.server.scenario.dto.request;
 
 import java.util.List;
 

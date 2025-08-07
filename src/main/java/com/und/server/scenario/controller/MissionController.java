@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.filter.AuthMember;
-import com.und.server.scenario.dto.requeset.TodayMissionRequest;
+import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;

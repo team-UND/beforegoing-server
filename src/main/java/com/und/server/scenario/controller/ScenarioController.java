@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.constants.NotifType;
-import com.und.server.scenario.dto.requeset.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
