@@ -16,7 +16,7 @@ oauth:
     app-key: ${OAUTH_KAKAO_APP_KEY}
   apple:
     base-url: https://appleid.apple.com
-    pubilc-key-url: /auth/keys
+    public-key-url: /auth/keys
     app-id: ${OAUTH_APPLE_APP_ID}
 
 # JWT
