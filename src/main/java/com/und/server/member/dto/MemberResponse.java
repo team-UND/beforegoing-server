@@ -17,6 +17,9 @@ public record MemberResponse(
 	@Schema(description = "Kakao ID", example = "1234567890")
 	String kakaoId,
 
+	@Schema(description = "Apple ID", example = "1234567890")
+	String appleId,
+
 	@Schema(description = "Creation timestamp of the member", example = "2025-07-31T22:27:36.037717")
 	LocalDateTime createdAt,
 
@@ -28,6 +31,7 @@ public record MemberResponse(
 			member.getId(),
 			member.getNickname(),
 			member.getKakaoId(),
+			member.getAppleId(),
 			member.getCreatedAt(),
 			member.getUpdatedAt()
 		);

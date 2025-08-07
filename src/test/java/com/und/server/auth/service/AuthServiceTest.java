@@ -27,7 +27,6 @@ import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.auth.jwt.ParsedTokenInfo;
-import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.OidcClient;
 import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
@@ -69,8 +68,6 @@ class AuthServiceTest {
 	@Mock
 	private ProfileManager profileManager;
 
-	private final String providerId = "dummyId";
-	private final String nickname = "dummyNickname";
 	private final Long memberId = 1L;
 	private final String idToken = "dummy.id.token";
 	private final String accessToken = "dummy.access.token";
@@ -79,38 +76,40 @@ class AuthServiceTest {
 	private final Integer refreshTokenExpireTime = 7200;
 
 	@Test
-	@DisplayName("Issues tokens for an existing member for testing purposes")
-	void Given_ExistingMemberForTest_When_IssueTokensForTest_Then_Succeeds() {
+	@DisplayName("Issues tokens for an existing Kakao member for testing purposes")
+	void Given_ExistingKakaoMemberForTest_When_IssueTokensForTest_Then_Succeeds() {
 		// given
-		final TestAuthRequest request = new TestAuthRequest("kakao", providerId, nickname);
-		final Member existingMember = Member.builder().id(memberId).kakaoId(providerId).nickname(nickname).build();
-		doReturn(existingMember).when(memberService).findOrCreateMember(any(Provider.class), any(IdTokenPayload.class));
+		final String providerId = "kakao-test-id";
+		final TestAuthRequest request = new TestAuthRequest("kakao", providerId);
+		final Member existingMember = Member.builder().id(memberId).kakaoId(providerId).build();
+		doReturn(existingMember).when(memberService).findOrCreateMember(any(Provider.class), any(String.class));
 		setupTokenIssuance(accessToken, refreshToken);
 
 		// when
 		final AuthResponse response = authService.issueTokensForTest(request);
 
 		// then
-		verify(memberService).findOrCreateMember(any(Provider.class), any(IdTokenPayload.class));
+		verify(memberService).findOrCreateMember(any(Provider.class), any(String.class));
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.accessToken()).isEqualTo(accessToken);
 		assertThat(response.refreshToken()).isEqualTo(refreshToken);
 	}
 
 	@Test
-	@DisplayName("Creates a new member and issues tokens for testing purposes")
-	void Given_NewMemberForTest_When_IssueTokensForTest_Then_CreatesMemberAndSucceeds() {
+	@DisplayName("Creates a new Kakao member and issues tokens for testing purposes")
+	void Given_NewKakaoMemberForTest_When_IssueTokensForTest_Then_CreatesMemberAndSucceeds() {
 		// given
-		final TestAuthRequest request = new TestAuthRequest("kakao", providerId, nickname);
-		final Member newMember = Member.builder().id(memberId).kakaoId(providerId).nickname(nickname).build();
-		doReturn(newMember).when(memberService).findOrCreateMember(any(Provider.class), any(IdTokenPayload.class));
+		final String providerId = "kakao-test-id";
+		final TestAuthRequest request = new TestAuthRequest("kakao", providerId);
+		final Member newMember = Member.builder().id(memberId).kakaoId(providerId).build();
+		doReturn(newMember).when(memberService).findOrCreateMember(any(Provider.class), any(String.class));
 		setupTokenIssuance(accessToken, refreshToken);
 
 		// when
 		final AuthResponse response = authService.issueTokensForTest(request);
 
 		// then
-		verify(memberService).findOrCreateMember(any(Provider.class), any(IdTokenPayload.class));
+		verify(memberService).findOrCreateMember(any(Provider.class), any(String.class));
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.accessToken()).isEqualTo(accessToken);
 		assertThat(response.refreshToken()).isEqualTo(refreshToken);
@@ -130,8 +129,8 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Returns a nonce on a successful handshake")
-	void Given_ValidProvider_When_Handshake_Then_ReturnsNonce() {
+	@DisplayName("Returns a nonce on a successful handshake for Kakao")
+	void Given_KakaoProvider_When_Handshake_Then_ReturnsNonce() {
 		// given
 		final String nonce = "generated-nonce";
 		final String providerName = "kakao";
@@ -150,6 +149,26 @@ class AuthServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns a nonce on a successful handshake for Apple")
+	void Given_AppleProvider_When_Handshake_Then_ReturnsNonce() {
+		// given
+		final String nonce = "generated-nonce";
+		final String providerName = "apple";
+		final NonceRequest nonceRequest = new NonceRequest(providerName);
+
+		doReturn(nonce).when(nonceService).generateNonceValue();
+		doNothing().when(nonceService).saveNonce(nonce, Provider.APPLE);
+
+		// when
+		final NonceResponse response = authService.handshake(nonceRequest);
+
+		// then
+		verify(nonceService).generateNonceValue();
+		verify(nonceService).saveNonce(nonce, Provider.APPLE);
+		assertThat(response.nonce()).isEqualTo(nonce);
+	}
+
+	@Test
 	@DisplayName("Throws an exception on login with an invalid provider")
 	void Given_InvalidProvider_When_Login_Then_ThrowsException() {
 		// given
@@ -163,21 +182,21 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Issues tokens successfully when a registered member logs in")
-	void Given_RegisteredMember_When_Login_Then_IssuesTokensSuccessfully() {
+	@DisplayName("Issues tokens successfully when a registered Kakao member logs in")
+	void Given_RegisteredKakaoMember_When_Login_Then_IssuesTokensSuccessfully() {
 		// given
 		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
+		final String providerId = "kakao-id-123";
 		final OidcClient oidcClient = mock(OidcClient.class);
 		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
-		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
 		final Member member = Member.builder().id(memberId).kakaoId(providerId).build();
 
 		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
 		doNothing().when(nonceService).validateNonce("nonce", Provider.KAKAO);
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.KAKAO);
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.KAKAO, idToken, keys);
-		doReturn(member).when(memberService).findOrCreateMember(Provider.KAKAO, payload);
+		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.KAKAO, idToken, keys);
+		doReturn(member).when(memberService).findOrCreateMember(Provider.KAKAO, providerId);
 		setupTokenIssuance(accessToken, refreshToken);
 
 		// when
@@ -194,20 +213,20 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Creates a new member and issues tokens on the first login")
-	void Given_NewMember_When_Login_Then_CreatesMemberAndIssuesTokens() {
+	@DisplayName("Creates a new Kakao member and issues tokens on the first login")
+	void Given_NewKakaoMember_When_Login_Then_CreatesMemberAndIssuesTokens() {
 		// given
 		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
+		final String providerId = "kakao-id-123";
 		final OidcClient oidcClient = mock(OidcClient.class);
 		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
-		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
 		final Member newMember = Member.builder().id(memberId).kakaoId(providerId).build();
 
 		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.KAKAO);
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(payload).when(oidcProviderFactory).getIdTokenPayload(Provider.KAKAO, idToken, keys);
-		doReturn(newMember).when(memberService).findOrCreateMember(Provider.KAKAO, payload);
+		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.KAKAO, idToken, keys);
+		doReturn(newMember).when(memberService).findOrCreateMember(Provider.KAKAO, providerId);
 		setupTokenIssuance(accessToken, refreshToken);
 
 		// when
@@ -215,6 +234,64 @@ class AuthServiceTest {
 
 		// then
 		verify(nonceService).validateNonce("nonce", Provider.KAKAO);
+		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
+		assertThat(response.accessToken()).isEqualTo(accessToken);
+		assertThat(response.refreshToken()).isEqualTo(refreshToken);
+	}
+
+	@Test
+	@DisplayName("Issues tokens successfully when a registered Apple member logs in")
+	void Given_RegisteredAppleMember_When_Login_Then_IssuesTokensSuccessfully() {
+		// given
+		final AuthRequest authRequest = new AuthRequest("apple", idToken);
+		final String providerId = "apple-id-123";
+		final OidcClient oidcClient = mock(OidcClient.class);
+		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
+		final Member member = Member.builder().id(memberId).appleId(providerId).build();
+
+		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
+		doNothing().when(nonceService).validateNonce("nonce", Provider.APPLE);
+		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.APPLE);
+		doReturn(keys).when(oidcClient).getOidcPublicKeys();
+		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.APPLE, idToken, keys);
+		doReturn(member).when(memberService).findOrCreateMember(Provider.APPLE, providerId);
+		setupTokenIssuance(accessToken, refreshToken);
+
+		// when
+		final AuthResponse response = authService.login(authRequest);
+
+		// then
+		verify(nonceService).validateNonce("nonce", Provider.APPLE);
+		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
+		assertThat(response.tokenType()).isEqualTo("Bearer");
+		assertThat(response.accessToken()).isEqualTo(accessToken);
+		assertThat(response.refreshToken()).isEqualTo(refreshToken);
+		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
+		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
+	}
+
+	@Test
+	@DisplayName("Creates a new Apple member and issues tokens on the first login")
+	void Given_NewAppleMember_When_Login_Then_CreatesMemberAndIssuesTokens() {
+		// given
+		final AuthRequest authRequest = new AuthRequest("apple", idToken);
+		final String providerId = "apple-id-123";
+		final OidcClient oidcClient = mock(OidcClient.class);
+		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
+		final Member newMember = Member.builder().id(memberId).appleId(providerId).build();
+
+		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
+		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.APPLE);
+		doReturn(keys).when(oidcClient).getOidcPublicKeys();
+		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.APPLE, idToken, keys);
+		doReturn(newMember).when(memberService).findOrCreateMember(Provider.APPLE, providerId);
+		setupTokenIssuance(accessToken, refreshToken);
+
+		// when
+		final AuthResponse response = authService.login(authRequest);
+
+		// then
+		verify(nonceService).validateNonce("nonce", Provider.APPLE);
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.accessToken()).isEqualTo(accessToken);
 		assertThat(response.refreshToken()).isEqualTo(refreshToken);

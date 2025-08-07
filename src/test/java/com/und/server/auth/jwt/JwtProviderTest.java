@@ -24,7 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 
 import com.und.server.auth.exception.AuthErrorResult;
-import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
 
@@ -153,13 +152,12 @@ class JwtProviderTest {
 				.compact();
 
 		// when
-		final IdTokenPayload payload = jwtProvider.parseOidcIdToken(
+		final String providerId = jwtProvider.parseOidcIdToken(
 			token, issuer, audience, keyPair.getPublic()
 		);
 
 		// then
-		assertThat(payload.providerId()).isEqualTo(subject);
-		assertThat(payload.nickname()).isEqualTo("Chori");
+		assertThat(providerId).isEqualTo(subject);
 	}
 
 	@Test
@@ -174,7 +172,9 @@ class JwtProviderTest {
 
 		// when
 		final String token = jwtProvider.generateAccessToken(memberId);
-		final Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+		final Claims claims = Jwts.parser()
+			.verifyWith(secretKey).build()
+			.parseSignedClaims(token).getPayload();
 
 		// then
 		assertThat(claims.getSubject()).isEqualTo(memberId.toString());
@@ -194,7 +194,9 @@ class JwtProviderTest {
 
 		// when
 		final String token = jwtProvider.generateAccessToken(memberId);
-		final Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+		final Claims claims = Jwts.parser()
+			.verifyWith(secretKey).build()
+			.parseSignedClaims(token).getPayload();
 		final LocalDateTime afterGeneration = LocalDateTime.now();
 
 		// then
@@ -220,7 +222,9 @@ class JwtProviderTest {
 
 		// when
 		final String token = jwtProvider.generateAccessToken(memberId);
-		final Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+		final Claims claims = Jwts.parser()
+			.verifyWith(secretKey).build()
+			.parseSignedClaims(token).getPayload();
 
 		// then
 		final Date issuedAt = claims.getIssuedAt();

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.auth.exception.AuthErrorResult;
-import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.service.RefreshTokenService;
 import com.und.server.common.exception.ServerException;
@@ -33,13 +32,12 @@ public class MemberService {
 	}
 
 	@Transactional
-	public Member findOrCreateMember(final Provider provider, final IdTokenPayload payload) {
+	public Member findOrCreateMember(final Provider provider, final String providerId) {
 		validateProviderIsNotNull(provider);
-		final String providerId = payload.providerId();
 		validateProviderIdIsNotNull(providerId);
 
 		return findMemberByProviderId(provider, providerId)
-			.orElseGet(() -> createMember(provider, providerId, payload.nickname()));
+			.orElseGet(() -> createMember(provider, providerId));
 	}
 
 	public Member findMemberById(final Long memberId) {
@@ -77,14 +75,16 @@ public class MemberService {
 	private Optional<Member> findMemberByProviderId(final Provider provider, final String providerId) {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId);
+			case APPLE -> memberRepository.findByAppleId(providerId);
 			default -> throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		};
 	}
 
-	private Member createMember(final Provider provider, final String providerId, final String nickname) {
-		final Member.MemberBuilder memberBuilder = Member.builder().nickname(nickname);
+	private Member createMember(final Provider provider, final String providerId) {
+		final Member.MemberBuilder memberBuilder = Member.builder();
 		switch (provider) {
 			case KAKAO -> memberBuilder.kakaoId(providerId);
+			case APPLE -> memberBuilder.appleId(providerId);
 			default -> throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		}
 

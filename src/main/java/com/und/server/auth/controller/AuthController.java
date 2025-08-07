@@ -58,12 +58,4 @@ public class AuthController {
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
-	// Server-to-Server Notification Endpoint
-	@PostMapping("/apple/notification")
-	public ResponseEntity<Void> handleAppleServerNotification(@RequestBody final String payload) {
-		// TODO: process POST request
-		// Implement the logic to handle Apple's App Store Server Notifications V2.
-		return ResponseEntity.status(HttpStatus.OK).build();
-	}
-
 }

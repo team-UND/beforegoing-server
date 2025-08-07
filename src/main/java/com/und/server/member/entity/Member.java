@@ -30,10 +30,14 @@ public class Member {
 	private Long id;
 
 	@Column
-	private String nickname;
+	@Builder.Default
+	private String nickname = "워리";
 
 	@Column
 	private String kakaoId;
+
+	@Column
+	private String appleId;
 
 	@CreationTimestamp
 	@Column(nullable = false, updatable = false)

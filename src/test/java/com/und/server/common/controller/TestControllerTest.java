@@ -67,7 +67,7 @@ class TestControllerTest {
 	void Given_ExistingMember_When_RequestAccessToken_Then_ReturnsOkWithTokens() throws Exception {
 		// given
 		final String url = "/v1/test/access";
-		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id", "Chori");
+		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id");
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
 			"access-token",
@@ -101,7 +101,7 @@ class TestControllerTest {
 	void Given_NonExistingMember_When_RequestAccessToken_Then_CreatesMemberAndReturnsOkWithTokens() throws Exception {
 		// given
 		final String url = "/v1/test/access";
-		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456", "Newbie");
+		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456");
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
 			"new-access-token",
@@ -225,8 +225,8 @@ class TestControllerTest {
 		// given
 		final String url = "/v1/test/members";
 		final List<MemberResponse> expectedResponse = List.of(
-			new MemberResponse(1L, "user1", "123", null, null),
-			new MemberResponse(2L, "user2", "456", null, null)
+			new MemberResponse(1L, "user1", "dummyKakaoId", null, null, null),
+			new MemberResponse(2L, "user2", null, "dummyAppleId", null, null)
 		);
 		doReturn(expectedResponse).when(memberService).getMemberList();
 

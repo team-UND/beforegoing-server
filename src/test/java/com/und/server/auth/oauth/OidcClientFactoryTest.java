@@ -39,13 +39,23 @@ class OidcClientFactoryTest {
 	}
 
 	@Test
-	@DisplayName("Returns the correct OIDC client for a given provider")
-	void Given_ValidProvider_When_GetOidcClient_Then_ReturnsCorrectClient() {
+	@DisplayName("Returns the Kakao client for the KAKAO provider")
+	void Given_KakaoProvider_When_GetOidcClient_Then_ReturnsKakaoClient() {
 		// when
 		final OidcClient client = oidcClientFactory.getOidcClient(Provider.KAKAO);
 
 		// then
 		assertThat(client).isEqualTo(kakaoClient);
+	}
+
+	@Test
+	@DisplayName("Returns the Apple client for the APPLE provider")
+	void Given_AppleProvider_When_GetOidcClient_Then_ReturnsAppleClient() {
+		// when
+		final OidcClient client = oidcClientFactory.getOidcClient(Provider.APPLE);
+
+		// then
+		assertThat(client).isEqualTo(appleClient);
 	}
 
 }

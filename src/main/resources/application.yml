@@ -12,12 +12,12 @@ server:
 oauth:
   kakao:
     base-url: https://kauth.kakao.com
-    app-key: ${OAUTH_KAKAO_APP_KEY}
     public-key-url: /.well-known/jwks.json
+    app-key: ${OAUTH_KAKAO_APP_KEY}
   apple:
     base-url: https://appleid.apple.com
-    app-id: ${OAUTH_APPLE_APP_ID}
     pubilc-key-url: /auth/keys
+    app-id: ${OAUTH_APPLE_APP_ID}
 
 # JWT
 jwt:

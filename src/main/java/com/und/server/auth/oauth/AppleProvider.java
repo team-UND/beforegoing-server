@@ -15,29 +15,29 @@ public class AppleProvider implements OidcProvider {
 	private final JwtProvider jwtProvider;
 	private final PublicKeyProvider publicKeyProvider;
 	private final String appleBaseUrl;
-	private final String appleAppKey;
+	private final String appleAppId;
 
 	public AppleProvider(
 			final JwtProvider jwtProvider,
 			final PublicKeyProvider publicKeyProvider,
 			@Value("${oauth.apple.base-url}") final String appleBaseUrl,
-			@Value("${oauth.apple.app-id}") final String appleAppKey
+			@Value("${oauth.apple.app-id}") final String appleAppId
 	) {
 		this.jwtProvider = jwtProvider;
 		this.publicKeyProvider = publicKeyProvider;
 		this.appleBaseUrl = appleBaseUrl;
-		this.appleAppKey = appleAppKey;
+		this.appleAppId = appleAppId;
 	}
 
 	@Override
-	public IdTokenPayload getIdTokenPayload(final String token, final OidcPublicKeys oidcPublicKeys) {
+	public String getProviderId(final String token, final OidcPublicKeys oidcPublicKeys) {
 		final Map<String, String> decodedHeader = jwtProvider.getDecodedHeader(token);
 		final PublicKey publicKey = publicKeyProvider.generatePublicKey(decodedHeader, oidcPublicKeys);
 
 		return jwtProvider.parseOidcIdToken(
 				token,
 				appleBaseUrl,
-				appleAppKey,
+				appleAppId,
 				publicKey
 		);
 	}

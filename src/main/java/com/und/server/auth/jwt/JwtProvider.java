@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.auth.exception.AuthErrorResult;
-import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
 
@@ -59,7 +58,7 @@ public class JwtProvider {
 		}
 	}
 
-	public IdTokenPayload parseOidcIdToken(
+	public String parseOidcIdToken(
 			final String token,
 			final String iss,
 			final String aud,
@@ -71,10 +70,7 @@ public class JwtProvider {
 				.requireAudience(aud);
 		final Claims claims = parseClaims(token, builder);
 
-		return new IdTokenPayload(
-			getValidSubject(claims),
-			claims.get("nickname", String.class)
-		);
+		return getValidSubject(claims);
 	}
 
 	public String generateAccessToken(final Long memberId) {

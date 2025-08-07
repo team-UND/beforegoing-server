@@ -24,12 +24,12 @@ public class OidcProviderFactory {
 		oidcProviders.put(Provider.APPLE, appleProvider);
 	}
 
-	public IdTokenPayload getIdTokenPayload(
+	public String getProviderId(
 		final Provider provider,
 		final String token,
 		final OidcPublicKeys oidcPublicKeys
 	) {
-		return getOidcProvider(provider).getIdTokenPayload(token, oidcPublicKeys);
+		return getOidcProvider(provider).getProviderId(token, oidcPublicKeys);
 	}
 
 	private OidcProvider getOidcProvider(final Provider provider) {

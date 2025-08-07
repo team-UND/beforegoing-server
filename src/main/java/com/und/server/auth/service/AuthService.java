@@ -13,7 +13,6 @@ import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.auth.jwt.ParsedTokenInfo;
-import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.OidcClient;
 import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
@@ -44,8 +43,8 @@ public class AuthService {
 	@Transactional
 	public AuthResponse issueTokensForTest(final TestAuthRequest request) {
 		final Provider provider = convertToProvider(request.provider());
-		final IdTokenPayload idTokenPayload = new IdTokenPayload(request.providerId(), request.nickname());
-		final Member member = memberService.findOrCreateMember(provider, idTokenPayload);
+		final String providerId = request.providerId();
+		final Member member = memberService.findOrCreateMember(provider, providerId);
 
 		return issueTokens(member.getId());
 	}
@@ -63,8 +62,8 @@ public class AuthService {
 	@Transactional
 	public AuthResponse login(final AuthRequest authRequest) {
 		final Provider provider = convertToProvider(authRequest.provider());
-		final IdTokenPayload idTokenPayload = validateIdTokenAndGetPayload(provider, authRequest.idToken());
-		final Member member = memberService.findOrCreateMember(provider, idTokenPayload);
+		final String providerId = validateNonceAndGetProviderId(provider, authRequest.idToken());
+		final Member member = memberService.findOrCreateMember(provider, providerId);
 
 		return issueTokens(member.getId());
 	}
@@ -106,14 +105,14 @@ public class AuthService {
 		}
 	}
 
-	private IdTokenPayload validateIdTokenAndGetPayload(final Provider provider, final String idToken) {
+	private String validateNonceAndGetProviderId(final Provider provider, final String idToken) {
 		final String nonce = jwtProvider.extractNonce(idToken);
 		nonceService.validateNonce(nonce, provider);
 
 		final OidcClient oidcClient = oidcClientFactory.getOidcClient(provider);
 		final OidcPublicKeys oidcPublicKeys = oidcClient.getOidcPublicKeys();
 
-		return oidcProviderFactory.getIdTokenPayload(provider, idToken, oidcPublicKeys);
+		return oidcProviderFactory.getProviderId(provider, idToken, oidcPublicKeys);
 	}
 
 	private AuthResponse issueTokens(final Long memberId) {

@@ -106,8 +106,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Succeeds handshake and returns nonce for a valid request")
-	void Given_ValidHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+	@DisplayName("Succeeds handshake and returns nonce for a valid Kakao request")
+	void Given_ValidKakaoHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("kakao");
@@ -125,6 +125,28 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isOk())
 			.andExpect(jsonPath("$.nonce").value("generated-nonce"));
+	}
+
+	@Test
+	@DisplayName("Succeeds handshake and returns nonce for a valid Apple request")
+	void Given_ValidAppleHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+		// given
+		final String url = "/v1/auth/nonce";
+		final NonceRequest request = new NonceRequest("apple");
+		final NonceResponse response = new NonceResponse("generated-nonce-for-apple");
+
+		doReturn(response).when(authService).handshake(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.nonce").value("generated-nonce-for-apple"));
 	}
 
 	@Test
@@ -220,8 +242,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Succeeds login and issues tokens for a valid request")
-	void Given_ValidLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
+	@DisplayName("Succeeds login and issues tokens for a valid Kakao request")
+	void Given_ValidKakaoLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
 		final AuthRequest authRequest = new AuthRequest("kakao", "dummy.id.token");
@@ -256,6 +278,43 @@ class AuthControllerTest {
 		assertThat(response.accessTokenExpiresIn()).isEqualTo(10000);
 		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(20000);
+	}
+
+	@Test
+	@DisplayName("Succeeds login and issues tokens for a valid Apple request")
+	void Given_ValidAppleLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
+		// given
+		final String url = "/v1/auth/login";
+		final AuthRequest authRequest = new AuthRequest("apple", "dummy.id.token");
+		final AuthResponse authResponse = new AuthResponse(
+			"Bearer",
+			"dummy.access.token",
+			10000,
+			"dummy.refresh.token",
+			20000
+		);
+
+		doReturn(authResponse).when(authService).login(authRequest);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(objectMapper.writeValueAsString(authRequest))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		final AuthResponse response = objectMapper.readValue(
+			resultActions
+				.andReturn()
+				.getResponse()
+				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
+		);
+
+		resultActions.andExpect(status().isOk());
+		assertThat(response.tokenType()).isEqualTo("Bearer");
+		assertThat(response.accessToken()).isEqualTo("dummy.access.token");
+		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
 	}
 
 	@Test

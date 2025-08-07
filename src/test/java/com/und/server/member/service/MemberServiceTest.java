@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.auth.exception.AuthErrorResult;
-import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.service.RefreshTokenService;
 import com.und.server.common.exception.ServerException;
@@ -44,13 +43,12 @@ class MemberServiceTest {
 	private final Long memberId = 1L;
 	private final String providerId = "test-provider-id";
 	private final String nickname = "test-nickname";
-	private final Provider provider = Provider.KAKAO;
 
 	@Test
-	@DisplayName("Finds an existing member without creating a new one")
-	void Given_ExistingMember_When_FindOrCreateMember_Then_ReturnsExistingMember() {
+	@DisplayName("Finds an existing member with a Kakao ID")
+	void Given_ExistingKakaoMember_When_FindOrCreateMember_Then_ReturnsExistingMember() {
 		// given
-		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
+		final Provider kakaoProvider = Provider.KAKAO;
 		final Member existingMember = Member.builder()
 			.id(memberId)
 			.kakaoId(providerId)
@@ -60,7 +58,7 @@ class MemberServiceTest {
 		doReturn(Optional.of(existingMember)).when(memberRepository).findByKakaoId(providerId);
 
 		// when
-		final Member foundMember = memberService.findOrCreateMember(provider, payload);
+		final Member foundMember = memberService.findOrCreateMember(kakaoProvider, providerId);
 
 		// then
 		verify(memberRepository).findByKakaoId(providerId);
@@ -69,10 +67,10 @@ class MemberServiceTest {
 	}
 
 	@Test
-	@DisplayName("Creates a new member if one does not exist")
-	void Given_NonExistingMember_When_FindOrCreateMember_Then_CreatesAndReturnsNewMember() {
+	@DisplayName("Creates a new member with a Kakao ID")
+	void Given_NonExistingKakaoMember_When_FindOrCreateMember_Then_CreatesAndReturnsNewMember() {
 		// given
-		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
+		final Provider kakaoProvider = Provider.KAKAO;
 		final Member newMember = Member.builder()
 			.id(memberId)
 			.kakaoId(providerId)
@@ -83,7 +81,7 @@ class MemberServiceTest {
 		doReturn(newMember).when(memberRepository).save(any(Member.class));
 
 		// when
-		final Member createdMember = memberService.findOrCreateMember(provider, payload);
+		final Member createdMember = memberService.findOrCreateMember(kakaoProvider, providerId);
 
 		// then
 		verify(memberRepository).findByKakaoId(providerId);
@@ -92,28 +90,56 @@ class MemberServiceTest {
 	}
 
 	@Test
-	@DisplayName("Throws an exception when finding or creating a member with an unsupported provider")
-	void Given_UnsupportedProvider_When_FindOrCreateMember_Then_ThrowsException() {
+	@DisplayName("Finds an existing member with an Apple ID")
+	void Given_ExistingAppleMember_When_FindOrCreateMember_Then_ReturnsExistingMember() {
 		// given
-		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
-		final Provider unsupportedProvider = Provider.APPLE;
+		final Provider appleProvider = Provider.APPLE;
+		final Member existingMember = Member.builder()
+			.id(memberId)
+			.appleId(providerId)
+			.nickname(nickname)
+			.build();
 
-		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> memberService.findOrCreateMember(unsupportedProvider, payload));
+		doReturn(Optional.of(existingMember)).when(memberRepository).findByAppleId(providerId);
 
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
+		// when
+		final Member foundMember = memberService.findOrCreateMember(appleProvider, providerId);
+
+		// then
+		verify(memberRepository).findByAppleId(providerId);
+		verify(memberRepository, never()).save(any(Member.class));
+		assertThat(foundMember).isEqualTo(existingMember);
+	}
+
+	@Test
+	@DisplayName("Creates a new member with an Apple ID")
+	void Given_NonExistingAppleMember_When_FindOrCreateMember_Then_CreatesAndReturnsNewMember() {
+		// given
+		final Provider appleProvider = Provider.APPLE;
+		final Member newMember = Member.builder()
+			.id(memberId)
+			.appleId(providerId)
+			.nickname(nickname)
+			.build();
+
+		doReturn(Optional.empty()).when(memberRepository).findByAppleId(providerId);
+		doReturn(newMember).when(memberRepository).save(any(Member.class));
+
+		// when
+		final Member createdMember = memberService.findOrCreateMember(appleProvider, providerId);
+
+		// then
+		verify(memberRepository).findByAppleId(providerId);
+		verify(memberRepository).save(any(Member.class));
+		assertThat(createdMember).isEqualTo(newMember);
 	}
 
 	@Test
 	@DisplayName("Throws an exception when finding or creating a member with a null provider")
 	void Given_NullProvider_When_FindOrCreateMember_Then_ThrowsException() {
-		// given
-		final IdTokenPayload payload = new IdTokenPayload(providerId, nickname);
-
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> memberService.findOrCreateMember(null, payload));
+			() -> memberService.findOrCreateMember(null, providerId));
 
 		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
@@ -121,12 +147,10 @@ class MemberServiceTest {
 	@Test
 	@DisplayName("Throws an exception when finding or creating a member with a null provider ID")
 	void Given_NullProviderId_When_FindOrCreateMember_Then_ThrowsException() {
-		// given
-		final IdTokenPayload payloadWithNullId = new IdTokenPayload(null, nickname);
-
 		// when & then
+		final Provider provider = Provider.KAKAO;
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> memberService.findOrCreateMember(provider, payloadWithNullId));
+			() -> memberService.findOrCreateMember(provider, null));
 
 		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER_ID);
 	}
