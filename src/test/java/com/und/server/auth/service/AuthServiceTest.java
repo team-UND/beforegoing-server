@@ -192,7 +192,7 @@ class AuthServiceTest {
 		final Member member = Member.builder().id(memberId).kakaoId(providerId).build();
 
 		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
-		doNothing().when(nonceService).validateNonce("nonce", Provider.KAKAO);
+		doNothing().when(nonceService).verifyNonce("nonce", Provider.KAKAO);
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.KAKAO);
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
 		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.KAKAO, idToken, keys);
@@ -203,7 +203,7 @@ class AuthServiceTest {
 		final AuthResponse response = authService.login(authRequest);
 
 		// then
-		verify(nonceService).validateNonce("nonce", Provider.KAKAO);
+		verify(nonceService).verifyNonce("nonce", Provider.KAKAO);
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo(accessToken);
@@ -233,7 +233,7 @@ class AuthServiceTest {
 		final AuthResponse response = authService.login(authRequest);
 
 		// then
-		verify(nonceService).validateNonce("nonce", Provider.KAKAO);
+		verify(nonceService).verifyNonce("nonce", Provider.KAKAO);
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.accessToken()).isEqualTo(accessToken);
 		assertThat(response.refreshToken()).isEqualTo(refreshToken);
@@ -250,7 +250,7 @@ class AuthServiceTest {
 		final Member member = Member.builder().id(memberId).appleId(providerId).build();
 
 		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
-		doNothing().when(nonceService).validateNonce("nonce", Provider.APPLE);
+		doNothing().when(nonceService).verifyNonce("nonce", Provider.APPLE);
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.APPLE);
 		doReturn(keys).when(oidcClient).getOidcPublicKeys();
 		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.APPLE, idToken, keys);
@@ -261,7 +261,7 @@ class AuthServiceTest {
 		final AuthResponse response = authService.login(authRequest);
 
 		// then
-		verify(nonceService).validateNonce("nonce", Provider.APPLE);
+		verify(nonceService).verifyNonce("nonce", Provider.APPLE);
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo(accessToken);
@@ -291,7 +291,7 @@ class AuthServiceTest {
 		final AuthResponse response = authService.login(authRequest);
 
 		// then
-		verify(nonceService).validateNonce("nonce", Provider.APPLE);
+		verify(nonceService).verifyNonce("nonce", Provider.APPLE);
 		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
 		assertThat(response.accessToken()).isEqualTo(accessToken);
 		assertThat(response.refreshToken()).isEqualTo(refreshToken);
@@ -307,7 +307,7 @@ class AuthServiceTest {
 
 		doReturn(invalidTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
 		doThrow(new ServerException(MemberErrorResult.INVALID_MEMBER_ID))
-			.when(memberService).validateMemberExists(nullMemberId);
+			.when(memberService).checkMemberExists(nullMemberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
@@ -316,7 +316,7 @@ class AuthServiceTest {
 		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		// Crucially, we should not attempt to delete a refresh token with a null ID.
 		verify(refreshTokenService, never()).deleteRefreshToken(any());
-		verify(refreshTokenService, never()).validateRefreshToken(any(), any());
+		verify(refreshTokenService, never()).verifyRefreshToken(any(), any());
 	}
 
 	@Test
@@ -328,7 +328,7 @@ class AuthServiceTest {
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
 		doThrow(new ServerException(MemberErrorResult.MEMBER_NOT_FOUND))
-			.when(memberService).validateMemberExists(memberId);
+			.when(memberService).checkMemberExists(memberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
@@ -336,7 +336,7 @@ class AuthServiceTest {
 
 		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenService).deleteRefreshToken(memberId);
-		verify(refreshTokenService, never()).validateRefreshToken(any(), any());
+		verify(refreshTokenService, never()).verifyRefreshToken(any(), any());
 	}
 
 	@Test
@@ -347,9 +347,9 @@ class AuthServiceTest {
 		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doNothing().when(memberService).validateMemberExists(memberId);
+		doNothing().when(memberService).checkMemberExists(memberId);
 		doThrow(new ServerException(AuthErrorResult.INVALID_TOKEN))
-			.when(refreshTokenService).validateRefreshToken(memberId, "wrong.refresh.token");
+			.when(refreshTokenService).verifyRefreshToken(memberId, "wrong.refresh.token");
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
@@ -366,9 +366,9 @@ class AuthServiceTest {
 		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doNothing().when(memberService).validateMemberExists(memberId);
+		doNothing().when(memberService).checkMemberExists(memberId);
 		doThrow(new ServerException(AuthErrorResult.INVALID_TOKEN))
-			.when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
+			.when(refreshTokenService).verifyRefreshToken(memberId, refreshToken);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
@@ -388,8 +388,8 @@ class AuthServiceTest {
 		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
 
 		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doNothing().when(memberService).validateMemberExists(memberId);
-		doNothing().when(refreshTokenService).validateRefreshToken(memberId, refreshToken);
+		doNothing().when(memberService).checkMemberExists(memberId);
+		doNothing().when(refreshTokenService).verifyRefreshToken(memberId, refreshToken);
 		setupTokenIssuance(newAccessToken, newRefreshToken);
 
 		// when

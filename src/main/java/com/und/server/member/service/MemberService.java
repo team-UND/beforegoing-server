@@ -47,7 +47,7 @@ public class MemberService {
 			.orElseThrow(() -> new ServerException(MemberErrorResult.MEMBER_NOT_FOUND));
 	}
 
-	public void validateMemberExists(final Long memberId) {
+	public void checkMemberExists(final Long memberId) {
 		validateMemberIdIsNotNull(memberId);
 
 		if (!memberRepository.existsById(memberId)) {
@@ -66,7 +66,7 @@ public class MemberService {
 	@Transactional
 	public void deleteMemberById(final Long memberId) {
 		validateMemberIdIsNotNull(memberId);
-		validateMemberExists(memberId);
+		checkMemberExists(memberId);
 
 		refreshTokenService.deleteRefreshToken(memberId);
 		memberRepository.deleteById(memberId);

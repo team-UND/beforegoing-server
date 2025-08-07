@@ -62,7 +62,10 @@ public class AuthService {
 	@Transactional
 	public AuthResponse login(final AuthRequest authRequest) {
 		final Provider provider = convertToProvider(authRequest.provider());
-		final String providerId = validateNonceAndGetProviderId(provider, authRequest.idToken());
+		final String idToken = authRequest.idToken();
+
+		verifyIdTokenNonce(provider, idToken);
+		final String providerId = getProviderIdFromIdToken(provider, idToken);
 		final Member member = memberService.findOrCreateMember(provider, providerId);
 
 		return issueTokens(member.getId());
@@ -76,7 +79,7 @@ public class AuthService {
 		final Long memberId = getMemberIdForReissue(accessToken);
 
 		try {
-			memberService.validateMemberExists(memberId);
+			memberService.checkMemberExists(memberId);
 		} catch (final ServerException e) {
 			if (e.getErrorResult() == MemberErrorResult.MEMBER_NOT_FOUND) {
 				// The member ID is not null, but the member doesn't exist.
@@ -87,7 +90,7 @@ public class AuthService {
 			throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 		}
 
-		refreshTokenService.validateRefreshToken(memberId, providedRefreshToken);
+		refreshTokenService.verifyRefreshToken(memberId, providedRefreshToken);
 
 		return issueTokens(memberId);
 	}
@@ -105,10 +108,12 @@ public class AuthService {
 		}
 	}
 
-	private String validateNonceAndGetProviderId(final Provider provider, final String idToken) {
+	private void verifyIdTokenNonce(final Provider provider, final String idToken) {
 		final String nonce = jwtProvider.extractNonce(idToken);
-		nonceService.validateNonce(nonce, provider);
+		nonceService.verifyNonce(nonce, provider);
+	}
 
+	private String getProviderIdFromIdToken(final Provider provider, final String idToken) {
 		final OidcClient oidcClient = oidcClientFactory.getOidcClient(provider);
 		final OidcPublicKeys oidcPublicKeys = oidcClient.getOidcPublicKeys();
 

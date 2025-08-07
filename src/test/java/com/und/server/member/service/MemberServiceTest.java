@@ -180,33 +180,33 @@ class MemberServiceTest {
 
 	@Test
 	@DisplayName("Throws an exception when validating a null member ID")
-	void Given_NullMemberId_When_ValidateMemberExists_Then_ThrowsException() {
+	void Given_NullMemberId_When_CheckMemberExists_Then_ThrowsException() {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> memberService.validateMemberExists(null));
+			() -> memberService.checkMemberExists(null));
 		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
 	@DisplayName("Throws an exception when validating a non-existent member")
-	void Given_NonExistentMemberId_When_ValidateMemberExists_Then_ThrowsException() {
+	void Given_NonExistentMemberId_When_CheckMemberExists_Then_ThrowsException() {
 		// given
 		doReturn(false).when(memberRepository).existsById(memberId);
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> memberService.validateMemberExists(memberId));
+			() -> memberService.checkMemberExists(memberId));
 		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.MEMBER_NOT_FOUND);
 	}
 
 	@Test
 	@DisplayName("Does not throw an exception when validating an existing member")
-	void Given_ExistingMemberId_When_ValidateMemberExists_Then_Succeeds() {
+	void Given_ExistingMemberId_When_CheckMemberExists_Then_Succeeds() {
 		// given
 		doReturn(true).when(memberRepository).existsById(memberId);
 
 		// when & then
-		assertDoesNotThrow(() -> memberService.validateMemberExists(memberId));
+		assertDoesNotThrow(() -> memberService.checkMemberExists(memberId));
 		verify(memberRepository).existsById(memberId);
 	}
 

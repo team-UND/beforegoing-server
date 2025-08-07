@@ -25,7 +25,7 @@ public class RefreshTokenService {
 	}
 
 	@Transactional
-	public void validateRefreshToken(final Long memberId, final String providedToken) {
+	public void verifyRefreshToken(final Long memberId, final String providedToken) {
 		validateMemberIdIsNotNull(memberId);
 		validateTokenValueIsNotNull(providedToken);
 
