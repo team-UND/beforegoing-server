@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
@@ -48,6 +49,10 @@ public class NotificationService {
 		NotificationRequest notifInfo,
 		NotificationConditionRequest notifConditionInfo
 	) {
+		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
+		boolean isChangeNotifType = oldNotification.getNotifType() != notifInfo.getNotificationType();
+		NotifType oldNotifType = oldNotification.getNotifType();
+
 		oldNotification.setNotifType(notifInfo.getNotificationType());
 		oldNotification.setNotifMethodType(notifInfo.getNotificationMethodType());
 		oldNotification.setIsActive(notifInfo.getIsActive());
@@ -57,14 +62,10 @@ public class NotificationService {
 			return oldNotification;
 		}
 
-		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
-
-		boolean isChangeNotifType = oldNotification.getNotifType() != notifInfo.getNotificationType();
 		if (isChangeNotifType) {
-			notificationConditionSelector.deleteNotif(oldNotification.getNotifType(), oldNotification.getId());
-			Notification changedNotification = notifInfo.toEntity();
-			notificationConditionSelector.addNotif(changedNotification, dayOfWeekOrdinalList, notifConditionInfo);
-			return changedNotification;
+			notificationConditionSelector.deleteNotif(oldNotifType, oldNotification.getId());
+			notificationConditionSelector.addNotif(oldNotification, dayOfWeekOrdinalList, notifConditionInfo);
+			return oldNotification;
 		}
 
 		notificationConditionSelector.updateNotif(oldNotification, dayOfWeekOrdinalList, notifConditionInfo);
