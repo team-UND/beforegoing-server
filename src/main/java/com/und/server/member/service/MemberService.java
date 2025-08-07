@@ -27,7 +27,6 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final RefreshTokenService refreshTokenService;
 
-	// FIXME: Remove this method when deleting TestController
 	public List<MemberResponse> getMemberList() {
 		return memberRepository.findAll()
 			.stream().map(MemberResponse::from).toList();
@@ -69,6 +68,7 @@ public class MemberService {
 	@Transactional
 	public void deleteMemberById(final Long memberId) {
 		validateMemberIdIsNotNull(memberId);
+		validateMemberExists(memberId);
 
 		refreshTokenService.deleteRefreshToken(memberId);
 		memberRepository.deleteById(memberId);

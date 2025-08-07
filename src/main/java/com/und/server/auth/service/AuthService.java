@@ -41,7 +41,6 @@ public class AuthService {
 	private final RefreshTokenService refreshTokenService;
 	private final ProfileManager profileManager;
 
-	// FIXME: Remove this method when deleting TestController
 	@Transactional
 	public AuthResponse issueTokensForTest(final TestAuthRequest request) {
 		final Provider provider = convertToProvider(request.provider());

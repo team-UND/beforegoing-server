@@ -229,17 +229,35 @@ class MemberServiceTest {
 	}
 
 	@Test
-	@DisplayName("Deletes a member and their refresh token by ID")
-	void Given_MemberId_When_DeleteMemberById_Then_DeletesMemberAndRefreshToken() {
+	@DisplayName("Deletes a member and their refresh token by ID when the member exists")
+	void Given_ExistingMemberId_When_DeleteMemberById_Then_DeletesMemberAndRefreshToken() {
 		// given
 		final Long memberIdToDelete = 1L;
+		doReturn(true).when(memberRepository).existsById(memberIdToDelete);
 
 		// when
 		memberService.deleteMemberById(memberIdToDelete);
 
 		// then
-		verify(memberRepository).deleteById(memberIdToDelete);
+		verify(memberRepository).existsById(memberIdToDelete);
 		verify(refreshTokenService).deleteRefreshToken(memberIdToDelete);
+		verify(memberRepository).deleteById(memberIdToDelete);
+	}
+
+	@Test
+	@DisplayName("Throws an exception when deleting a non-existent member")
+	void Given_NonExistentMemberId_When_DeleteMemberById_Then_ThrowsException() {
+		// given
+		final Long memberIdToDelete = 1L;
+		doReturn(false).when(memberRepository).existsById(memberIdToDelete);
+
+		// when & then
+		final ServerException exception = assertThrows(ServerException.class,
+			() -> memberService.deleteMemberById(memberIdToDelete));
+
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.MEMBER_NOT_FOUND);
+		verify(refreshTokenService, never()).deleteRefreshToken(any());
+		verify(memberRepository, never()).deleteById(any());
 	}
 
 }
