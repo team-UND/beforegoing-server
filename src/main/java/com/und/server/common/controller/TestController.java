@@ -44,7 +44,7 @@ public class TestController {
 	@GetMapping("/hello")
 	public ResponseEntity<TestHelloResponse> greet(@Parameter(hidden = true) @AuthMember final Long memberId) {
 		final Member member = memberService.findMemberById(memberId);
-		final String nickname = member.getNickname() != null ? member.getNickname() : "Member";
+		final String nickname = member.getNickname();
 		final TestHelloResponse response = new TestHelloResponse("Hello, " + nickname + "!");
 
 		return ResponseEntity.status(HttpStatus.OK).body(response);

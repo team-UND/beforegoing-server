@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table
+@Table(name = "member")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -29,14 +29,14 @@ public class Member {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column
+	@Column(nullable = false)
 	@Builder.Default
 	private String nickname = "워리";
 
-	@Column
+	@Column(nullable = true, unique = true)
 	private String kakaoId;
 
-	@Column
+	@Column(nullable = true, unique = true)
 	private String appleId;
 
 	@CreationTimestamp
@@ -44,7 +44,7 @@ public class Member {
 	private LocalDateTime createdAt;
 
 	@UpdateTimestamp
-	@Column
+	@Column(nullable = false)
 	private LocalDateTime updatedAt;
 
 	public void updateNickname(final String nickname) {

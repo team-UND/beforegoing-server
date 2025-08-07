@@ -198,28 +198,6 @@ class TestControllerTest {
 	}
 
 	@Test
-	@DisplayName("Returns a default greeting for an authenticated user without a nickname")
-	void Given_AuthenticatedUserWithoutNickname_When_Greet_Then_ReturnsOkWithDefaultMessage() throws Exception {
-		// given
-		final String url = "/v1/test/hello";
-		final Long memberId = 2L;
-		final Member member = Member.builder().id(memberId).nickname(null).build();
-
-		doReturn(member).when(memberService).findMemberById(memberId);
-		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
-		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
-
-		// when
-		final ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get(url)
-		);
-
-		// then
-		result.andExpect(status().isOk())
-			.andExpect(jsonPath("$.message").value("Hello, Member!"));
-	}
-
-	@Test
 	@DisplayName("Retrieves all members and returns them as a list of MemberResponse DTOs")
 	void Given_ExistingMembers_When_GetMemberList_Then_ReturnsListOfMemberResponses() throws Exception {
 		// given
