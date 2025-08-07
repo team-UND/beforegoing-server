@@ -28,7 +28,7 @@ public class NotificationResponse {
 	private NotifType notificationType;
 	private NotifMethodType notificationMethodType;
 	private Boolean isEveryDay;
-	private List<NotificationDayOfWeekResponse> dayOfWeekOrdinalList;
+	private List<Integer> dayOfWeekOrdinalList;
 
 
 	public static NotificationResponse of(Notification notification) {
