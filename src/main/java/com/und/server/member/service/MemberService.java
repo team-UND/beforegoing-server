@@ -76,7 +76,6 @@ public class MemberService {
 		return switch (provider) {
 			case KAKAO -> memberRepository.findByKakaoId(providerId);
 			case APPLE -> memberRepository.findByAppleId(providerId);
-			default -> throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		};
 	}
 
@@ -85,7 +84,6 @@ public class MemberService {
 		switch (provider) {
 			case KAKAO -> memberBuilder.kakaoId(providerId);
 			case APPLE -> memberBuilder.appleId(providerId);
-			default -> throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		}
 
 		return memberRepository.save(memberBuilder.build());

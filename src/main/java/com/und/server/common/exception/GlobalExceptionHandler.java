@@ -68,7 +68,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			errorResult = switch (constraintName) {
 				case "uk_kakao_id" -> MemberErrorResult.DUPLICATE_KAKAO_ID;
 				case "uk_apple_id" -> MemberErrorResult.DUPLICATE_APPLE_ID;
-				default -> CommonErrorResult.DATA_INTEGRITY_VIOLATION;
+				default -> {
+					log.warn("Unhandled constraint violation: {}", constraintName);
+					yield CommonErrorResult.DATA_INTEGRITY_VIOLATION;
+				}
 			};
 		}
 
