@@ -1,6 +1,6 @@
 package com.und.server.notification.service;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -17,29 +17,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.und.server.notification.constants.NotifMethodType;
 import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.dto.NotificationInfoDto;
-import com.und.server.notification.dto.request.NotificationDayOfWeekRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.request.TimeNotificationRequest;
-import com.und.server.notification.dto.response.NotificationDayOfWeekResponse;
-import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.repository.NotificationRepository;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
-	@InjectMocks
-	private NotificationService notificationService;
-
 	@Mock
 	private NotificationRepository notificationRepository;
 
 	@Mock
-	private NotificationConditionSelector notificationResolverSelector;
+	private NotificationConditionSelector notificationConditionSelector;
+
+	@InjectMocks
+	private NotificationService notificationService;
 
 
 	@Test
-	void Given_Notification_When_FindNotificationDetails_Then_ReturnNotificationInfoDto() {
+	void Given_Notification_When_FindNotificationDetails_Then_ReturnNotificationInfo() {
 		// given
 		Notification notification = Notification.builder()
 			.id(1L)
@@ -47,71 +44,144 @@ class NotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		TimeNotificationResponse timeNotifResponse = TimeNotificationResponse.builder()
-			.hour(9)
-			.minute(30)
-			.build();
-
-		NotificationInfoDto expected = new NotificationInfoDto(
-			true,
-			List.of(new NotificationDayOfWeekResponse(1L, 1)),
-			timeNotifResponse
-		);
-
-		when(notificationResolverSelector.findNotifByNotifType(notification))
-			.thenReturn(expected);
+		NotificationInfoDto expectedInfo = new NotificationInfoDto(true, List.of(0, 1, 2), null);
+		when(notificationConditionSelector.findNotifByNotifType(notification))
+			.thenReturn(expectedInfo);
 
 		// when
 		NotificationInfoDto result = notificationService.findNotificationDetails(notification);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.isEveryDay()).isTrue();
-		assertThat(result.notificationCondition()).isInstanceOf(TimeNotificationResponse.class);
-
-		TimeNotificationResponse actualDetail = (TimeNotificationResponse) result.notificationCondition();
-		assertThat(actualDetail.getHour()).isEqualTo(9);
-		assertThat(actualDetail.getMinute()).isEqualTo(30);
+		assertThat(result).isEqualTo(expectedInfo);
+		verify(notificationConditionSelector).findNotifByNotifType(notification);
 	}
 
 
 	@Test
-	void Given_NotificationRequestAndConditionRequest_When_AddNotification_Then_SaveNotificationAndAddDetail() {
+	void Given_NotificationRequestAndCondition_When_AddNotification_Then_SaveNotificationAndAddCondition() {
 		// given
-		NotificationRequest notifRequest = NotificationRequest.builder()
-			.isActive(true)
+		NotificationRequest notifInfo = NotificationRequest.builder()
 			.notificationType(NotifType.TIME)
-			.notificationMethodType(NotifMethodType.ALARM)
-			.dayOfWeekOrdinalList(List.of(
-				new NotificationDayOfWeekRequest(1L, 1),
-				new NotificationDayOfWeekRequest(2L, 2)
-			))
+			.notificationMethodType(NotifMethodType.PUSH)
+			.isActive(true)
+			.dayOfWeekOrdinalList(List.of(0, 1, 2))
 			.build();
 
-		TimeNotificationRequest timeRequest = new TimeNotificationRequest(8, 45);
+		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(9, 0);
 
-		Notification expectedEntity = Notification.builder()
-			.isActive(notifRequest.getIsActive())
-			.notifType(notifRequest.getNotificationType())
-			.notifMethodType(notifRequest.getNotificationMethodType())
+		Notification savedNotification = Notification.builder()
+			.id(1L)
+			.notifType(NotifType.TIME)
+			.notifMethodType(NotifMethodType.PUSH)
+			.isActive(true)
 			.build();
 
 		when(notificationRepository.save(any(Notification.class)))
-			.thenReturn(expectedEntity);
+			.thenReturn(savedNotification);
 
 		// when
-		Notification result = notificationService.addNotification(notifRequest, timeRequest);
+		Notification result = notificationService.addNotification(notifInfo, conditionInfo);
 
 		// then
 		assertThat(result).isNotNull();
-		assertThat(result.getIsActive()).isTrue();
 		assertThat(result.getNotifType()).isEqualTo(NotifType.TIME);
-		assertThat(result.getNotifMethodType()).isEqualTo(NotifMethodType.ALARM);
-
-		List<Integer> expectedDays = List.of(1, 2);
-
+		assertThat(result.getNotifMethodType()).isEqualTo(NotifMethodType.PUSH);
+		assertThat(result.getIsActive()).isTrue();
 		verify(notificationRepository).save(any(Notification.class));
-		verify(notificationResolverSelector).addNotif(eq(result), eq(expectedDays), eq(timeRequest));
+		verify(notificationConditionSelector).addNotif(any(Notification.class), eq(List.of(0, 1, 2)),
+			eq(conditionInfo));
+	}
+
+
+	@Test
+	void Given_ActiveNotificationAndSameType_When_UpdateNotification_Then_UpdateNotificationAndCondition() {
+		// given
+		Notification oldNotification = Notification.builder()
+			.id(1L)
+			.notifType(NotifType.TIME)
+			.notifMethodType(NotifMethodType.PUSH)
+			.isActive(true)
+			.build();
+
+		NotificationRequest notifInfo = NotificationRequest.builder()
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.ALARM)
+			.isActive(true)
+			.dayOfWeekOrdinalList(List.of(0, 1, 2, 3))
+			.build();
+
+		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(10, 30);
+
+		// when
+		Notification result = notificationService.updateNotification(oldNotification, notifInfo, conditionInfo);
+
+		// then
+		assertThat(result).isEqualTo(oldNotification);
+		assertThat(oldNotification.getNotifType()).isEqualTo(NotifType.TIME);
+		assertThat(oldNotification.getNotifMethodType()).isEqualTo(NotifMethodType.ALARM);
+		assertThat(oldNotification.getIsActive()).isTrue();
+		verify(notificationConditionSelector).updateNotif(oldNotification, List.of(0, 1, 2, 3), conditionInfo);
+	}
+
+
+	@Test
+	void Given_ActiveNotificationAndDifferentType_When_UpdateNotification_Then_DeleteOldAndAddNew() {
+		// given
+		Notification oldNotification = Notification.builder()
+			.id(1L)
+			.notifType(NotifType.TIME)
+			.notifMethodType(NotifMethodType.PUSH)
+			.isActive(true)
+			.build();
+
+		NotificationRequest notifInfo = NotificationRequest.builder()
+			.notificationType(NotifType.LOCATION)
+			.notificationMethodType(NotifMethodType.ALARM)
+			.isActive(true)
+			.dayOfWeekOrdinalList(List.of(0, 1, 2))
+			.build();
+
+		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(9, 0);
+
+		// when
+		Notification result = notificationService.updateNotification(oldNotification, notifInfo, conditionInfo);
+
+		// then
+		assertThat(result).isEqualTo(oldNotification);
+		assertThat(oldNotification.getNotifType()).isEqualTo(NotifType.LOCATION);
+		assertThat(oldNotification.getNotifMethodType()).isEqualTo(NotifMethodType.ALARM);
+		assertThat(oldNotification.getIsActive()).isTrue();
+		verify(notificationConditionSelector).deleteNotif(NotifType.TIME, oldNotification.getId());
+		verify(notificationConditionSelector).addNotif(oldNotification, List.of(0, 1, 2), conditionInfo);
+	}
+
+
+	@Test
+	void Given_ActiveNotificationAndInactive_When_UpdateNotification_Then_DeleteCondition() {
+		// given
+		Notification oldNotification = Notification.builder()
+			.id(1L)
+			.notifType(NotifType.TIME)
+			.notifMethodType(NotifMethodType.PUSH)
+			.isActive(true)
+			.build();
+
+		NotificationRequest notifInfo = NotificationRequest.builder()
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.PUSH)
+			.isActive(false)
+			.dayOfWeekOrdinalList(List.of(0, 1, 2))
+			.build();
+
+		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(9, 0);
+
+		// when
+		Notification result = notificationService.updateNotification(oldNotification, notifInfo, conditionInfo);
+
+		// then
+		assertThat(result).isEqualTo(oldNotification);
+		assertThat(oldNotification.getIsActive()).isFalse();
+		verify(notificationConditionSelector).deleteNotif(NotifType.TIME, oldNotification.getId());
 	}
 
 }
