@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.constants.NotifType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
@@ -75,6 +77,18 @@ public class ScenarioController {
 		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
 	) {
 		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+
+	@PatchMapping("/scenarios/{scenarioId}/order")
+	public ResponseEntity<Void> updateScenarioOrder(
+		@AuthMember Long memberId,
+		@PathVariable Long scenarioId,
+		@RequestBody @Valid ScenarioOrderUpdateRequest scenarioOrderUpdateRequest
+	) {
+		scenarioService.updateScenarioOrder(memberId, scenarioId, scenarioOrderUpdateRequest);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}

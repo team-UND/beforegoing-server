@@ -18,6 +18,7 @@ import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.MissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -160,6 +161,29 @@ public class ScenarioService {
 
 		notificationService.deleteNotification(scenario.getNotification());
 		scenarioRepository.delete(scenario);
+	}
+
+
+	@Transactional
+	public void updateScenarioOrder(
+		Long memberId,
+		Long scenarioId,
+		ScenarioOrderUpdateRequest ScenarioOrderInfo
+	) {
+		Scenario scenario = scenarioRepository.findByIdAndMemberId(memberId, scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+
+		try {
+			int toUpdateOrder = orderCalculator.getOrder(
+				ScenarioOrderInfo.getPrevOrder(),
+				ScenarioOrderInfo.getNextOrder()
+			);
+			scenario.setOrder(toUpdateOrder);
+
+		} catch (ReorderRequiredException e) {
+			Notification notification = scenario.getNotification();
+			reorderScenarios(memberId, notification.getNotifType());
+		}
 	}
 
 

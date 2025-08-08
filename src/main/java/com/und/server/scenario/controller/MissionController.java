@@ -61,7 +61,7 @@ public class MissionController {
 	}
 
 
-	@PatchMapping("/missions/{missionId}")
+	@PatchMapping("/missions/{missionId}/check")
 	public ResponseEntity<Void> updateMissionCheck(
 		@AuthMember Long memberId,
 		@PathVariable Long missionId,
