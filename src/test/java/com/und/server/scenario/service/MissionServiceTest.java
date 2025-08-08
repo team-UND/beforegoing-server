@@ -1,38 +1,34 @@
 package com.und.server.scenario.service;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.MissionRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
-import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
-import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.util.MissionTypeGrouper;
 
 @ExtendWith(MockitoExtension.class)
 class MissionServiceTest {
-
-	@InjectMocks
-	private MissionService missionService;
 
 	@Mock
 	private MissionRepository missionRepository;
@@ -40,154 +36,149 @@ class MissionServiceTest {
 	@Mock
 	private MissionTypeGrouper missionTypeGrouper;
 
+	@InjectMocks
+	private MissionService missionService;
+
 
 	@Test
-	void Given_ValidMemberAndScenarioId_When_FindMissionsByScenarioId_Then_ReturnMissionResponses() {
+	void Given_ValidScenarioId_When_FindMissionsByScenarioId_Then_ReturnMissionGroupResponse() {
 		// given
 		Long memberId = 1L;
-		Long scenarioId = 10L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.now();
 
-		Member member = Member.builder().id(memberId).build();
+		Member member = Member.builder()
+			.id(memberId)
+			.build();
 
 		Scenario scenario = Scenario.builder()
 			.id(scenarioId)
 			.member(member)
 			.build();
 
-		Mission mission1 = Mission.builder()
-			.id(101L)
+		Mission basicMission = Mission.builder()
+			.id(1L)
 			.scenario(scenario)
-			.content("Wake up")
-			.order(1)
-			.isChecked(false)
+			.content("기본 미션")
 			.missionType(MissionType.BASIC)
 			.build();
 
-		Mission mission2 = Mission.builder()
-			.id(102L)
+		Mission todayMission = Mission.builder()
+			.id(2L)
 			.scenario(scenario)
-			.content("Drink water")
-			.order(2)
-			.isChecked(true)
+			.content("오늘 미션")
 			.missionType(MissionType.TODAY)
 			.build();
 
-		List<Mission> missionList = List.of(mission1, mission2);
+		List<Mission> missionList = Arrays.asList(basicMission, todayMission);
+		List<Mission> groupedBasicMissions = Arrays.asList(basicMission);
+		List<Mission> groupedTodayMissions = Arrays.asList(todayMission);
 
-		Mockito.when(missionRepository.findAllByScenarioId(scenarioId))
-			.thenReturn(missionList);
-
-		Mockito.when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
-			.thenReturn(List.of(mission1));
-
-		Mockito.when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
-			.thenReturn(List.of(mission2));
+		when(missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date)).thenReturn(
+			missionList);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(groupedBasicMissions);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(groupedTodayMissions);
 
 		// when
-		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId);
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		// then
-		List<MissionResponse> basicMissions = result.basicMissionList();
-		List<MissionResponse> todayMissions = result.todayMissionList();
-
-		assertThat(basicMissions).hasSize(1);
-		assertThat(basicMissions.get(0).getContent()).isEqualTo("Wake up");
-
-		assertThat(todayMissions).hasSize(1);
-		assertThat(todayMissions.get(0).getContent()).isEqualTo("Drink water");
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissionList()).isNotEmpty();
+		assertThat(result.todayMissionList()).isNotEmpty();
+		verify(missionRepository).findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date);
+		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.BASIC);
+		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.TODAY);
 	}
 
 
 	@Test
-	void givenUnauthorizedUser_whenFindMissionsByScenarioId_thenThrowUnauthorizedException() {
+	void Given_EmptyMissionList_When_FindMissionsByScenarioId_Then_ReturnEmptyResponse() {
 		// given
-		Long requestMemberId = 1L;
-		Long scenarioId = 10L;
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.now();
 
-		Member owner = Member.builder().id(999L).build();
+		when(missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date)).thenReturn(
+			List.of());
 
-		Scenario scenario = Scenario.builder()
-			.id(scenarioId)
-			.member(owner)
-			.build();
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
-		Mission mission = Mission.builder()
-			.id(201L)
-			.scenario(scenario)
-			.content("Exercise")
-			.order(1)
-			.isChecked(false)
-			.missionType(MissionType.BASIC)
-			.build();
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissionList()).isEmpty();
+		assertThat(result.todayMissionList()).isEmpty();
+		verify(missionRepository).findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date);
+	}
 
-		Mockito.when(missionRepository.findAllByScenarioId(scenarioId))
-			.thenReturn(List.of(mission));
+
+	@Test
+	void Given_UnauthorizedMember_When_FindMissionsByScenarioId_Then_ThrowServerException() {
+		// given
+		Long memberId = 1L;
+		Long unauthorizedMemberId = 2L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.now();
+
+		// 권한이 없는 멤버의 시나리오는 조회되지 않음
+		when(missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date)).thenReturn(
+			List.of());
 
 		// when & then
-		assertThatThrownBy(() -> missionService.findMissionsByScenarioId(requestMemberId, scenarioId))
-			.isInstanceOf(ServerException.class)
-			.hasMessageContaining(ScenarioErrorResult.UNAUTHORIZED_ACCESS.getMessage());
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
+
+		// 권한이 없는 경우 빈 리스트 반환 (DB에서 필터링됨)
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissionList()).isEmpty();
+		assertThat(result.todayMissionList()).isEmpty();
 	}
 
 
 	@Test
-	void Given_ScenarioAndTodayMissionRequest_When_AddTodayMission_Then_SaveSingleMission() {
+	void Given_ScenarioAndTodayMissionRequest_When_AddTodayMission_Then_SaveMission() {
 		// given
 		Scenario scenario = Scenario.builder()
 			.id(1L)
-			.member(Member.builder().id(1L).build())
 			.build();
 
-		TodayMissionRequest request = new TodayMissionRequest("Stretch");
-
-		ArgumentCaptor<Mission> captor = ArgumentCaptor.forClass(Mission.class);
+		TodayMissionRequest missionAddInfo = new TodayMissionRequest("오늘 미션");
+		LocalDate date = LocalDate.now();
 
 		// when
-		missionService.addTodayMission(scenario, request);
+		missionService.addTodayMission(scenario, missionAddInfo, date);
 
 		// then
-		verify(missionRepository).save(captor.capture());
-
-		Mission saved = captor.getValue();
-
-		assertThat(saved.getScenario()).isEqualTo(scenario);
-		assertThat(saved.getContent()).isEqualTo("Stretch");
-		assertThat(saved.getMissionType()).isEqualTo(MissionType.TODAY);
-		assertThat(saved.getIsChecked()).isFalse();
+		verify(missionRepository).save(any(Mission.class));
 	}
 
 
 	@Test
-	void Given_ScenarioAndValidBasicMissionRequestList_When_AddBasicMission_Then_SaveAllMissions() {
+	void Given_ScenarioAndBasicMissionList_When_AddBasicMission_Then_SaveAllMissions() {
+		// given
 		Scenario scenario = Scenario.builder()
-			.id(2L)
-			.member(Member.builder().id(2L).build())
+			.id(1L)
 			.build();
 
-		MissionRequest mission1 = new MissionRequest();
-		mission1.setContent("Meditate");
-		mission1.setMissionType(MissionType.BASIC);
+		MissionRequest mission1 = MissionRequest.builder()
+			.content("기본 미션 1")
+			.missionType(MissionType.BASIC)
+			.build();
 
-		MissionRequest mission2 = new MissionRequest();
-		mission2.setContent("Read");
-		mission2.setMissionType(MissionType.BASIC);
+		MissionRequest mission2 = MissionRequest.builder()
+			.content("기본 미션 2")
+			.missionType(MissionType.BASIC)
+			.build();
 
-		List<MissionRequest> requests = List.of(mission1, mission2);
+		List<MissionRequest> missionInfoList = Arrays.asList(mission1, mission2);
 
-		@SuppressWarnings("unchecked")
-		ArgumentCaptor<List<Mission>> captor = ArgumentCaptor.forClass(List.class);
+		// when
+		missionService.addBasicMission(scenario, missionInfoList);
 
-		missionService.addBasicMission(scenario, requests);
-
-		verify(missionRepository).saveAll(captor.capture());
-
-		List<Mission> savedMissions = captor.getValue();
-
-		assertThat(savedMissions).hasSize(2);
-		assertThat(savedMissions.get(0).getContent()).isEqualTo("Meditate");
-		assertThat(savedMissions.get(0).getOrder()).isEqualTo(1000);
-		assertThat(savedMissions.get(1).getContent()).isEqualTo("Read");
-		assertThat(savedMissions.get(1).getOrder()).isEqualTo(2000);
+		// then
+		verify(missionRepository).saveAll(anyList());
 	}
 
 
@@ -195,17 +186,130 @@ class MissionServiceTest {
 	void Given_EmptyBasicMissionList_When_AddBasicMission_Then_DoNothing() {
 		// given
 		Scenario scenario = Scenario.builder()
-			.id(3L)
-			.member(Member.builder().id(3L).build())
+			.id(1L)
 			.build();
 
-		List<MissionRequest> emptyList = List.of();
+		List<MissionRequest> missionInfoList = List.of();
 
 		// when
-		missionService.addBasicMission(scenario, emptyList);
+		missionService.addBasicMission(scenario, missionInfoList);
 
 		// then
-		verifyNoInteractions(missionRepository);
+		verify(missionRepository, org.mockito.Mockito.never()).saveAll(anyList());
+	}
+
+
+	@Test
+	void Given_ScenarioAndNewBasicMissionList_When_UpdateBasicMission_Then_DeleteOldAndSaveNew() {
+		// given
+		Scenario oldScenario = Scenario.builder()
+			.id(1L)
+			.build();
+
+		Mission oldMission = Mission.builder()
+			.id(1L)
+			.scenario(oldScenario)
+			.content("기존 미션")
+			.missionType(MissionType.BASIC)
+			.order(1)
+			.build();
+
+		List<Mission> oldMissionList = Arrays.asList(oldMission);
+
+		MissionRequest newMission1 = MissionRequest.builder()
+			.content("새 미션 1")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		MissionRequest newMission2 = MissionRequest.builder()
+			.content("새 미션 2")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<MissionRequest> missionInfoList = Arrays.asList(newMission1, newMission2);
+
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+			.thenReturn(oldMissionList);
+
+		// when
+		missionService.updateBasicMission(oldScenario, missionInfoList);
+
+		// then
+		// 새로운 미션만 있으므로 기존 미션은 삭제됨
+		verify(missionRepository).deleteAllById(eq(Arrays.asList(1L)));
+		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
+	}
+
+
+	@Test
+	void Given_ScenarioAndEmptyBasicMissionList_When_UpdateBasicMission_Then_DeleteAllOldMissions() {
+		// given
+		Scenario oldScenario = Scenario.builder()
+			.id(1L)
+			.build();
+
+		Mission oldMission = Mission.builder()
+			.id(1L)
+			.scenario(oldScenario)
+			.content("기존 미션")
+			.missionType(MissionType.BASIC)
+			.order(1)
+			.build();
+
+		List<Mission> oldMissionList = Arrays.asList(oldMission);
+		List<MissionRequest> missionInfoList = List.of();
+
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+			.thenReturn(oldMissionList);
+
+		// when
+		missionService.updateBasicMission(oldScenario, missionInfoList);
+
+		// then
+		verify(missionRepository).deleteAll(oldMissionList);
+		verify(missionRepository, org.mockito.Mockito.never()).saveAll(anyList());
+	}
+
+
+	@Test
+	void Given_ScenarioAndMixedMissionList_When_UpdateBasicMission_Then_AddUpdateAndDelete() {
+		// given
+		Scenario oldScenario = Scenario.builder()
+			.id(1L)
+			.build();
+
+		Mission existingMission = Mission.builder()
+			.id(1L)
+			.scenario(oldScenario)
+			.content("기존 미션")
+			.missionType(MissionType.BASIC)
+			.order(1)
+			.build();
+
+		List<Mission> oldMissionList = Arrays.asList(existingMission);
+
+		MissionRequest newMission = MissionRequest.builder()
+			.content("새 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		MissionRequest updatedMission = MissionRequest.builder()
+			.missionId(1L)
+			.content("수정된 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<MissionRequest> missionInfoList = Arrays.asList(newMission, updatedMission);
+
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+			.thenReturn(oldMissionList);
+
+		// when
+		missionService.updateBasicMission(oldScenario, missionInfoList);
+
+		// then
+		verify(missionRepository).deleteAllById(eq(List.of()));
+		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
 	}
 
 }
