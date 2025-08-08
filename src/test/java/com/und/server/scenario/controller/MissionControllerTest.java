@@ -130,4 +130,37 @@ class MissionControllerTest {
 		verify(missionService).deleteTodayMission(memberId, missionId);
 	}
 
+	@Test
+	void Given_ValidMissionIdAndIsChecked_When_UpdateMissionCheck_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+		Boolean isChecked = true;
+
+		// when
+		ResponseEntity<Void> response = missionController.updateMissionCheck(memberId, missionId, isChecked);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(missionService).updateMissionCheck(memberId, missionId, isChecked);
+	}
+
+
+	@Test
+	void Given_ValidMissionIdAndIsUnchecked_When_UpdateMissionCheck_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+		Boolean isChecked = false;
+
+		// when
+		ResponseEntity<Void> response = missionController.updateMissionCheck(memberId, missionId, isChecked);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(missionService).updateMissionCheck(memberId, missionId, isChecked);
+	}
+
 }

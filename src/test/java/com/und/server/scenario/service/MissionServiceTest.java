@@ -396,4 +396,123 @@ class MissionServiceTest {
 		verify(missionRepository, org.mockito.Mockito.never()).delete(any());
 	}
 
+	@Test
+	void Given_ValidMissionIdAndAuthorizedMember_When_UpdateMissionCheck_Then_UpdateMissionCheckStatus() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+		Boolean isChecked = true;
+
+		Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(member)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("체크할 미션")
+			.isChecked(false)
+			.missionType(MissionType.TODAY)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+
+		// when
+		missionService.updateMissionCheck(memberId, missionId, isChecked);
+
+		// then
+		verify(missionRepository).findById(missionId);
+		assertThat(mission.getIsChecked()).isEqualTo(isChecked);
+	}
+
+	@Test
+	void Given_NonExistentMissionId_When_UpdateMissionCheck_Then_ThrowNotFoundException() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 999L;
+		Boolean isChecked = true;
+
+		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.empty());
+
+		// when & then
+		assertThatThrownBy(() -> missionService.updateMissionCheck(memberId, missionId, isChecked))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.NOT_FOUND_MISSION);
+		verify(missionRepository).findById(missionId);
+	}
+
+	@Test
+	void Given_UnauthorizedMember_When_UpdateMissionCheck_Then_ThrowUnauthorizedException() {
+		// given
+		Long authorizedMemberId = 1L;
+		Long unauthorizedMemberId = 2L;
+		Long missionId = 1L;
+		Boolean isChecked = true;
+
+		Member authorizedMember = Member.builder()
+			.id(authorizedMemberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(authorizedMember)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("체크할 미션")
+			.isChecked(false)
+			.missionType(MissionType.TODAY)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+
+		// when & then
+		assertThatThrownBy(() -> missionService.updateMissionCheck(unauthorizedMemberId, missionId, isChecked))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.UNAUTHORIZED_ACCESS);
+		verify(missionRepository).findById(missionId);
+	}
+
+
+	@Test
+	void Given_ValidMissionIdAndUncheck_When_UpdateMissionCheck_Then_UpdateMissionToUnchecked() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+		Boolean isChecked = false;
+
+		Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(member)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("체크 해제할 미션")
+			.isChecked(true)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+
+		// when
+		missionService.updateMissionCheck(memberId, missionId, isChecked);
+
+		// then
+		verify(missionRepository).findById(missionId);
+		assertThat(mission.getIsChecked()).isEqualTo(isChecked);
+	}
+
 }
