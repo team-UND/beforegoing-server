@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,10 +27,8 @@ import com.und.server.member.entity.Member;
 import com.und.server.notification.constants.NotifMethodType;
 import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.dto.NotificationInfoDto;
-import com.und.server.notification.dto.request.NotificationDayOfWeekRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.request.TimeNotificationRequest;
-import com.und.server.notification.dto.response.NotificationDayOfWeekResponse;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
@@ -160,18 +159,19 @@ class ScenarioServiceTest {
 
 		final NotificationInfoDto notifInfoDto = new NotificationInfoDto(
 			true,
-			List.of(new NotificationDayOfWeekResponse(1L, 1)),
+			List.of(1),
 			notifDetail
 		);
 
 		// mock
-		Mockito.when(scenarioRepository.findById(scenarioId)).thenReturn(Optional.of(scenario));
+		Mockito.when(scenarioRepository.findByIdWithDefaultMissions(memberId, scenarioId, LocalDate.now()))
+			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(notifInfoDto);
 		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC))
 			.thenReturn(List.of());
 
 		// when
-		ScenarioDetailResponse response = scenarioService.findScenarioByScenarioId(memberId, scenarioId);
+		ScenarioDetailResponse response = scenarioService.findScenarioDetailByScenarioId(memberId, scenarioId);
 
 		// then
 		assertNotNull(response);
@@ -189,42 +189,30 @@ class ScenarioServiceTest {
 		final Long memberId = 1L;
 		final Long scenarioId = 99L;
 
-		Mockito.when(scenarioRepository.findById(scenarioId))
+		Mockito.when(scenarioRepository.findByIdWithDefaultMissions(memberId, scenarioId, LocalDate.now()))
 			.thenReturn(Optional.empty());
 
 		// when & then
-		assertThatThrownBy(() -> scenarioService.findScenarioByScenarioId(memberId, scenarioId))
+		assertThatThrownBy(() -> scenarioService.findScenarioDetailByScenarioId(memberId, scenarioId))
 			.isInstanceOf(ServerException.class)
 			.hasMessageContaining(ScenarioErrorResult.NOT_FOUND_SCENARIO.getMessage());
 	}
 
 
 	@Test
-	void Given_otherUserScenario_When_findScenarioByScenarioId_Then_throwUnauthorizedException() {
+	void Given_otherUserScenario_When_findScenarioByScenarioId_Then_throwNotFoundException() {
 		// given
 		final Long memberId = 1L;
 		final Long scenarioId = 10L;
 
-		final Member member = Member.builder()
-			.id(2L)
-			.build();
-
-		final Scenario scenario = Scenario.builder()
-			.id(scenarioId)
-			.member(member)
-			.scenarioName("내 시나리오 아님")
-			.order(1)
-			.notification(Notification.builder().isActive(false).notifType(NotifType.TIME).build())
-			.missionList(List.of())
-			.build();
-
-		Mockito.when(scenarioRepository.findById(scenarioId))
-			.thenReturn(Optional.of(scenario));
+		// 다른 사용자의 시나리오는 존재하지 않음 (권한 검증으로 인해)
+		Mockito.when(scenarioRepository.findByIdWithDefaultMissions(memberId, scenarioId, LocalDate.now()))
+			.thenReturn(Optional.empty());
 
 		// when & then
-		assertThatThrownBy(() -> scenarioService.findScenarioByScenarioId(memberId, scenarioId))
+		assertThatThrownBy(() -> scenarioService.findScenarioDetailByScenarioId(memberId, scenarioId))
 			.isInstanceOf(ServerException.class)
-			.hasMessageContaining(ScenarioErrorResult.UNAUTHORIZED_ACCESS.getMessage());
+			.hasMessageContaining(ScenarioErrorResult.NOT_FOUND_SCENARIO.getMessage());
 	}
 
 
@@ -232,6 +220,7 @@ class ScenarioServiceTest {
 	void Given_ValidMemberAndScenario_When_AddTodayMissionToScenario_Then_InvokeMissionService() {
 		Long memberId = 1L;
 		Long scenarioId = 10L;
+		LocalDate date = LocalDate.now();
 
 		Member member = Member.builder().id(memberId).build();
 
@@ -242,36 +231,30 @@ class ScenarioServiceTest {
 
 		TodayMissionRequest request = new TodayMissionRequest("Stretch");
 
-		Mockito.when(scenarioRepository.findById(scenarioId))
+		Mockito.when(scenarioRepository.findByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 
-		scenarioService.addTodayMissionToScenario(memberId, scenarioId, request);
+		scenarioService.addTodayMissionToScenario(memberId, scenarioId, request, date);
 
-		verify(missionService).addTodayMission(scenario, request);
+		verify(missionService).addTodayMission(scenario, request, date);
 	}
 
 
 	@Test
-	void Given_OtherUserScenario_When_AddTodayMissionToScenario_Then_ThrowUnauthorizedException() {
+	void Given_OtherUserScenario_When_AddTodayMissionToScenario_Then_ThrowNotFoundException() {
 		Long requestMemberId = 1L;
 		Long scenarioId = 10L;
-
-		Member otherUser = Member.builder().id(999L).build();
-
-		Scenario scenario = Scenario.builder()
-			.id(scenarioId)
-			.member(otherUser)
-			.build();
+		LocalDate date = LocalDate.now();
 
 		TodayMissionRequest request = new TodayMissionRequest("Stretch");
 
-		Mockito.when(scenarioRepository.findById(scenarioId))
-			.thenReturn(Optional.of(scenario));
+		Mockito.when(scenarioRepository.findByIdAndMemberId(requestMemberId, scenarioId))
+			.thenReturn(Optional.empty());
 
 		assertThatThrownBy(() ->
-			scenarioService.addTodayMissionToScenario(requestMemberId, scenarioId, request)
+			scenarioService.addTodayMissionToScenario(requestMemberId, scenarioId, request, date)
 		).isInstanceOf(ServerException.class)
-			.hasMessageContaining(ScenarioErrorResult.UNAUTHORIZED_ACCESS.getMessage());
+			.hasMessageContaining(ScenarioErrorResult.NOT_FOUND_SCENARIO.getMessage());
 	}
 
 
@@ -298,10 +281,7 @@ class ScenarioServiceTest {
 			.isActive(true)
 			.notificationType(NotifType.TIME)
 			.notificationMethodType(NotifMethodType.ALARM)
-			.dayOfWeekOrdinalList(List.of(
-				new NotificationDayOfWeekRequest(1L, 1),
-				new NotificationDayOfWeekRequest(2L, 2)
-			))
+			.dayOfWeekOrdinalList(List.of(1, 2))
 			.build();
 
 		TimeNotificationRequest condition = TimeNotificationRequest.builder()
