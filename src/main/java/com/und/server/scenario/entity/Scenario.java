@@ -55,7 +55,7 @@ public class Scenario extends BaseTimeEntity {
 	private Integer order;
 
 	@Setter
-	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "notification_id")
 	private Notification notification;
 
