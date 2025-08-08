@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.und.server.auth.filter.CustomAuthenticationEntryPoint;
 import com.und.server.auth.filter.JwtAuthenticationFilter;
+import com.und.server.common.util.ProfileManager;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +28,7 @@ public class SecurityConfig {
 
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+	private final ProfileManager profileManager;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -53,19 +55,25 @@ public class SecurityConfig {
 	@Order(2)
 	public SecurityFilterChain apiSecurityFilterChain(final HttpSecurity http) throws Exception {
 		return http
+			.authorizeHttpRequests(authorize -> {
+				authorize
+					.requestMatchers(HttpMethod.POST, "/v*/auth/**").permitAll()
+					.requestMatchers("/error").permitAll();
+
+				if (!profileManager.isProdOrStgProfile()) {
+					authorize
+						.requestMatchers(HttpMethod.POST, "/v*/test/access").permitAll()
+						.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
+				}
+
+				authorize.anyRequest().authenticated();
+			})
+			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+			.exceptionHandling(handler -> handler.authenticationEntryPoint(customAuthenticationEntryPoint))
+			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.csrf(AbstractHttpConfigurer::disable)
 			.formLogin(AbstractHttpConfigurer::disable)
 			.httpBasic(AbstractHttpConfigurer::disable)
-			.sessionManagement(sessionManagement -> sessionManagement
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.authorizeHttpRequests(authorize -> authorize
-				// FIXME: Remove "/v*/test/access" when deleting TestController
-				.requestMatchers(HttpMethod.POST, "/v*/auth/**", "/v*/test/access").permitAll()
-				.requestMatchers("/error").permitAll()
-				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-				.anyRequest().authenticated())
-			.exceptionHandling(handler -> handler.authenticationEntryPoint(customAuthenticationEntryPoint))
-			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 			.build();
 	}
 

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 public enum CommonErrorResult implements ErrorResult {
 
 	INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid Parameter"),
+	DATA_INTEGRITY_VIOLATION(HttpStatus.CONFLICT, "Data Integrity Violation"),
 	UNKNOWN_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown Exception");
 
 	private final HttpStatus httpStatus;

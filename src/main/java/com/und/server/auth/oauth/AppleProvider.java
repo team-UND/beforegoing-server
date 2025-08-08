@@ -10,23 +10,23 @@ import com.und.server.auth.dto.OidcPublicKeys;
 import com.und.server.auth.jwt.JwtProvider;
 
 @Component
-public class KakaoProvider implements OidcProvider {
+public class AppleProvider implements OidcProvider {
 
 	private final JwtProvider jwtProvider;
 	private final PublicKeyProvider publicKeyProvider;
-	private final String kakaoBaseUrl;
-	private final String kakaoAppKey;
+	private final String appleBaseUrl;
+	private final String appleAppId;
 
-	public KakaoProvider(
-		final JwtProvider jwtProvider,
-		final PublicKeyProvider publicKeyProvider,
-		@Value("${oauth.kakao.base-url}") final String kakaoBaseUrl,
-		@Value("${oauth.kakao.app-key}") final String kakaoAppKey
+	public AppleProvider(
+			final JwtProvider jwtProvider,
+			final PublicKeyProvider publicKeyProvider,
+			@Value("${oauth.apple.base-url}") final String appleBaseUrl,
+			@Value("${oauth.apple.app-id}") final String appleAppId
 	) {
 		this.jwtProvider = jwtProvider;
 		this.publicKeyProvider = publicKeyProvider;
-		this.kakaoBaseUrl = kakaoBaseUrl;
-		this.kakaoAppKey = kakaoAppKey;
+		this.appleBaseUrl = appleBaseUrl;
+		this.appleAppId = appleAppId;
 	}
 
 	@Override
@@ -35,10 +35,10 @@ public class KakaoProvider implements OidcProvider {
 		final PublicKey publicKey = publicKeyProvider.generatePublicKey(decodedHeader, oidcPublicKeys);
 
 		return jwtProvider.parseOidcIdToken(
-			token,
-			kakaoBaseUrl,
-			kakaoAppKey,
-			publicKey
+				token,
+				appleBaseUrl,
+				appleAppId,
+				publicKey
 		);
 	}
 

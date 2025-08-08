@@ -112,7 +112,7 @@ class MemberControllerTest {
 		final Long memberId = 1L;
 		final String newNickname = "new-nickname";
 		final NicknameRequest request = new NicknameRequest(newNickname);
-		final MemberResponse response = new MemberResponse(memberId, newNickname, null, null, null);
+		final MemberResponse response = new MemberResponse(memberId, newNickname, null, null, null, null);
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());

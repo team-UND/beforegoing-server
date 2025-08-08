@@ -14,9 +14,13 @@ public class OidcClientFactory {
 
 	private final Map<Provider, OidcClient> oidcClients;
 
-	public OidcClientFactory(final KakaoClient kakaoClient) {
+	public OidcClientFactory(
+		final KakaoClient kakaoClient,
+		final AppleClient appleClient
+	) {
 		oidcClients = new EnumMap<>(Provider.class);
 		oidcClients.put(Provider.KAKAO, kakaoClient);
+		oidcClients.put(Provider.APPLE, appleClient);
 	}
 
 	public OidcClient getOidcClient(final Provider provider) {

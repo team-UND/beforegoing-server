@@ -25,7 +25,7 @@ jobs:
               {
                 "title": "${{ github.event.issue.title }}",
                 "color": 10478271,
-                "description": "${{ github.event.issue.html_url }}",
+                "description": "[View on GitHub](${{ github.event.issue.html_url }})",
                 "fields": [
                   {
                     "name": "Issue Number",

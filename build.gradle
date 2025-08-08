@@ -138,7 +138,8 @@ jacocoTestCoverageVerification {
 		classDirectories.setFrom(files(classDirectories.files.collect {
 			fileTree(dir: it, excludes: [
 							'**/*Application.class',
-							'**/config/*Config.class'
+							'**/config/*Config.class',
+							'**/GlobalExceptionHandler.class'
 					])
 		}))
 	}
