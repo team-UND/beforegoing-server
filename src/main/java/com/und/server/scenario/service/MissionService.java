@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.MissionRequest;
@@ -139,6 +140,20 @@ public class MissionService {
 		missionRepository.deleteAllById(toDeleteIdList);
 		missionRepository.saveAll(toAddList);
 		missionRepository.saveAll(toUpdateList);
+	}
+
+
+	@Transactional
+	public void deleteTodayMission(Long memberId, Long missionId) {
+		Mission mission = missionRepository.findById(missionId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
+
+		Member member = mission.getScenario().getMember();
+		if (!memberId.equals(member.getId())) {
+			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
+		}
+
+		missionRepository.delete(mission);
 	}
 
 }

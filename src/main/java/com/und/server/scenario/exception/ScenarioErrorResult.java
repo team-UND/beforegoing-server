@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 public enum ScenarioErrorResult implements ErrorResult {
 	NOT_FOUND_SCENARIO(
 		HttpStatus.NOT_FOUND, "Scenario not found"),
+	NOT_FOUND_MISSION(
+		HttpStatus.NOT_FOUND, "Mission not found"),
 	UNAUTHORIZED_ACCESS(
 		HttpStatus.UNAUTHORIZED, "Unauthorized access"),
 	UNSUPPORTED_MISSION_TYPE(
