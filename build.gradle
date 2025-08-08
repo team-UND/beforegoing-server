@@ -121,7 +121,7 @@ jacocoTestCoverageVerification {
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
-				minimum = 0.50
+				minimum = 0.70
 			}
 
 			// Maximum number of lines in a file
@@ -138,7 +138,8 @@ jacocoTestCoverageVerification {
 		classDirectories.setFrom(files(classDirectories.files.collect {
 			fileTree(dir: it, excludes: [
 							'**/*Application.class',
-							'**/config/*Config.class'
+							'**/config/*Config.class',
+							'**/GlobalExceptionHandler.class'
 					])
 		}))
 	}

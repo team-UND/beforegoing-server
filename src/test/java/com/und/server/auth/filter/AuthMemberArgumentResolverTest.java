@@ -16,7 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,7 +86,7 @@ class AuthMemberArgumentResolverTest {
 		// when & then
 		assertThatThrownBy(() -> authMemberArgumentResolver.resolveArgument(parameter, null, null, null))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNAUTHORIZED_ACCESS);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.UNAUTHORIZED_ACCESS);
 	}
 
 	@Test
@@ -101,7 +101,7 @@ class AuthMemberArgumentResolverTest {
 		// when & then
 		assertThatThrownBy(() -> authMemberArgumentResolver.resolveArgument(parameter, null, null, null))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.UNAUTHORIZED_ACCESS);
+			.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.UNAUTHORIZED_ACCESS);
 	}
 
 	@Test

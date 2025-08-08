@@ -17,7 +17,7 @@ import com.und.server.auth.dto.OidcPublicKeys;
 import com.und.server.auth.jwt.JwtProvider;
 
 @ExtendWith(MockitoExtension.class)
-class KakaoProviderTest {
+class AppleProviderTest {
 
 	@Mock
 	private JwtProvider jwtProvider;
@@ -31,16 +31,16 @@ class KakaoProviderTest {
 	@Mock
 	private PublicKey publicKey;
 
-	private KakaoProvider kakaoProvider;
+	private AppleProvider appleProvider;
 
 	private final String token = "dummyToken";
-	private final String kakaoBaseUrl = "https://kauth.kakao.com";
-	private final String kakaoAppKey = "dummyAppKey";
+	private final String appleBaseUrl = "https://appleid.apple.com";
+	private final String appleAppId = "dummyAppId";
 	private final String providerId = "dummyId";
 
 	@BeforeEach
 	void init() {
-		kakaoProvider = new KakaoProvider(jwtProvider, publicKeyProvider, kakaoBaseUrl, kakaoAppKey);
+		appleProvider = new AppleProvider(jwtProvider, publicKeyProvider, appleBaseUrl, appleAppId);
 	}
 
 	@Test
@@ -51,10 +51,10 @@ class KakaoProviderTest {
 
 		doReturn(decodedHeader).when(jwtProvider).getDecodedHeader(token);
 		doReturn(publicKey).when(publicKeyProvider).generatePublicKey(decodedHeader, oidcPublicKeys);
-		doReturn(providerId).when(jwtProvider).parseOidcIdToken(token, kakaoBaseUrl, kakaoAppKey, publicKey);
+		doReturn(providerId).when(jwtProvider).parseOidcIdToken(token, appleBaseUrl, appleAppId, publicKey);
 
 		// when
-		final String actualProviderId = kakaoProvider.getProviderId(token, oidcPublicKeys);
+		final String actualProviderId = appleProvider.getProviderId(token, oidcPublicKeys);
 
 		// then
 		assertThat(actualProviderId).isEqualTo(providerId);

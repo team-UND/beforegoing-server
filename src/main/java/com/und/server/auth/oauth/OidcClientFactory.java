@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @Component
@@ -14,14 +14,18 @@ public class OidcClientFactory {
 
 	private final Map<Provider, OidcClient> oidcClients;
 
-	public OidcClientFactory(final KakaoClient kakaoClient) {
+	public OidcClientFactory(
+		final KakaoClient kakaoClient,
+		final AppleClient appleClient
+	) {
 		oidcClients = new EnumMap<>(Provider.class);
 		oidcClients.put(Provider.KAKAO, kakaoClient);
+		oidcClients.put(Provider.APPLE, appleClient);
 	}
 
 	public OidcClient getOidcClient(final Provider provider) {
 		return Optional.ofNullable(oidcClients.get(provider))
-			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_PROVIDER));
+			.orElseThrow(() -> new ServerException(AuthErrorResult.INVALID_PROVIDER));
 	}
 
 }

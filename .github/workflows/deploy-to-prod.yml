@@ -1,17 +1,17 @@
-name: Deployment to Staging Server
+name: Deploy to Production Server
 
 on:
   push:
-    branches: [stg]
+    branches: [main]
 
 env:
-  AWS_IAM_ROLE_TO_ASSUME: ${{ secrets.STG_AWS_IAM_ROLE_TO_ASSUME }}
-  AWS_REGION: ${{ vars.STG_AWS_REGION }}
-  ECR_REPOSITORY: ${{ vars.STG_ECR_REPOSITORY }}
-  ECS_SERVICE: ${{ vars.STG_ECS_SERVICE }}
-  ECS_CLUSTER: ${{ vars.STG_ECS_CLUSTER }}
-  ECS_TASK_DEFINITION: ${{ vars.STG_ECS_TASK_DEFINITION }}
-  CONTAINER_NAME: ${{ vars.STG_CONTAINER_NAME }}
+  AWS_IAM_ROLE_TO_ASSUME: ${{ secrets.PROD_AWS_IAM_ROLE_TO_ASSUME }}
+  AWS_REGION: ${{ vars.PROD_AWS_REGION }}
+  ECR_REPOSITORY: ${{ vars.PROD_ECR_REPOSITORY }}
+  ECS_SERVICE: ${{ vars.PROD_ECS_SERVICE }}
+  ECS_CLUSTER: ${{ vars.PROD_ECS_CLUSTER }}
+  ECS_TASK_DEFINITION: ${{ vars.PROD_ECS_TASK_DEFINITION }}
+  CONTAINER_NAME: ${{ vars.PROD_CONTAINER_NAME }}
   DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 
 permissions:
@@ -84,8 +84,8 @@ jobs:
           SHORT_SHA: ${{ steps.set-sha.outputs.short_sha }}
         run: |
           IMAGE_TAG=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$SHORT_SHA
-          echo "Building and pushing image for staging: $IMAGE_TAG"
-          docker build --target stg -t $IMAGE_TAG .
+          echo "Building and pushing image: $IMAGE_TAG"
+          docker build --target prod -t $IMAGE_TAG .
           docker push $IMAGE_TAG
           echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -131,13 +131,13 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-          wait-for-minutes: 8
+          wait-for-minutes: 10
 
       - name: Notify Success to Discord
         if: success()
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: "A new version (`${{ needs.build.outputs.short_sha }}`) has been deployed to the Staging Server 🚀"
+          args: "A new version (`${{ needs.build.outputs.short_sha }}`) has been deployed to Production Server 🚀"
         env:
           DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
           DISCORD_EMBEDS: |
@@ -145,7 +145,7 @@ jobs:
               {
                 "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Succeeded",
-                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: [View on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
                 "color": 10478271,
                 "fields": [
                   { "name": "Cluster", "value": "`${{ env.ECS_CLUSTER }}`", "inline": true },
@@ -180,7 +180,7 @@ jobs:
         if: failure()
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: "Deployment to Staging Server failed 😢"
+          args: "Deployment to Production Server failed 😢"
         env:
           DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
           DISCORD_EMBEDS: |
@@ -188,7 +188,7 @@ jobs:
               {
                 "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Failed",
-                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n**Action**: Attempted to roll back to the previous stable task definition.",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: [View on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n**Action**: Attempted to roll back to the previous stable task definition.",
                 "color": 13458524,
                 "fields": [
                   { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },

@@ -27,7 +27,8 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
@@ -71,7 +72,7 @@ jobs:
                 },
                 "title": "#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}",
                 "color": 10478271,
-                "description": "${{ github.event.pull_request.html_url }}",
+                "description": "[View on GitHub](${{ github.event.pull_request.html_url }})",
                 "fields": [
                   {
                     "name": "Base Branch",
@@ -102,7 +103,7 @@ jobs:
                 },
                 "title": "#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}",
                 "color": 13458524,
-                "description": "${{ github.event.pull_request.html_url }}",
+                "description": "[View on GitHub](${{ github.event.pull_request.html_url }})",
                 "fields": [
                   {
                     "name": "Base Branch",

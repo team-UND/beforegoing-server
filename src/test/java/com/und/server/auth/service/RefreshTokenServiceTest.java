@@ -18,9 +18,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.auth.entity.RefreshToken;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.repository.RefreshTokenRepository;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.exception.MemberErrorResult;
 
 @ExtendWith(MockitoExtension.class)
 class RefreshTokenServiceTest {
@@ -70,18 +71,18 @@ class RefreshTokenServiceTest {
 			() -> refreshTokenService.saveRefreshToken(memberId, null));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
 	@DisplayName("Throws an exception when validating with a null token")
-	void Given_NullToken_When_ValidateRefreshToken_Then_ThrowsException() {
+	void Given_NullToken_When_VerifyRefreshToken_Then_ThrowsException() {
 		// when
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> refreshTokenService.validateRefreshToken(memberId, null));
+			() -> refreshTokenService.verifyRefreshToken(memberId, null));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 	}
 
 	@Test
@@ -91,17 +92,17 @@ class RefreshTokenServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> refreshTokenService.saveRefreshToken(null, refreshTokenValue));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
 	@DisplayName("Throws an exception when validating a refresh token with a null member ID")
-	void Given_NullMemberId_When_ValidateRefreshToken_Then_ThrowsException() {
+	void Given_NullMemberId_When_VerifyRefreshToken_Then_ThrowsException() {
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> refreshTokenService.validateRefreshToken(null, refreshTokenValue));
+			() -> refreshTokenService.verifyRefreshToken(null, refreshTokenValue));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
@@ -111,12 +112,12 @@ class RefreshTokenServiceTest {
 		final ServerException exception = assertThrows(ServerException.class,
 			() -> refreshTokenService.deleteRefreshToken(null));
 
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_MEMBER_ID);
+		assertThat(exception.getErrorResult()).isEqualTo(MemberErrorResult.INVALID_MEMBER_ID);
 	}
 
 	@Test
 	@DisplayName("Succeeds validation if the provided token matches the stored one")
-	void Given_MatchingToken_When_ValidateRefreshToken_Then_Succeeds() {
+	void Given_MatchingToken_When_VerifyRefreshToken_Then_Succeeds() {
 		// given
 		final RefreshToken savedToken = RefreshToken.builder()
 			.memberId(memberId)
@@ -125,12 +126,12 @@ class RefreshTokenServiceTest {
 		doReturn(Optional.of(savedToken)).when(refreshTokenRepository).findById(memberId);
 
 		// when & then
-		assertDoesNotThrow(() -> refreshTokenService.validateRefreshToken(memberId, refreshTokenValue));
+		assertDoesNotThrow(() -> refreshTokenService.verifyRefreshToken(memberId, refreshTokenValue));
 	}
 
 	@Test
 	@DisplayName("Throws an exception and deletes the token if it does not match")
-	void Given_MismatchedToken_When_ValidateRefreshToken_Then_ThrowsExceptionAndDeletes() {
+	void Given_MismatchedToken_When_VerifyRefreshToken_Then_ThrowsExceptionAndDeletes() {
 		// given
 		final RefreshToken savedToken = RefreshToken.builder()
 			.memberId(memberId)
@@ -140,16 +141,16 @@ class RefreshTokenServiceTest {
 
 		// when
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> refreshTokenService.validateRefreshToken(memberId, "wrong-token"));
+			() -> refreshTokenService.verifyRefreshToken(memberId, "wrong-token"));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenRepository).deleteById(memberId);
 	}
 
 	@Test
 	@DisplayName("Throws an exception if the stored token value is null")
-	void Given_StoredTokenWithValueNull_When_ValidateRefreshToken_Then_ThrowsException() {
+	void Given_StoredTokenWithValueNull_When_VerifyRefreshToken_Then_ThrowsException() {
 		// given
 		final RefreshToken savedTokenWithNullValue = RefreshToken.builder()
 			.memberId(memberId)
@@ -159,25 +160,25 @@ class RefreshTokenServiceTest {
 
 		// when
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> refreshTokenService.validateRefreshToken(memberId, refreshTokenValue));
+			() -> refreshTokenService.verifyRefreshToken(memberId, refreshTokenValue));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenRepository).deleteById(memberId);
 	}
 
 	@Test
 	@DisplayName("Throws an exception if no token is stored for validation")
-	void Given_NoStoredToken_When_ValidateRefreshToken_Then_ThrowsException() {
+	void Given_NoStoredToken_When_VerifyRefreshToken_Then_ThrowsException() {
 		// given
 		doReturn(Optional.empty()).when(refreshTokenRepository).findById(memberId);
 
 		// when
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> refreshTokenService.validateRefreshToken(memberId, refreshTokenValue));
+			() -> refreshTokenService.verifyRefreshToken(memberId, refreshTokenValue));
 
 		// then
-		assertThat(exception.getErrorResult()).isEqualTo(ServerErrorResult.INVALID_TOKEN);
+		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
 		verify(refreshTokenRepository).deleteById(memberId);
 	}
 

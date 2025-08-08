@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.auth.dto.OidcPublicKeys;
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,41 +22,54 @@ class OidcProviderFactoryTest {
 	private KakaoProvider kakaoProvider;
 
 	@Mock
+	private AppleProvider appleProvider;
+
+	@Mock
 	private OidcPublicKeys oidcPublicKeys;
 
 	private OidcProviderFactory factory;
 
 	private final String token = "dummyToken";
 	private final String providerId = "dummyId";
-	private final String nickname = "dummyNickname";
 
 	@BeforeEach
 	void init() {
-		factory = new OidcProviderFactory(kakaoProvider);
+		factory = new OidcProviderFactory(kakaoProvider, appleProvider);
 	}
 
 	@Test
 	@DisplayName("Throws an exception when the provider is null")
-	void Given_NullProvider_When_GetIdTokenPayload_Then_ThrowsServerException() {
+	void Given_NullProvider_When_GetProviderId_Then_ThrowsServerException() {
 		// when & then
-		assertThatThrownBy(() -> factory.getIdTokenPayload(null, token, oidcPublicKeys))
-			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ServerErrorResult.INVALID_PROVIDER);
+		assertThatThrownBy(() -> factory.getProviderId(null, token, oidcPublicKeys))
+				.isInstanceOf(ServerException.class)
+				.hasFieldOrPropertyWithValue("errorResult", AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
-	@DisplayName("Retrieves ID token payload successfully for a given provider")
-	void Given_ValidProvider_When_GetIdTokenPayload_Then_ReturnsCorrectPayload() {
+	@DisplayName("Retrieves Provider ID successfully for the Kakao provider")
+	void Given_KakaoProvider_When_GetProviderId_Then_ReturnsCorrectProviderId() {
 		// given
-		final IdTokenPayload expectedPayload = new IdTokenPayload(providerId, nickname);
-
-		doReturn(expectedPayload).when(kakaoProvider).getIdTokenPayload(token, oidcPublicKeys);
+		doReturn(providerId).when(kakaoProvider).getProviderId(token, oidcPublicKeys);
 
 		// when
-		final IdTokenPayload actualPayload = factory.getIdTokenPayload(Provider.KAKAO, token, oidcPublicKeys);
+		final String actualProviderId = factory.getProviderId(Provider.KAKAO, token, oidcPublicKeys);
 
 		// then
-		assertThat(actualPayload).isEqualTo(expectedPayload);
+		assertThat(actualProviderId).isEqualTo(providerId);
+	}
+
+	@Test
+	@DisplayName("Retrieves Provider ID successfully for the Apple provider")
+	void Given_AppleProvider_When_GetProviderId_Then_ReturnsCorrectProviderId() {
+		// given
+		doReturn(providerId).when(appleProvider).getProviderId(token, oidcPublicKeys);
+
+		// when
+		final String actualProviderId = factory.getProviderId(Provider.APPLE, token, oidcPublicKeys);
+
+		// then
+		assertThat(actualProviderId).isEqualTo(providerId);
 	}
 
 }

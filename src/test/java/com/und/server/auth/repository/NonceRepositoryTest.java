@@ -20,8 +20,8 @@ class NonceRepositoryTest {
 	private NonceRepository nonceRepository;
 
 	@Test
-	@DisplayName("Saves a nonce and verifies the returned entity")
-	void Given_Nonce_When_Save_Then_ReturnsSavedNonce() {
+	@DisplayName("Saves a Kakao nonce and verifies the returned entity")
+	void Given_KakaoNonce_When_Save_Then_ReturnsSavedNonce() {
 		// given
 		final String nonceValue = UUID.randomUUID().toString();
 		final Provider provider = Provider.KAKAO;
@@ -40,8 +40,28 @@ class NonceRepositoryTest {
 	}
 
 	@Test
-	@DisplayName("Finds an existing nonce by its ID")
-	void Given_ExistingNonce_When_FindById_Then_ReturnsCorrectNonce() {
+	@DisplayName("Saves an Apple nonce and verifies the returned entity")
+	void Given_AppleNonce_When_Save_Then_ReturnsSavedNonce() {
+		// given
+		final String nonceValue = UUID.randomUUID().toString();
+		final Provider provider = Provider.APPLE;
+		final Nonce nonce = Nonce.builder()
+			.value(nonceValue)
+			.provider(provider)
+			.build();
+
+		// when
+		final Nonce savedNonce = nonceRepository.save(nonce);
+
+		// then
+		assertThat(savedNonce).isNotNull();
+		assertThat(savedNonce.getValue()).isEqualTo(nonceValue);
+		assertThat(savedNonce.getProvider()).isEqualTo(provider);
+	}
+
+	@Test
+	@DisplayName("Finds an existing Kakao nonce by its ID")
+	void Given_ExistingKakaoNonce_When_FindById_Then_ReturnsCorrectNonce() {
 		// given
 		final String nonceValue = UUID.randomUUID().toString();
 		final Provider provider = Provider.KAKAO;
@@ -62,8 +82,30 @@ class NonceRepositoryTest {
 	}
 
 	@Test
-	@DisplayName("Deletes an existing nonce successfully")
-	void Given_ExistingNonce_When_DeleteById_Then_NonceIsRemoved() {
+	@DisplayName("Finds an existing Apple nonce by its ID")
+	void Given_ExistingAppleNonce_When_FindById_Then_ReturnsCorrectNonce() {
+		// given
+		final String nonceValue = UUID.randomUUID().toString();
+		final Provider provider = Provider.APPLE;
+		final Nonce nonce = Nonce.builder()
+			.value(nonceValue)
+			.provider(provider)
+			.build();
+		nonceRepository.save(nonce);
+
+		// when
+		final Optional<Nonce> foundNonceOptional = nonceRepository.findById(nonceValue);
+
+		// then
+		assertThat(foundNonceOptional).isPresent().hasValueSatisfying(foundNonce -> {
+			assertThat(foundNonce.getValue()).isEqualTo(nonceValue);
+			assertThat(foundNonce.getProvider()).isEqualTo(provider);
+		});
+	}
+
+	@Test
+	@DisplayName("Deletes an existing Kakao nonce successfully")
+	void Given_ExistingKakaoNonce_When_DeleteById_Then_NonceIsRemoved() {
 		// given
 		final String nonceValue = UUID.randomUUID().toString();
 		final Provider provider = Provider.KAKAO;
@@ -71,6 +113,25 @@ class NonceRepositoryTest {
 				.value(nonceValue)
 				.provider(provider)
 				.build();
+		nonceRepository.save(nonce);
+
+		// when
+		nonceRepository.deleteById(nonceValue);
+
+		// then
+		assertThat(nonceRepository.findById(nonceValue)).isNotPresent();
+	}
+
+	@Test
+	@DisplayName("Deletes an existing Apple nonce successfully")
+	void Given_ExistingAppleNonce_When_DeleteById_Then_NonceIsRemoved() {
+		// given
+		final String nonceValue = UUID.randomUUID().toString();
+		final Provider provider = Provider.APPLE;
+		final Nonce nonce = Nonce.builder()
+			.value(nonceValue)
+			.provider(provider)
+			.build();
 		nonceRepository.save(nonce);
 
 		// when

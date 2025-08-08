@@ -2,7 +2,7 @@ package com.und.server.auth.dto;
 
 import java.util.List;
 
-import com.und.server.common.exception.ServerErrorResult;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.common.exception.ServerException;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +16,6 @@ public record OidcPublicKeys(
 		return keys.stream()
 			.filter(key -> key.kid().equals(kid) && key.alg().equals(alg))
 			.findAny()
-			.orElseThrow(() -> new ServerException(ServerErrorResult.PUBLIC_KEY_NOT_FOUND));
+			.orElseThrow(() -> new ServerException(AuthErrorResult.PUBLIC_KEY_NOT_FOUND));
 	}
 }

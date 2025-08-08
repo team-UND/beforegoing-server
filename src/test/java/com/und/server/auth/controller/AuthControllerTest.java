@@ -29,10 +29,11 @@ import com.und.server.auth.dto.AuthResponse;
 import com.und.server.auth.dto.NonceRequest;
 import com.und.server.auth.dto.NonceResponse;
 import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;
+import com.und.server.common.exception.CommonErrorResult;
 import com.und.server.common.exception.GlobalExceptionHandler;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,7 +76,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
@@ -86,7 +87,7 @@ class AuthControllerTest {
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("facebook");
 		final String requestBody = objectMapper.writeValueAsString(request);
-		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
+		final AuthErrorResult errorResult = AuthErrorResult.INVALID_PROVIDER;
 
 		doThrow(new ServerException(errorResult))
 			.when(authService).handshake(request);
@@ -105,8 +106,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Succeeds handshake and returns nonce for a valid request")
-	void Given_ValidHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+	@DisplayName("Succeeds handshake and returns nonce for a valid Kakao request")
+	void Given_ValidKakaoHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("kakao");
@@ -127,6 +128,28 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Succeeds handshake and returns nonce for a valid Apple request")
+	void Given_ValidAppleHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+		// given
+		final String url = "/v1/auth/nonce";
+		final NonceRequest request = new NonceRequest("apple");
+		final NonceResponse response = new NonceResponse("generated-nonce-for-apple");
+
+		doReturn(response).when(authService).handshake(request);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.nonce").value("generated-nonce-for-apple"));
+	}
+
+	@Test
 	@DisplayName("Fails login with bad request when provider is null")
 	void Given_LoginRequestWithNullProvider_When_Login_Then_ReturnsBadRequest() throws Exception {
 		// given
@@ -143,7 +166,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Provider name must not be blank"));
 	}
 
@@ -164,7 +187,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("ID Token must not be blank"));
 	}
 
@@ -175,7 +198,7 @@ class AuthControllerTest {
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("facebook", "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
-		final ServerErrorResult errorResult = ServerErrorResult.INVALID_PROVIDER;
+		final AuthErrorResult errorResult = AuthErrorResult.INVALID_PROVIDER;
 
 		doThrow(new ServerException(errorResult))
 			.when(authService).login(request);
@@ -200,7 +223,7 @@ class AuthControllerTest {
 		final String url = "/v1/auth/login";
 		final AuthRequest request = new AuthRequest("kakao", "dummy.id.token");
 		final String requestBody = objectMapper.writeValueAsString(request);
-		final ServerErrorResult errorResult = ServerErrorResult.UNKNOWN_EXCEPTION;
+		final CommonErrorResult errorResult = CommonErrorResult.UNKNOWN_EXCEPTION;
 
 		doThrow(new RuntimeException("A wild unexpected error appeared!"))
 			.when(authService).login(request);
@@ -219,8 +242,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Succeeds login and issues tokens for a valid request")
-	void Given_ValidLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
+	@DisplayName("Succeeds login and issues tokens for a valid Kakao request")
+	void Given_ValidKakaoLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
 		// given
 		final String url = "/v1/auth/login";
 		final AuthRequest authRequest = new AuthRequest("kakao", "dummy.id.token");
@@ -258,6 +281,43 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Succeeds login and issues tokens for a valid Apple request")
+	void Given_ValidAppleLoginRequest_When_Login_Then_ReturnsOkWithTokens() throws Exception {
+		// given
+		final String url = "/v1/auth/login";
+		final AuthRequest authRequest = new AuthRequest("apple", "dummy.id.token");
+		final AuthResponse authResponse = new AuthResponse(
+			"Bearer",
+			"dummy.access.token",
+			10000,
+			"dummy.refresh.token",
+			20000
+		);
+
+		doReturn(authResponse).when(authService).login(authRequest);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(objectMapper.writeValueAsString(authRequest))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// then
+		final AuthResponse response = objectMapper.readValue(
+			resultActions
+				.andReturn()
+				.getResponse()
+				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
+		);
+
+		resultActions.andExpect(status().isOk());
+		assertThat(response.tokenType()).isEqualTo("Bearer");
+		assertThat(response.accessToken()).isEqualTo("dummy.access.token");
+		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
+	}
+
+	@Test
 	@DisplayName("Fails token refresh with bad request when access token is null")
 	void Given_RefreshTokenRequestWithNullAccessToken_When_ReissueTokens_Then_ReturnsBadRequest() throws Exception {
 		// given
@@ -274,7 +334,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Access Token must not be blank"));
 	}
 
@@ -295,7 +355,7 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Refresh Token must not be blank"));
 	}
 
@@ -343,7 +403,7 @@ class AuthControllerTest {
 	void Given_UnauthenticatedUser_When_Logout_Then_ReturnsUnauthorized() throws Exception {
 		// given
 		final String url = "/v1/auth/logout";
-		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doThrow(new ServerException(errorResult))

@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.auth.entity.Nonce;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.repository.NonceRepository;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 
 import lombok.RequiredArgsConstructor;
@@ -25,13 +25,13 @@ public class NonceService {
 	}
 
 	@Transactional
-	public void validateNonce(final String value, final Provider provider) {
+	public void verifyNonce(final String value, final Provider provider) {
 		validateNonceValue(value);
 		validateProvider(provider);
 
 		nonceRepository.findById(value)
 			.filter(n -> n.getProvider() == provider)
-			.orElseThrow(() -> new ServerException(ServerErrorResult.INVALID_NONCE));
+			.orElseThrow(() -> new ServerException(AuthErrorResult.INVALID_NONCE));
 
 		nonceRepository.deleteById(value);
 	}
@@ -51,13 +51,13 @@ public class NonceService {
 
 	private void validateNonceValue(final String value) {
 		if (value == null) {
-			throw new ServerException(ServerErrorResult.INVALID_NONCE);
+			throw new ServerException(AuthErrorResult.INVALID_NONCE);
 		}
 	}
 
 	private void validateProvider(final Provider provider) {
 		if (provider == null) {
-			throw new ServerException(ServerErrorResult.INVALID_PROVIDER);
+			throw new ServerException(AuthErrorResult.INVALID_PROVIDER);
 		}
 	}
 

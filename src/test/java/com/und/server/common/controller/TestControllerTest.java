@@ -25,14 +25,15 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.auth.dto.AuthResponse;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;
 import com.und.server.common.dto.TestAuthRequest;
 import com.und.server.common.exception.GlobalExceptionHandler;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.entity.Member;
+import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;
 
 @ExtendWith(MockitoExtension.class)
@@ -66,7 +67,7 @@ class TestControllerTest {
 	void Given_ExistingMember_When_RequestAccessToken_Then_ReturnsOkWithTokens() throws Exception {
 		// given
 		final String url = "/v1/test/access";
-		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id", "Chori");
+		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id");
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
 			"access-token",
@@ -100,7 +101,7 @@ class TestControllerTest {
 	void Given_NonExistingMember_When_RequestAccessToken_Then_CreatesMemberAndReturnsOkWithTokens() throws Exception {
 		// given
 		final String url = "/v1/test/access";
-		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456", "Newbie");
+		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456");
 		final AuthResponse expectedResponse = new AuthResponse(
 			"Bearer",
 			"new-access-token",
@@ -137,7 +138,7 @@ class TestControllerTest {
 		final String url = "/v1/test/hello";
 		final Long memberId = 3L;
 
-		doThrow(new ServerException(ServerErrorResult.MEMBER_NOT_FOUND)).when(memberService).findMemberById(memberId);
+		doThrow(new ServerException(MemberErrorResult.MEMBER_NOT_FOUND)).when(memberService).findMemberById(memberId);
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
 
@@ -148,8 +149,8 @@ class TestControllerTest {
 
 		// then
 		result.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.MEMBER_NOT_FOUND.name()))
-			.andExpect(jsonPath("$.message").value(ServerErrorResult.MEMBER_NOT_FOUND.getMessage()));
+			.andExpect(jsonPath("$.code").value(MemberErrorResult.MEMBER_NOT_FOUND.name()))
+			.andExpect(jsonPath("$.message").value(MemberErrorResult.MEMBER_NOT_FOUND.getMessage()));
 	}
 
 	@Test
@@ -157,7 +158,7 @@ class TestControllerTest {
 	void Given_UnauthenticatedUser_When_Greet_Then_ReturnsUnauthorized() throws Exception {
 		// given
 		final String url = "/v1/test/hello";
-		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doThrow(new ServerException(errorResult))
@@ -197,35 +198,13 @@ class TestControllerTest {
 	}
 
 	@Test
-	@DisplayName("Returns a default greeting for an authenticated user without a nickname")
-	void Given_AuthenticatedUserWithoutNickname_When_Greet_Then_ReturnsOkWithDefaultMessage() throws Exception {
-		// given
-		final String url = "/v1/test/hello";
-		final Long memberId = 2L;
-		final Member member = Member.builder().id(memberId).nickname(null).build();
-
-		doReturn(member).when(memberService).findMemberById(memberId);
-		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
-		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
-
-		// when
-		final ResultActions result = mockMvc.perform(
-			MockMvcRequestBuilders.get(url)
-		);
-
-		// then
-		result.andExpect(status().isOk())
-			.andExpect(jsonPath("$.message").value("Hello, Member!"));
-	}
-
-	@Test
 	@DisplayName("Retrieves all members and returns them as a list of MemberResponse DTOs")
 	void Given_ExistingMembers_When_GetMemberList_Then_ReturnsListOfMemberResponses() throws Exception {
 		// given
 		final String url = "/v1/test/members";
 		final List<MemberResponse> expectedResponse = List.of(
-			new MemberResponse(1L, "user1", "123", null, null),
-			new MemberResponse(2L, "user2", "456", null, null)
+			new MemberResponse(1L, "user1", "dummyKakaoId", null, null, null),
+			new MemberResponse(2L, "user2", null, "dummyAppleId", null, null)
 		);
 		doReturn(expectedResponse).when(memberService).getMemberList();
 

@@ -21,9 +21,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
+import com.und.server.common.exception.CommonErrorResult;
 import com.und.server.common.exception.GlobalExceptionHandler;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.MemberResponse;
 import com.und.server.member.dto.NicknameRequest;
@@ -73,7 +74,7 @@ class MemberControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(ServerErrorResult.INVALID_PARAMETER.name()))
+			.andExpect(jsonPath("$.code").value(CommonErrorResult.INVALID_PARAMETER.name()))
 			.andExpect(jsonPath("$.message[0]").value("Nickname must not be blank"));
 	}
 
@@ -84,7 +85,7 @@ class MemberControllerTest {
 		final String url = "/v1/member/nickname";
 		final NicknameRequest request = new NicknameRequest("new-nickname");
 		final String requestBody = objectMapper.writeValueAsString(request);
-		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doThrow(new ServerException(errorResult))
@@ -111,7 +112,7 @@ class MemberControllerTest {
 		final Long memberId = 1L;
 		final String newNickname = "new-nickname";
 		final NicknameRequest request = new NicknameRequest(newNickname);
-		final MemberResponse response = new MemberResponse(memberId, newNickname, null, null, null);
+		final MemberResponse response = new MemberResponse(memberId, newNickname, null, null, null, null);
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
@@ -135,7 +136,7 @@ class MemberControllerTest {
 	void Given_UnauthenticatedUser_When_DeleteMember_Then_ReturnsUnauthorized() throws Exception {
 		// given
 		final String url = "/v1/member";
-		final ServerErrorResult errorResult = ServerErrorResult.UNAUTHORIZED_ACCESS;
+		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
 		doThrow(new ServerException(errorResult))

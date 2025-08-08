@@ -6,9 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.auth.entity.RefreshToken;
+import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.repository.RefreshTokenRepository;
-import com.und.server.common.exception.ServerErrorResult;
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.exception.MemberErrorResult;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +25,7 @@ public class RefreshTokenService {
 	}
 
 	@Transactional
-	public void validateRefreshToken(final Long memberId, final String providedToken) {
+	public void verifyRefreshToken(final Long memberId, final String providedToken) {
 		validateMemberIdIsNotNull(memberId);
 		validateTokenValueIsNotNull(providedToken);
 
@@ -33,7 +34,7 @@ public class RefreshTokenService {
 			.filter(savedToken -> providedToken.equals(savedToken))
 			.orElseThrow(() -> {
 				deleteRefreshToken(memberId);
-				return new ServerException(ServerErrorResult.INVALID_TOKEN);
+				return new ServerException(AuthErrorResult.INVALID_TOKEN);
 			});
 	}
 
@@ -59,13 +60,13 @@ public class RefreshTokenService {
 
 	private void validateMemberIdIsNotNull(final Long memberId) {
 		if (memberId == null) {
-			throw new ServerException(ServerErrorResult.INVALID_MEMBER_ID);
+			throw new ServerException(MemberErrorResult.INVALID_MEMBER_ID);
 		}
 	}
 
 	private void validateTokenValueIsNotNull(final String token) {
 		if (token == null) {
-			throw new ServerException(ServerErrorResult.INVALID_TOKEN);
+			throw new ServerException(AuthErrorResult.INVALID_TOKEN);
 		}
 	}
 
