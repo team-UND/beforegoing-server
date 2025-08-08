@@ -144,16 +144,33 @@ public class MissionService {
 
 
 	@Transactional
-	public void deleteTodayMission(Long memberId, Long missionId) {
-		Mission mission = missionRepository.findById(missionId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
+	public void updateMissionCheck(Long memberId, Long missionId, Boolean isChecked) {
+		Mission mission = findMissionById(missionId);
+		validateMissionAccessibleMember(mission, memberId);
 
+		mission.setIsChecked(isChecked);
+	}
+
+
+	@Transactional
+	public void deleteTodayMission(Long memberId, Long missionId) {
+		Mission mission = findMissionById(missionId);
+		validateMissionAccessibleMember(mission, memberId);
+
+		missionRepository.delete(mission);
+	}
+
+
+	private Mission findMissionById(Long missionId) {
+		return missionRepository.findById(missionId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
+	}
+
+	private void validateMissionAccessibleMember(Mission mission, Long memberId) {
 		Member member = mission.getScenario().getMember();
 		if (!memberId.equals(member.getId())) {
 			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
 		}
-
-		missionRepository.delete(mission);
 	}
 
 }

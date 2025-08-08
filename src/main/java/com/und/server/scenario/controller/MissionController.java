@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,7 @@ import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -54,6 +56,18 @@ public class MissionController {
 		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
 		scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+
+	@PatchMapping("/missions/{missionId}")
+	public ResponseEntity<Void> updateMissionCheck(
+		@AuthMember Long memberId,
+		@PathVariable Long missionId,
+		@RequestBody @NotNull Boolean isChecked
+	) {
+		missionService.updateMissionCheck(memberId, missionId, isChecked);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
