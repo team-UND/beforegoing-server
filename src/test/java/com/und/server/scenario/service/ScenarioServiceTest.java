@@ -389,5 +389,20 @@ class ScenarioServiceTest {
 		assertThat(saved.getOrder()).isEqualTo(reorderedOrder);
 	}
 
+	@Test
+	void Given_PastDate_When_AddTodayMissionToScenario_Then_ThrowException() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 10L;
+		LocalDate pastDate = LocalDate.now().minusDays(1);
+
+		TodayMissionRequest request = new TodayMissionRequest("Past Mission");
+
+		// when & then
+		assertThatThrownBy(() ->
+			scenarioService.addTodayMissionToScenario(memberId, scenarioId, request, pastDate)
+		).isInstanceOf(ServerException.class)
+			.hasMessageContaining(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE.getMessage());
+	}
 
 }
