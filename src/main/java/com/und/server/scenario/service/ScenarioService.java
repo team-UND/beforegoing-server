@@ -55,17 +55,9 @@ public class ScenarioService {
 
 
 	@Transactional(readOnly = true)
-	public Scenario findScenarioByScenarioId(Long memberId, Long scenarioId) {
-		return scenarioRepository.findByIdAndMemberId(memberId, scenarioId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-	}
-
-
-	@Transactional(readOnly = true)
 	public ScenarioDetailResponse findScenarioDetailByScenarioId(Long memberId, Long scenarioId) {
-		LocalDate today = LocalDate.now();
-
-		Scenario scenario = scenarioRepository.findByIdWithDefaultMissions(memberId, scenarioId, today)
+		Scenario scenario = scenarioRepository.findByIdWithDefaultBasicMissions(
+				memberId, scenarioId, MissionType.BASIC)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		List<Mission> groupdBasicMissionList =
@@ -92,7 +84,8 @@ public class ScenarioService {
 			throw new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE);
 		}
 
-		Scenario scenario = findScenarioByScenarioId(memberId, scenarioId);
+		Scenario scenario = scenarioRepository.findByIdAndMemberId(memberId, scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		missionService.addTodayMission(scenario, missionAddInfo, date);
 	}
@@ -141,7 +134,9 @@ public class ScenarioService {
 
 	@Transactional
 	public void updateScenario(Long memberId, Long scenarioId, ScenarioDetailRequest scenarioInfo) {
-		Scenario oldSCenario = findScenarioByScenarioId(memberId, scenarioId);
+		Scenario oldSCenario = scenarioRepository.findByIdWithDefaultBasicMissions(
+				memberId, scenarioId, MissionType.BASIC)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		Notification newNotification = notificationService.updateNotification(
 			oldSCenario.getNotification(),
@@ -155,6 +150,16 @@ public class ScenarioService {
 		oldSCenario.setScenarioName(scenarioInfo.getScenarioName());
 		oldSCenario.setMemo(scenarioInfo.getMemo());
 		oldSCenario.setNotification(newNotification);
+	}
+
+
+	@Transactional
+	public void deleteScenarioWithAllMissions(Long memberId, Long scenarioId) {
+		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+
+		notificationService.deleteNotification(scenario.getNotification());
+		scenarioRepository.delete(scenario);
 	}
 
 
