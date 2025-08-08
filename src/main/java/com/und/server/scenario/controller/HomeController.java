@@ -1,5 +1,6 @@
 package com.und.server.scenario.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -35,10 +36,11 @@ public class HomeController {
 	) {
 		List<ScenarioResponse> scenarios = scenarioService.findScenariosByMemberId(memberId, notifType);
 
+		LocalDate today = LocalDate.now();
 		MissionGroupResponse missions = null;
 		if (!scenarios.isEmpty()) {
 			Long firstScenarioId = scenarios.get(0).getScenarioId();
-			missions = missionService.findMissionsByScenarioId(memberId, firstScenarioId);
+			missions = missionService.findMissionsByScenarioId(memberId, firstScenarioId, today);
 		}
 
 		HomeResponse response = HomeResponse.builder()

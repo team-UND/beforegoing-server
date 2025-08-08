@@ -1,5 +1,6 @@
 package com.und.server.scenario.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
+import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.MissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
@@ -53,16 +55,18 @@ public class ScenarioService {
 
 
 	@Transactional(readOnly = true)
-	public Scenario findScenarioByScenarioId(Long scenarioId) {
-		return scenarioRepository.findById(scenarioId)
+	public Scenario findScenarioByScenarioId(Long memberId, Long scenarioId) {
+		return scenarioRepository.findByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 	}
 
 
 	@Transactional(readOnly = true)
-	public ScenarioDetailResponse findScenarioByScenarioId(Long memberId, Long scenarioId) {
-		Scenario scenario = findScenarioByScenarioId(scenarioId);
-		validateScenarioAccessMember(memberId, scenario);
+	public ScenarioDetailResponse findScenarioDetailByScenarioId(Long memberId, Long scenarioId) {
+		LocalDate today = LocalDate.now();
+
+		Scenario scenario = scenarioRepository.findByIdWithDefaultMissions(memberId, scenarioId, today)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		List<Mission> groupdBasicMissionList =
 			missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC);
@@ -76,11 +80,21 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void addTodayMissionToScenario(Long memberId, Long scenarioId, TodayMissionRequest missionAddInfo) {
-		Scenario scenario = findScenarioByScenarioId(scenarioId);
-		validateScenarioAccessMember(memberId, scenario);
+	public void addTodayMissionToScenario(
+		Long memberId,
+		Long scenarioId,
+		TodayMissionRequest missionAddInfo,
+		LocalDate date
+	) {
+		LocalDate today = LocalDate.now();
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
+		if (missionSearchType == MissionSearchType.PAST) {
+			throw new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE);
+		}
 
-		missionService.addTodayMission(scenario, missionAddInfo);
+		Scenario scenario = findScenarioByScenarioId(memberId, scenarioId);
+
+		missionService.addTodayMission(scenario, missionAddInfo, date);
 	}
 
 
@@ -127,9 +141,7 @@ public class ScenarioService {
 
 	@Transactional
 	public void updateScenario(Long memberId, Long scenarioId, ScenarioDetailRequest scenarioInfo) {
-		Scenario oldSCenario = scenarioRepository.findById(scenarioId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-		validateScenarioAccessMember(memberId, oldSCenario);
+		Scenario oldSCenario = findScenarioByScenarioId(memberId, scenarioId);
 
 		Notification newNotification = notificationService.updateNotification(
 			oldSCenario.getNotification(),
@@ -145,12 +157,6 @@ public class ScenarioService {
 		oldSCenario.setNotification(newNotification);
 	}
 
-
-	private void validateScenarioAccessMember(Long requestMemberId, Scenario scenario) {
-		if (!scenario.isAccessibleMember(requestMemberId)) {
-			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
-		}
-	}
 
 	private ScenarioDetailResponse getScenarioDetailResponse(
 		Scenario scenario,

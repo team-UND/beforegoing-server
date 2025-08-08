@@ -1,5 +1,6 @@
 package com.und.server.scenario.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.common.exception.ServerException;
-import com.und.server.member.entity.Member;
+import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.MissionRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
@@ -33,17 +34,11 @@ public class MissionService {
 
 
 	@Transactional(readOnly = true)
-	public MissionGroupResponse findMissionsByScenarioId(Long memberId, Long scenarioId) {
-		List<Mission> missionList = missionRepository.findAllByScenarioId(scenarioId);
+	public MissionGroupResponse findMissionsByScenarioId(Long memberId, Long scenarioId, LocalDate date) {
+		List<Mission> missionList = getMissionListByDate(memberId, scenarioId, date);
 
 		if (missionList == null || missionList.isEmpty()) {
 			return MissionGroupResponse.of(List.of(), List.of());
-		}
-		for (Mission mission : missionList) {
-			Member member = mission.getScenario().getMember();
-			if (!memberId.equals(member.getId())) {
-				throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
-			}
 		}
 
 		List<Mission> groupedBasicMissionList =
@@ -54,13 +49,29 @@ public class MissionService {
 		return MissionGroupResponse.of(groupedBasicMissionList, groupedTodayMissionList);
 	}
 
+	private List<Mission> getMissionListByDate(Long memberId, Long scenarioId, LocalDate date) {
+		LocalDate today = LocalDate.now();
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
+
+		switch (missionSearchType) {
+			case TODAY -> {
+				return missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date);
+			}
+			case PAST, FUTURE -> {
+				return missionRepository.findMissionsByScenarioIdAndDate(memberId, scenarioId, date);
+			}
+		}
+		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
+	}
+
 
 	@Transactional
-	public void addTodayMission(Scenario scenario, TodayMissionRequest missionAddInfo) {
+	public void addTodayMission(Scenario scenario, TodayMissionRequest missionAddInfo, LocalDate date) {
 		Mission newMission = Mission.builder()
 			.scenario(scenario)
 			.content(missionAddInfo.content())
 			.isChecked(false)
+			.useDate(date)
 			.missionType(MissionType.TODAY)
 			.build();
 

@@ -55,16 +55,11 @@ public class Scenario extends BaseTimeEntity {
 	private Integer order;
 
 	@Setter
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
 	@JoinColumn(name = "notification_id")
 	private Notification notification;
 
 	@OneToMany(mappedBy = "scenario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Mission> missionList;
-
-
-	public boolean isAccessibleMember(Long memberId) {
-		return memberId.equals(this.member.getId());
-	}
 
 }

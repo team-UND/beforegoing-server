@@ -34,9 +34,9 @@ public class NotificationService {
 		NotificationConditionRequest notifConditionInfo
 	) {
 		Notification notification = notifInfo.toEntity();
-		notificationRepository.save(notification);
-
 		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
+
+		notificationRepository.save(notification);
 		notificationConditionSelector.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 
 		return notification;

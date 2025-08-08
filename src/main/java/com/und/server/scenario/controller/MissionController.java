@@ -1,5 +1,8 @@
 package com.und.server.scenario.controller;
 
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -8,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.filter.AuthMember;
@@ -32,9 +36,10 @@ public class MissionController {
 	@GetMapping("/scenarios/{scenarioId}/missions")
 	public ResponseEntity<MissionGroupResponse> getMissionsByScenarioId(
 		@AuthMember Long memberId,
-		@PathVariable Long scenarioId
+		@PathVariable Long scenarioId,
+		@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
-		MissionGroupResponse missionList = missionService.findMissionsByScenarioId(memberId, scenarioId);
+		MissionGroupResponse missionList = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		return ResponseEntity.ok().body(missionList);
 	}
@@ -44,9 +49,10 @@ public class MissionController {
 	public ResponseEntity<Void> addTodayMissionToScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
-		@RequestBody @Valid TodayMissionRequest missionAddRequest
+		@RequestBody @Valid TodayMissionRequest missionAddRequest,
+		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
-		scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest);
+		scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}

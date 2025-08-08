@@ -49,7 +49,8 @@ public class ScenarioController {
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId
 	) {
-		ScenarioDetailResponse scenarioDetail = scenarioService.findScenarioByScenarioId(memberId, scenarioId);
+		ScenarioDetailResponse scenarioDetail =
+			scenarioService.findScenarioDetailByScenarioId(memberId, scenarioId);
 
 		return ResponseEntity.ok().body(scenarioDetail);
 	}
