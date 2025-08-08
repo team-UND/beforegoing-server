@@ -1,30 +1,22 @@
 package com.und.server.scenario.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.auth.filter.AuthMemberArgumentResolver;
-import com.und.server.common.exception.GlobalExceptionHandler;
 import com.und.server.notification.constants.NotifType;
-import com.und.server.notification.dto.NofitDayOfWeekResponse;
-import com.und.server.notification.dto.TimeNotifResponse;
+import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
@@ -32,97 +24,183 @@ import com.und.server.scenario.service.ScenarioService;
 @ExtendWith(MockitoExtension.class)
 class ScenarioControllerTest {
 
-	@InjectMocks
-	private ScenarioController scenarioController;
-
-	@Mock
-	private AuthMemberArgumentResolver authMemberArgumentResolver;
-
 	@Mock
 	private ScenarioService scenarioService;
 
-	private MockMvc mockMvc;
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
-
-	@BeforeEach
-	void setUp() {
-		mockMvc = MockMvcBuilders.standaloneSetup(scenarioController)
-			.setCustomArgumentResolvers(authMemberArgumentResolver)
-			.setControllerAdvice(new GlobalExceptionHandler())
-			.build();
-	}
+	@InjectMocks
+	private ScenarioController scenarioController;
 
 
 	@Test
-	void Given_MemberId_When_GetScenario_Than_ReturnScenario() throws Exception {
+	void Given_ValidMemberIdAndNotifType_When_GetScenarios_Then_ReturnScenarioList() {
 		// given
-		final String url = "/v1/scenarios";
-		final Long memberId = 1L;
-		final List<ScenarioResponse> response = List.of(
-			ScenarioResponse.builder().scenarioId(1L).scenarioName("시나리오1").memo("메모1").order(1).build(),
-			ScenarioResponse.builder().scenarioId(2L).scenarioName("시나리오2").memo("메모2").order(2).build()
-		);
+		Long memberId = 1L;
+		NotifType notifType = NotifType.TIME;
 
-		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
-		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
-		doReturn(response).when(scenarioService).findScenariosByMemberId(memberId);
+		ScenarioResponse scenario1 = ScenarioResponse.builder()
+			.scenarioId(1L)
+			.scenarioName("시나리오 1")
+			.build();
+
+		ScenarioResponse scenario2 = ScenarioResponse.builder()
+			.scenarioId(2L)
+			.scenarioName("시나리오 2")
+			.build();
+
+		List<ScenarioResponse> expectedScenarios = Arrays.asList(scenario1, scenario2);
+
+		when(scenarioService.findScenariosByMemberId(memberId, notifType))
+			.thenReturn(expectedScenarios);
 
 		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.get(url)
-				.accept(MediaType.APPLICATION_JSON)
-		);
+		ResponseEntity<List<ScenarioResponse>> response = scenarioController.getScenarios(memberId, notifType);
 
 		// then
-		resultActions.andExpect(status().isOk())
-			.andExpect(jsonPath("$.length()").value(2))
-			.andExpect(jsonPath("$[0].scenarioId").value(1))
-			.andExpect(jsonPath("$[0].scenarioName").value("시나리오1"));
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedScenarios);
+		verify(scenarioService).findScenariosByMemberId(memberId, notifType);
 	}
 
 
 	@Test
-	void Given_MemberIdAndScenarioId_When_GetScenarioDetail_Then_ReturnScenarioDetailResponse() throws Exception {
+	void Given_ValidMemberIdAndScenarioId_When_GetScenarioDetail_Then_ReturnScenarioDetail() {
 		// given
-		final Long memberId = 1L;
-		final Long scenarioId = 10L;
-		final String url = "/v1/scenarios/" + scenarioId;
+		Long memberId = 1L;
+		Long scenarioId = 1L;
 
-		final TimeNotifResponse notifDetail = TimeNotifResponse.builder()
-			.hour(9)
-			.minute(30)
-			.build();
-
-		final ScenarioDetailResponse response = ScenarioDetailResponse.builder()
+		ScenarioDetailResponse expectedDetail = ScenarioDetailResponse.builder()
 			.scenarioId(scenarioId)
-			.scenarioName("기상 루틴")
-			.memo("간단한 메모")
-			.notificationId(100L)
-			.isActive(true)
-			.notificationType(NotifType.TIME)
-			.isEveryDay(true)
-			.dayOfWeekOrdinalList(List.of(new NofitDayOfWeekResponse(1L, 1)))
-			.notificationDetail(notifDetail)
-			.basicMissionList(List.of())
+			.scenarioName("시나리오 상세")
+			.memo("시나리오 설명")
 			.build();
 
-		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
-		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
-		doReturn(response).when(scenarioService).findScenarioByScenarioId(memberId, scenarioId);
+		when(scenarioService.findScenarioDetailByScenarioId(memberId, scenarioId))
+			.thenReturn(expectedDetail);
 
 		// when
-		final ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.get(url)
-				.accept(MediaType.APPLICATION_JSON)
-		);
+		ResponseEntity<ScenarioDetailResponse> response = scenarioController.getScenarioDetail(memberId, scenarioId);
 
 		// then
-		resultActions.andExpect(status().isOk())
-			.andExpect(jsonPath("$.scenarioId").value(scenarioId))
-			.andExpect(jsonPath("$.scenarioName").value("기상 루틴"))
-			.andExpect(jsonPath("$.notificationDetail.hour").value(9))
-			.andExpect(jsonPath("$.notificationDetail.minute").value(30));
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedDetail);
+		verify(scenarioService).findScenarioDetailByScenarioId(memberId, scenarioId);
+	}
+
+
+	@Test
+	void Given_ValidMemberIdAndScenarioRequest_When_AddScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("새 시나리오")
+			.memo("새 시나리오 설명")
+			.build();
+
+		// when
+		ResponseEntity<Void> response = scenarioController.addScenario(memberId, scenarioRequest);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).addScenario(memberId, scenarioRequest);
+	}
+
+
+	@Test
+	void Given_EmptyTitleRequest_When_AddScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("")
+			.memo("빈 제목 시나리오")
+			.build();
+
+		// when
+		ResponseEntity<Void> response = scenarioController.addScenario(memberId, scenarioRequest);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).addScenario(memberId, scenarioRequest);
+	}
+
+
+	@Test
+	void Given_ValidMemberIdAndScenarioIdAndRequest_When_UpdateScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("수정된 시나리오")
+			.memo("수정된 시나리오 설명")
+			.build();
+
+		// when
+		ResponseEntity<Void> response = scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).updateScenario(memberId, scenarioId, scenarioRequest);
+	}
+
+
+	@Test
+	void Given_EmptyTitleRequest_When_UpdateScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("")
+			.memo("수정된 빈 제목 시나리오")
+			.build();
+
+		// when
+		ResponseEntity<Void> response = scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).updateScenario(memberId, scenarioId, scenarioRequest);
+	}
+
+
+	@Test
+	void Given_LongTitleRequest_When_AddScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("매우 긴 시나리오 제목입니다")
+			.memo("긴 제목 시나리오")
+			.build();
+
+		// when
+		ResponseEntity<Void> response = scenarioController.addScenario(memberId, scenarioRequest);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).addScenario(memberId, scenarioRequest);
+	}
+
+
+	@Test
+	void Given_LongTitleRequest_When_UpdateScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("매우 긴 수정된 시나리오 제목입니다")
+			.memo("긴 제목 수정 시나리오")
+			.build();
+
+		// when
+		ResponseEntity<Void> response = scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).updateScenario(memberId, scenarioId, scenarioRequest);
 	}
 
 }
