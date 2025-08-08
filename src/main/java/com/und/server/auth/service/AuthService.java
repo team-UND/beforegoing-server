@@ -13,7 +13,6 @@ import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
 import com.und.server.auth.jwt.ParsedTokenInfo;
-import com.und.server.auth.oauth.IdTokenPayload;
 import com.und.server.auth.oauth.OidcClient;
 import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
@@ -41,12 +40,11 @@ public class AuthService {
 	private final RefreshTokenService refreshTokenService;
 	private final ProfileManager profileManager;
 
-	// FIXME: Remove this method when deleting TestController
 	@Transactional
 	public AuthResponse issueTokensForTest(final TestAuthRequest request) {
 		final Provider provider = convertToProvider(request.provider());
-		final IdTokenPayload idTokenPayload = new IdTokenPayload(request.providerId(), request.nickname());
-		final Member member = memberService.findOrCreateMember(provider, idTokenPayload);
+		final String providerId = request.providerId();
+		final Member member = memberService.findOrCreateMember(provider, providerId);
 
 		return issueTokens(member.getId());
 	}
@@ -64,8 +62,11 @@ public class AuthService {
 	@Transactional
 	public AuthResponse login(final AuthRequest authRequest) {
 		final Provider provider = convertToProvider(authRequest.provider());
-		final IdTokenPayload idTokenPayload = validateIdTokenAndGetPayload(provider, authRequest.idToken());
-		final Member member = memberService.findOrCreateMember(provider, idTokenPayload);
+		final String idToken = authRequest.idToken();
+
+		verifyIdTokenNonce(provider, idToken);
+		final String providerId = getProviderIdFromIdToken(provider, idToken);
+		final Member member = memberService.findOrCreateMember(provider, providerId);
 
 		return issueTokens(member.getId());
 	}
@@ -78,7 +79,7 @@ public class AuthService {
 		final Long memberId = getMemberIdForReissue(accessToken);
 
 		try {
-			memberService.validateMemberExists(memberId);
+			memberService.checkMemberExists(memberId);
 		} catch (final ServerException e) {
 			if (e.getErrorResult() == MemberErrorResult.MEMBER_NOT_FOUND) {
 				// The member ID is not null, but the member doesn't exist.
@@ -89,7 +90,7 @@ public class AuthService {
 			throw new ServerException(AuthErrorResult.INVALID_TOKEN, e);
 		}
 
-		refreshTokenService.validateRefreshToken(memberId, providedRefreshToken);
+		refreshTokenService.verifyRefreshToken(memberId, providedRefreshToken);
 
 		return issueTokens(memberId);
 	}
@@ -107,14 +108,16 @@ public class AuthService {
 		}
 	}
 
-	private IdTokenPayload validateIdTokenAndGetPayload(final Provider provider, final String idToken) {
+	private void verifyIdTokenNonce(final Provider provider, final String idToken) {
 		final String nonce = jwtProvider.extractNonce(idToken);
-		nonceService.validateNonce(nonce, provider);
+		nonceService.verifyNonce(nonce, provider);
+	}
 
+	private String getProviderIdFromIdToken(final Provider provider, final String idToken) {
 		final OidcClient oidcClient = oidcClientFactory.getOidcClient(provider);
 		final OidcPublicKeys oidcPublicKeys = oidcClient.getOidcPublicKeys();
 
-		return oidcProviderFactory.getIdTokenPayload(provider, idToken, oidcPublicKeys);
+		return oidcProviderFactory.getProviderId(provider, idToken, oidcPublicKeys);
 	}
 
 	private AuthResponse issueTokens(final Long memberId) {

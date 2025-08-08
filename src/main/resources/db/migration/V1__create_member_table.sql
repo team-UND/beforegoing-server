@@ -1,7 +1,10 @@
 CREATE TABLE member (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nickname VARCHAR(255),
+    nickname VARCHAR(255) NOT NULL DEFAULT '워리',
     kakao_id VARCHAR(255),
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    apple_id VARCHAR(255),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+	CONSTRAINT uk_kakao_id UNIQUE (kakao_id),
+    CONSTRAINT uk_apple_id UNIQUE (apple_id)
 );

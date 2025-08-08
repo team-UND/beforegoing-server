@@ -3,6 +3,7 @@ package com.und.server.common.controller;
 
 import java.util.List;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+// This controller is for testing/development and is disabled in prod/stg via @Profile.
+@Profile("!prod & !stg")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/test")
@@ -41,7 +44,7 @@ public class TestController {
 	@GetMapping("/hello")
 	public ResponseEntity<TestHelloResponse> greet(@Parameter(hidden = true) @AuthMember final Long memberId) {
 		final Member member = memberService.findMemberById(memberId);
-		final String nickname = member.getNickname() != null ? member.getNickname() : "Member";
+		final String nickname = member.getNickname();
 		final TestHelloResponse response = new TestHelloResponse("Hello, " + nickname + "!");
 
 		return ResponseEntity.status(HttpStatus.OK).body(response);

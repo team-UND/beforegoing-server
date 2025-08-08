@@ -25,7 +25,7 @@ public class NonceService {
 	}
 
 	@Transactional
-	public void validateNonce(final String value, final Provider provider) {
+	public void verifyNonce(final String value, final Provider provider) {
 		validateNonceValue(value);
 		validateProvider(provider);
 

@@ -11,9 +11,5 @@ public record TestAuthRequest(
 
 	@Schema(description = "Unique ID from the provider", example = "123456789")
 	@NotBlank(message = "Provider ID must not be blank")
-	String providerId,
-
-	@Schema(description = "User's nickname", example = "Chori")
-	@NotBlank(message = "Nickname must not be blank")
-	String nickname
+	String providerId
 ) { }

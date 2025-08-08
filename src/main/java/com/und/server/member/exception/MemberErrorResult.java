@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 public enum MemberErrorResult implements ErrorResult {
 
 	INVALID_MEMBER_ID(HttpStatus.BAD_REQUEST, "Invalid Member ID"),
-	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Member Not Found");
+	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "Member Not Found"),
+	DUPLICATE_KAKAO_ID(HttpStatus.CONFLICT, "Duplicate Kakao ID"),
+	DUPLICATE_APPLE_ID(HttpStatus.CONFLICT, "Duplicate Apple ID");
 
 	private final HttpStatus httpStatus;
 	private final String message;
