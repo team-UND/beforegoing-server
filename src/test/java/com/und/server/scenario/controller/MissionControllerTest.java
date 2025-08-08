@@ -114,4 +114,20 @@ class MissionControllerTest {
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
 
+
+	@Test
+	void Given_ValidMissionId_When_DeleteTodayMissionById_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+
+		// when
+		ResponseEntity<Void> response = missionController.deleteTodayMissionById(memberId, missionId);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(missionService).deleteTodayMission(memberId, missionId);
+	}
+
 }

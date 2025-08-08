@@ -1,6 +1,7 @@
 package com.und.server.scenario.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -17,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.MissionRequest;
@@ -24,6 +26,7 @@ import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.util.MissionTypeGrouper;
 
@@ -310,6 +313,87 @@ class MissionServiceTest {
 		// then
 		verify(missionRepository).deleteAllById(eq(List.of()));
 		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
+	}
+
+	@Test
+	void Given_ValidMissionIdAndAuthorizedMember_When_DeleteTodayMission_Then_DeleteMission() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+
+		Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(member)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("삭제할 미션")
+			.missionType(MissionType.TODAY)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+
+		// when
+		missionService.deleteTodayMission(memberId, missionId);
+
+		// then
+		verify(missionRepository).findById(missionId);
+		verify(missionRepository).delete(mission);
+	}
+
+	@Test
+	void Given_NonExistentMissionId_When_DeleteTodayMission_Then_ThrowNotFoundException() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 999L;
+
+		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.empty());
+
+		// when & then
+		assertThatThrownBy(() -> missionService.deleteTodayMission(memberId, missionId))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.NOT_FOUND_MISSION);
+		verify(missionRepository).findById(missionId);
+		verify(missionRepository, org.mockito.Mockito.never()).delete(any());
+	}
+
+	@Test
+	void Given_UnauthorizedMember_When_DeleteTodayMission_Then_ThrowUnauthorizedException() {
+		// given
+		Long authorizedMemberId = 1L;
+		Long unauthorizedMemberId = 2L;
+		Long missionId = 1L;
+
+		Member authorizedMember = Member.builder()
+			.id(authorizedMemberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(authorizedMember)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("삭제할 미션")
+			.missionType(MissionType.TODAY)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+
+		// when & then
+		assertThatThrownBy(() -> missionService.deleteTodayMission(unauthorizedMemberId, missionId))
+			.isInstanceOf(ServerException.class)
+			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.UNAUTHORIZED_ACCESS);
+		verify(missionRepository).findById(missionId);
+		verify(missionRepository, org.mockito.Mockito.never()).delete(any());
 	}
 
 }
