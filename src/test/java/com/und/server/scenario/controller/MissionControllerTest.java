@@ -1,101 +1,117 @@
 package com.und.server.scenario.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import com.und.server.auth.filter.AuthMemberArgumentResolver;
-import com.und.server.common.exception.GlobalExceptionHandler;
-import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
-import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.service.MissionService;
+import com.und.server.scenario.service.ScenarioService;
 
 @ExtendWith(MockitoExtension.class)
 class MissionControllerTest {
 
-	@InjectMocks
-	private MissionController missionController;
-
 	@Mock
-	private AuthMemberArgumentResolver authMemberArgumentResolver;
+	private ScenarioService scenarioService;
 
 	@Mock
 	private MissionService missionService;
 
-	private MockMvc mockMvc;
+	@InjectMocks
+	private MissionController missionController;
 
 
-	@BeforeEach
-	void setUp() {
-		mockMvc = MockMvcBuilders.standaloneSetup(missionController)
-			.setCustomArgumentResolvers(authMemberArgumentResolver)
-			.setControllerAdvice(new GlobalExceptionHandler())
-			.build();
+	@Test
+	void Given_ValidMemberIdAndScenarioId_When_GetMissionsByScenarioId_Then_ReturnMissionGroupResponse() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.now();
+
+		MissionGroupResponse expectedResponse = new MissionGroupResponse(
+			List.of(), List.of()
+		);
+
+		when(missionService.findMissionsByScenarioId(memberId, scenarioId, date))
+			.thenReturn(expectedResponse);
+
+		// when
+		ResponseEntity<MissionGroupResponse> response =
+			missionController.getMissionsByScenarioId(memberId, scenarioId, date);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
+		verify(missionService).findMissionsByScenarioId(memberId, scenarioId, date);
 	}
 
 
 	@Test
-	void Given_MemberIdAndScenarioId_When_GetMissionsByScenarioId_Then_ReturnMissionResponseList() throws Exception {
+	void Given_ValidRequest_When_AddTodayMissionToScenario_Then_ReturnNoContent() {
 		// given
-		final Long memberId = 1L;
-		final Long scenarioId = 10L;
-		final String url = "/v1/scenarios/" + scenarioId + "/missions";
-
-		MissionGroupResponse response = new MissionGroupResponse(
-			List.of(
-				MissionResponse.builder()
-					.missionId(101L)
-					.content("기상")
-					.isChecked(false)
-					.order(1)
-					.missionType(MissionType.BASIC)
-					.build()
-			),
-			List.of(
-				MissionResponse.builder()
-					.missionId(102L)
-					.content("양치")
-					.isChecked(true)
-					.order(2)
-					.missionType(MissionType.TODAY)
-					.build()
-			)
-		);
-
-		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
-		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
-		doReturn(response).when(missionService).findMissionsByScenarioId(memberId, scenarioId);
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.now();
+		TodayMissionRequest missionAddRequest = new TodayMissionRequest("오늘 미션");
 
 		// when
-		ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.get(url)
-				.accept(MediaType.APPLICATION_JSON)
-		);
+		ResponseEntity<Void> response =
+			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
-		resultActions.andExpect(status().isOk())
-			.andExpect(jsonPath("$.basicMissionList.length()").value(1))
-			.andExpect(jsonPath("$.basicMissionList[0].missionId").value(101))
-			.andExpect(jsonPath("$.basicMissionList[0].content").value("기상"))
-			.andExpect(jsonPath("$.todayMissionList.length()").value(1))
-			.andExpect(jsonPath("$.todayMissionList[0].missionId").value(102))
-			.andExpect(jsonPath("$.todayMissionList[0].isChecked").value(true));
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+	}
+
+
+	@Test
+	void Given_EmptyContentRequest_When_AddTodayMissionToScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.now();
+		TodayMissionRequest missionAddRequest = new TodayMissionRequest("");
+
+		// when
+		ResponseEntity<Void> response =
+			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+	}
+
+
+	@Test
+	void Given_LongContentRequest_When_AddTodayMissionToScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.now();
+		TodayMissionRequest missionAddRequest = new TodayMissionRequest("매우 긴 미션 내용입니다");
+
+		// when
+		ResponseEntity<Void> response =
+			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
 
 }
