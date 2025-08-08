@@ -73,4 +73,14 @@ public class NotificationService {
 		return oldNotification;
 	}
 
+
+	@Transactional
+	public void deleteNotification(Notification notification) {
+		notificationConditionSelector.deleteNotif(
+			notification.getNotifType(),
+			notification.getId()
+		);
+		notificationRepository.delete(notification);
+	}
+
 }
