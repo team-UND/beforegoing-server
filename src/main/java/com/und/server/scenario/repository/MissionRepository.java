@@ -24,7 +24,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 		AND s.member.id = :memberId
 		AND (m.useDate IS NULL OR m.useDate = :date)
 		""")
-	List<Mission> findMissionsByScenarioIdWithNullAndDate(Long memberId, Long scenarioId, LocalDate date);
+	List<Mission> findDefaultMissions(Long memberId, Long scenarioId, LocalDate date);
 
 	@Query("""
 		SELECT m FROM Mission m
@@ -33,6 +33,6 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 		AND s.member.id = :memberId
 		AND m.useDate = :date
 		""")
-	List<Mission> findMissionsByScenarioIdAndDate(Long memberId, Long scenarioId, LocalDate date);
+	List<Mission> findMissionsByDate(Long memberId, Long scenarioId, LocalDate date);
 
 }

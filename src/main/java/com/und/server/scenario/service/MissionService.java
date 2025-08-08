@@ -56,10 +56,10 @@ public class MissionService {
 
 		switch (missionSearchType) {
 			case TODAY -> {
-				return missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date);
+				return missionRepository.findDefaultMissions(memberId, scenarioId, date);
 			}
 			case PAST, FUTURE -> {
-				return missionRepository.findMissionsByScenarioIdAndDate(memberId, scenarioId, date);
+				return missionRepository.findMissionsByDate(memberId, scenarioId, date);
 			}
 		}
 		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
