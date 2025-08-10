@@ -51,7 +51,7 @@ public class Scenario extends BaseTimeEntity {
 	private String memo;
 
 	@Setter
-	@Column(nullable = false)
+	@Column(name = "`order`", nullable = false)
 	private Integer order;
 
 	@Setter

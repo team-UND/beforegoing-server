@@ -48,7 +48,7 @@ public class Mission extends BaseTimeEntity {
 	private Boolean isChecked;
 
 	@Setter
-	@Column
+	@Column(name = "`order`")
 	private Integer order;
 
 	@Column
