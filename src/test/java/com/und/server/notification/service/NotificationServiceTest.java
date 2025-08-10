@@ -44,7 +44,8 @@ class NotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		NotificationInfoDto expectedInfo = new NotificationInfoDto(true, List.of(0, 1, 2), null);
+		NotificationInfoDto expectedInfo =
+			new NotificationInfoDto(true, List.of(0, 1, 2), null);
 		when(notificationConditionSelector.findNotifByNotifType(notification))
 			.thenReturn(expectedInfo);
 
@@ -67,7 +68,10 @@ class NotificationServiceTest {
 			.dayOfWeekOrdinalList(List.of(0, 1, 2))
 			.build();
 
-		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(9, 0);
+		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
+			.hour(9)
+			.minute(0)
+			.build();
 
 		Notification savedNotification = Notification.builder()
 			.id(1L)
@@ -110,7 +114,10 @@ class NotificationServiceTest {
 			.dayOfWeekOrdinalList(List.of(0, 1, 2, 3))
 			.build();
 
-		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(10, 30);
+		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
+			.hour(10)
+			.minute(30)
+			.build();
 
 		// when
 		Notification result = notificationService.updateNotification(oldNotification, notifInfo, conditionInfo);
@@ -141,7 +148,10 @@ class NotificationServiceTest {
 			.dayOfWeekOrdinalList(List.of(0, 1, 2))
 			.build();
 
-		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(9, 0);
+		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
+			.hour(9)
+			.minute(0)
+			.build();
 
 		// when
 		Notification result = notificationService.updateNotification(oldNotification, notifInfo, conditionInfo);
@@ -173,7 +183,10 @@ class NotificationServiceTest {
 			.dayOfWeekOrdinalList(List.of(0, 1, 2))
 			.build();
 
-		TimeNotificationRequest conditionInfo = new TimeNotificationRequest(9, 0);
+		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
+			.hour(9)
+			.minute(0)
+			.build();
 
 		// when
 		Notification result = notificationService.updateNotification(oldNotification, notifInfo, conditionInfo);

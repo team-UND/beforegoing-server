@@ -56,7 +56,8 @@ class NotificationConditionSelectorTest {
 	void Given_SupportedNotificationType_When_FindNotifByNotifType_Then_ReturnNotificationInfoDto() {
 		// given
 		NotifType notifType = NotifType.TIME;
-		NotificationInfoDto expectedDto = new NotificationInfoDto(true, List.of(0, 1, 2), null);
+		NotificationInfoDto expectedDto =
+			new NotificationInfoDto(true, List.of(0, 1, 2), null);
 
 		when(notification.getNotifType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
@@ -93,7 +94,10 @@ class NotificationConditionSelectorTest {
 		// given
 		NotifType notifType = NotifType.TIME;
 		List<Integer> dayOfWeekList = List.of(0, 1, 2);
-		TimeNotificationRequest timeRequest = new TimeNotificationRequest(9, 0);
+		TimeNotificationRequest timeRequest = TimeNotificationRequest.builder()
+			.hour(9)
+			.minute(0)
+			.build();
 
 		when(notification.getNotifType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
@@ -162,7 +166,10 @@ class NotificationConditionSelectorTest {
 		// given
 		NotifType notifType = NotifType.TIME;
 		List<Integer> dayOfWeekList = List.of(0, 1, 2);
-		TimeNotificationRequest timeRequest = new TimeNotificationRequest(9, 0);
+		TimeNotificationRequest timeRequest = TimeNotificationRequest.builder()
+			.hour(9)
+			.minute(0)
+			.build();
 
 		when(notification.getNotifType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
@@ -197,7 +204,8 @@ class NotificationConditionSelectorTest {
 	void Given_MultipleServices_When_FirstServiceSupports_Then_UseFirstService() {
 		// given
 		NotifType notifType = NotifType.TIME;
-		NotificationInfoDto expectedDto = new NotificationInfoDto(true, List.of(0, 1, 2), null);
+		NotificationInfoDto expectedDto =
+			new NotificationInfoDto(true, List.of(0, 1, 2), null);
 
 		when(notification.getNotifType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
@@ -219,7 +227,8 @@ class NotificationConditionSelectorTest {
 	void Given_MultipleServices_When_FirstServiceNotSupports_Then_UseSecondService() {
 		// given
 		NotifType notifType = NotifType.LOCATION;
-		NotificationInfoDto expectedDto = new NotificationInfoDto(false, List.of(0, 1), null);
+		NotificationInfoDto expectedDto =
+			new NotificationInfoDto(false, List.of(0, 1), null);
 
 		when(notification.getNotifType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
