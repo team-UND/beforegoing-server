@@ -60,8 +60,7 @@ public class ScenarioService {
 
 	@Transactional(readOnly = true)
 	public ScenarioDetailResponse findScenarioDetailByScenarioId(Long memberId, Long scenarioId) {
-		Scenario scenario = scenarioRepository.findByIdWithDefaultBasicMissions(
-				memberId, scenarioId, MissionType.BASIC)
+		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		List<Mission> groupdBasicMissionList =
@@ -152,8 +151,7 @@ public class ScenarioService {
 
 	@Transactional
 	public void updateScenario(Long memberId, Long scenarioId, ScenarioDetailRequest scenarioInfo) {
-		Scenario oldSCenario = scenarioRepository.findByIdWithDefaultBasicMissions(
-				memberId, scenarioId, MissionType.BASIC)
+		Scenario oldSCenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		Notification newNotification = notificationService.updateNotification(
