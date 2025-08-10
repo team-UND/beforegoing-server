@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Table(
 	name = "location_notification",
 	indexes = {
-		@Index(name = "idx_day_location_notif", columnList = "day_of_week, start_hour, start_minute")
+		@Index(name = "idx_day_location_notif", columnList = "day_of_week, `start_hour`, `start_minute`")
 	}
 )
 @Entity
@@ -57,16 +57,16 @@ public class LocationNotification extends BaseTimeEntity {
 	@Column
 	private Integer trackingRadiusKm;
 
-	@Column
+	@Column(name = "`start_hour`")
 	private Integer startHour;
 
-	@Column
+	@Column(name = "`start_minute`")
 	private Integer startMinute;
 
-	@Column
+	@Column(name = "`end_hour`")
 	private Integer endHour;
 
-	@Column
+	@Column(name = "`end_minute`")
 	private Integer endMinute;
 
 }
