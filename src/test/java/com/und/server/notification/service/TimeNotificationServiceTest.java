@@ -175,7 +175,10 @@ class TimeNotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		TimeNotificationRequest request = new TimeNotificationRequest(8, 30);
+		TimeNotificationRequest request = TimeNotificationRequest.builder()
+			.hour(8)
+			.minute(30)
+			.build();
 		List<Integer> allDays = List.of(0, 1, 2, 3, 4, 5, 6); // MONDAY=0, TUESDAY=1, ..., SUNDAY=6
 
 		// when
@@ -206,7 +209,10 @@ class TimeNotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		TimeNotificationRequest request = new TimeNotificationRequest(7, 45);
+		TimeNotificationRequest request = TimeNotificationRequest.builder()
+			.hour(7)
+			.minute(45)
+			.build();
 		List<Integer> days = List.of(1, 3, 5); // TUESDAY, THURSDAY, SATURDAY
 
 		// when
@@ -246,7 +252,10 @@ class TimeNotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		TimeNotificationRequest request = new TimeNotificationRequest(10, 30);
+		TimeNotificationRequest request = TimeNotificationRequest.builder()
+			.hour(10)
+			.minute(30)
+			.build();
 		List<Integer> allDays = List.of(0, 1, 2, 3, 4, 5, 6);
 
 		TimeNotification existingMonday = TimeNotification.builder()
@@ -328,7 +337,10 @@ class TimeNotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		TimeNotificationRequest request = new TimeNotificationRequest(10, 30);
+		TimeNotificationRequest request = TimeNotificationRequest.builder()
+			.hour(10)
+			.minute(30)
+			.build();
 		List<Integer> sameDays = List.of(0, 2); // MONDAY, WEDNESDAY
 
 		TimeNotification existingMonday = TimeNotification.builder()
@@ -369,7 +381,10 @@ class TimeNotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		TimeNotificationRequest request = new TimeNotificationRequest(10, 30);
+		TimeNotificationRequest request = TimeNotificationRequest.builder()
+			.hour(10)
+			.minute(30)
+			.build();
 		List<Integer> newDays = List.of(1, 3); // TUESDAY, THURSDAY
 
 		TimeNotification existingMonday = TimeNotification.builder()
@@ -407,7 +422,10 @@ class TimeNotificationServiceTest {
 			.notifType(NotifType.TIME)
 			.build();
 
-		TimeNotificationRequest request = new TimeNotificationRequest(10, 30);
+		TimeNotificationRequest request = TimeNotificationRequest.builder()
+			.hour(10)
+			.minute(30)
+			.build();
 		List<Integer> mixedDays = List.of(0, 1, 3); // MONDAY, TUESDAY, THURSDAY
 
 		TimeNotification existingMonday = TimeNotification.builder()
