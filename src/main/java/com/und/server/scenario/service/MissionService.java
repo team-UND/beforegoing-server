@@ -108,7 +108,6 @@ public class MissionService {
 			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissionList(), MissionType.BASIC);
 
 		if (missionInfoList.isEmpty()) {
-//			missionRepository.deleteAll(oldMissionList);
 			oldSCenario.getMissionList().removeIf(mission ->
 				mission.getMissionType() == MissionType.BASIC
 			);
@@ -144,10 +143,9 @@ public class MissionService {
 			.filter(id -> !requestedMissionIds.contains(id))
 			.toList();
 
-//		missionRepository.deleteAllById(toDeleteIdList);
 		oldSCenario.getMissionList().removeIf(mission ->
-			mission.getMissionType() == MissionType.BASIC &&
-				toDeleteIdList.contains(mission.getId())
+			mission.getMissionType() == MissionType.BASIC
+				&& toDeleteIdList.contains(mission.getId())
 		);
 		missionRepository.saveAll(toAddList);
 		missionRepository.saveAll(toUpdateList);
