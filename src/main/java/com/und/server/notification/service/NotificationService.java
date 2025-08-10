@@ -80,7 +80,7 @@ public class NotificationService {
 			notification.getNotifType(),
 			notification.getId()
 		);
-//		notificationRepository.delete(notification);
+		notificationRepository.delete(notification);
 	}
 
 }
