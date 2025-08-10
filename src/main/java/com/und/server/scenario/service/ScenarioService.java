@@ -1,6 +1,7 @@
 package com.und.server.scenario.service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -100,7 +101,17 @@ public class ScenarioService {
 		Notification notification =
 			notificationService.addNotification(notifInfo, scenarioInfo.getNotificationCondition());
 
-		int order = getValidScenarioOrder(memberId, notifInfo);
+		List<Integer> orderList =
+			scenarioRepository.findOrdersByMemberIdAndNotification_NotifType(
+				memberId, notifInfo.getNotificationType());
+
+		if (orderList.size() >= 20) {
+			throw new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED);
+		}
+
+		int order = orderList.isEmpty()
+			? OrderCalculator.START_ORDER
+			: getValidScenarioOrder(Collections.max(orderList), memberId, notifInfo);
 
 		Scenario scenario = Scenario.builder()
 			.member(member)
@@ -114,22 +125,22 @@ public class ScenarioService {
 		scenarioRepository.save(scenario);
 	}
 
-	private int getValidScenarioOrder(Long memberId, NotificationRequest notifInfo) {
-		int maxScenarioOrder = getMaxScenarioOrder(memberId, notifInfo);
-
+	private int getValidScenarioOrder(
+		int maxScenarioOrder,
+		Long memberId,
+		NotificationRequest notifInfo
+	) {
 		try {
 			return orderCalculator.getOrder(maxScenarioOrder, null);
 		} catch (ReorderRequiredException e) {
 			reorderScenarios(memberId, notifInfo.getNotificationType());
-			int newMaxOrder = getMaxScenarioOrder(memberId, notifInfo);
+			int newMaxOrder =
+				scenarioRepository.findMaxOrderByMemberIdAndNotifType(
+						memberId, notifInfo.getNotificationType())
+					.orElse(OrderCalculator.START_ORDER);
 
 			return orderCalculator.getOrder(newMaxOrder, null);
 		}
-	}
-
-	private Integer getMaxScenarioOrder(Long memberId, NotificationRequest notifInfo) {
-		return scenarioRepository.findMaxOrderByMemberIdAndNotifType(memberId, notifInfo.getNotificationType())
-			.orElse(OrderCalculator.START_ORDER);
 	}
 
 

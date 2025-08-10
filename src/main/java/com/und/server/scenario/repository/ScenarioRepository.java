@@ -27,17 +27,6 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 		""")
 	Optional<Scenario> findFetchByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
 
-//	@Query("""
-//		SELECT s FROM Scenario s
-//		LEFT JOIN FETCH s.notification
-//		LEFT JOIN s.member m
-//		LEFT JOIN FETCH s.missionList mission
-//		WHERE s.id = :scenarioId
-//			AND m.id = :memberId
-//			AND (mission.useDate IS NULL OR mission.useDate = :today)
-//		""")
-//	Optional<Scenario> findByIdWithDefaultMissions(Long memberId, Long scenarioId, LocalDate today);
-
 	@Query("""
 		SELECT s FROM Scenario s
 		LEFT JOIN FETCH s.notification
@@ -57,5 +46,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 			AND s.notification.notifType = :notifType
 		""")
 	Optional<Integer> findMaxOrderByMemberIdAndNotifType(Long memberId, NotifType notifType);
+
+	List<Integer> findOrdersByMemberIdAndNotification_NotifType(Long memberId, NotifType notifType);
 
 }
