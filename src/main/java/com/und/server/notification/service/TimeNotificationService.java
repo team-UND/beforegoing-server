@@ -43,9 +43,8 @@ public class TimeNotificationService implements NotificationConditionService {
 		}
 
 		List<TimeNotification> timeNotifList = timeNotifRepository.findByNotificationId(notification.getId());
-
 		if (timeNotifList.isEmpty()) {
-			throw new ServerException(NotificationErrorResult.NOT_FOUND_NOTIF);
+			return null;
 		}
 
 		TimeNotification baseTimeNotif = timeNotifList.get(0);
@@ -59,6 +58,7 @@ public class TimeNotificationService implements NotificationConditionService {
 
 		return new NotificationInfoDto(isEveryDay, dayOfWeekOrdinalList, notificationDetail);
 	}
+
 
 	@Override
 	public void addNotif(
@@ -77,13 +77,6 @@ public class TimeNotificationService implements NotificationConditionService {
 			.map(dayOfWeek -> timeNotifInfo.toEntity(notification, dayOfWeek))
 			.toList();
 		timeNotifRepository.saveAll(timeNotifList);
-	}
-
-
-	@Override
-	public void deleteNotif(Long notificationId) {
-		List<TimeNotification> timeNotifList = timeNotifRepository.findByNotificationId(notificationId);
-		timeNotifRepository.deleteAll(timeNotifList);
 	}
 
 
@@ -139,6 +132,13 @@ public class TimeNotificationService implements NotificationConditionService {
 				.toList();
 			timeNotifRepository.saveAll(toUpdate);
 		}
+	}
+
+
+	@Override
+	public void deleteNotif(Long notificationId) {
+		List<TimeNotification> timeNotifList = timeNotifRepository.findByNotificationId(notificationId);
+		timeNotifRepository.deleteAll(timeNotifList);
 	}
 
 }

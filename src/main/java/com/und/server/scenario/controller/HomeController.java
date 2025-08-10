@@ -43,12 +43,12 @@ public class HomeController {
 			missions = missionService.findMissionsByScenarioId(memberId, firstScenarioId, today);
 		}
 
-		HomeResponse response = HomeResponse.builder()
+		HomeResponse result = HomeResponse.builder()
 			.scenarios(scenarios)
 			.missions(missions)
 			.build();
 
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok().body(result);
 	}
 
 }

@@ -25,7 +25,9 @@ public enum ScenarioErrorResult implements ErrorResult {
 	INVALID_MISSION_FOUND_DATE(
 		HttpStatus.BAD_REQUEST, "Mission can only be founded for mission dates"),
 	MAX_SCENARIO_COUNT_EXCEEDED(
-		HttpStatus.BAD_REQUEST, "Maximum scenario count exceeded");
+		HttpStatus.BAD_REQUEST, "Maximum scenario count exceeded"),
+	MAX_MISSION_COUNT_EXCEEDED(
+		HttpStatus.BAD_REQUEST, "Maximum mission count exceeded");
 
 
 	private final HttpStatus httpStatus;

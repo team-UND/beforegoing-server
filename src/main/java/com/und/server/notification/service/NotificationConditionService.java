@@ -18,11 +18,11 @@ public interface NotificationConditionService {
 		List<Integer> dayOfWeekOrdinalList,
 		NotificationConditionRequest notifDetailInfo);
 
-	void deleteNotif(Long notificationId);
-
 	void updateNotif(
 		Notification oldNotification,
 		List<Integer> dayOfWeekOrdinalList,
 		NotificationConditionRequest notifDetailInfo);
+
+	void deleteNotif(Long notificationId);
 
 }

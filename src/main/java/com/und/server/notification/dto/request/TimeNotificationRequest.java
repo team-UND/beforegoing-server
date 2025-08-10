@@ -2,9 +2,11 @@ package com.und.server.notification.dto.request;
 
 import java.time.DayOfWeek;
 
+import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.entity.TimeNotification;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +24,16 @@ import lombok.ToString;
 @Builder
 @ToString
 public class TimeNotificationRequest implements NotificationConditionRequest {
+
+	@Schema(
+		description = "알림 타입",
+		example = "TIME",
+		defaultValue = "TIME",
+		allowableValues = {"TIME"},
+		requiredMode = Schema.RequiredMode.REQUIRED
+	)
+	@NotNull
+	private NotifType notificationType = NotifType.TIME;
 
 	@NotNull(message = "Hour must not be null")
 	@Min(value = 0, message = "Hour must be between 0 and 23")

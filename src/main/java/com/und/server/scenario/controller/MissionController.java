@@ -48,7 +48,7 @@ public class MissionController {
 	}
 
 
-	@PostMapping("/scenarios/{scenarioId}/missions")
+	@PostMapping("/scenarios/{scenarioId}/missions/today")
 	public ResponseEntity<Void> addTodayMissionToScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -74,7 +74,10 @@ public class MissionController {
 
 
 	@DeleteMapping("/missions/{missionId}")
-	public ResponseEntity<Void> deleteTodayMissionById(@AuthMember Long memberId, @PathVariable Long missionId) {
+	public ResponseEntity<Void> deleteTodayMissionById(
+		@AuthMember Long memberId,
+		@PathVariable Long missionId
+	) {
 		missionService.deleteTodayMission(memberId, missionId);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

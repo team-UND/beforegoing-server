@@ -1,7 +1,10 @@
 package com.und.server.notification.dto.response;
 
+import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.entity.TimeNotification;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +19,16 @@ import lombok.ToString;
 @Builder
 @ToString
 public class TimeNotificationResponse implements NotificationConditionResponse {
+
+	@Schema(
+		description = "알림 타입",
+		example = "TIME",
+		defaultValue = "TIME",
+		allowableValues = {"TIME"},
+		requiredMode = Schema.RequiredMode.REQUIRED
+	)
+	@NotNull
+	private NotifType notificationType = NotifType.TIME;
 
 	private Integer hour;
 	private Integer minute;

@@ -33,7 +33,7 @@ public class ScenarioDetailRequest {
 	@Size(max = 15, message = "Memo must be at most 15 characters")
 	private String memo;
 
-	@Size(max = 20, message = "Mission list must contain at most 20 items")
+	@Size(max = 20, message = "Maximum mission count exceeded")
 	private List<MissionRequest> basicMissionList;
 
 	private NotificationRequest notification;

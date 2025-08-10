@@ -21,7 +21,7 @@ import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
-import com.und.server.scenario.util.MissionTypeGrouper;
+import com.und.server.scenario.util.MissionTypeGroupSorter;
 import com.und.server.scenario.util.OrderCalculator;
 
 import lombok.RequiredArgsConstructor;
@@ -31,11 +31,15 @@ import lombok.RequiredArgsConstructor;
 public class MissionService {
 
 	private final MissionRepository missionRepository;
-	private final MissionTypeGrouper missionTypeGrouper;
+	private final MissionTypeGroupSorter missionTypeGroupSorter;
 
 
 	@Transactional(readOnly = true)
 	public MissionGroupResponse findMissionsByScenarioId(Long memberId, Long scenarioId, LocalDate date) {
+		if (date == null) {
+			date = LocalDate.now();
+		}
+
 		List<Mission> missionList = getMissionListByDate(memberId, scenarioId, date);
 
 		if (missionList == null || missionList.isEmpty()) {
@@ -43,9 +47,9 @@ public class MissionService {
 		}
 
 		List<Mission> groupedBasicMissionList =
-			missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC);
+			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.BASIC);
 		List<Mission> groupedTodayMissionList =
-			missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY);
+			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.TODAY);
 
 		return MissionGroupResponse.of(groupedBasicMissionList, groupedTodayMissionList);
 	}
@@ -63,20 +67,6 @@ public class MissionService {
 			}
 		}
 		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
-	}
-
-
-	@Transactional
-	public void addTodayMission(Scenario scenario, TodayMissionRequest missionAddInfo, LocalDate date) {
-		Mission newMission = Mission.builder()
-			.scenario(scenario)
-			.content(missionAddInfo.content())
-			.isChecked(false)
-			.useDate(date)
-			.missionType(MissionType.TODAY)
-			.build();
-
-		missionRepository.save(newMission);
 	}
 
 
@@ -99,12 +89,29 @@ public class MissionService {
 
 
 	@Transactional
+	public void addTodayMission(Scenario scenario, TodayMissionRequest missionAddInfo, LocalDate date) {
+		Mission newMission = Mission.builder()
+			.scenario(scenario)
+			.content(missionAddInfo.content())
+			.isChecked(false)
+			.useDate(date)
+			.missionType(MissionType.TODAY)
+			.build();
+
+		missionRepository.save(newMission);
+	}
+
+
+	@Transactional
 	public void updateBasicMission(Scenario oldSCenario, List<MissionRequest> missionInfoList) {
 		List<Mission> oldMissionList =
-			missionTypeGrouper.groupAndSortByType(oldSCenario.getMissionList(), MissionType.BASIC);
+			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissionList(), MissionType.BASIC);
 
 		if (missionInfoList.isEmpty()) {
-			missionRepository.deleteAll(oldMissionList);
+//			missionRepository.deleteAll(oldMissionList);
+			oldSCenario.getMissionList().removeIf(mission ->
+				mission.getMissionType() == MissionType.BASIC
+			);
 			return;
 		}
 
@@ -137,7 +144,11 @@ public class MissionService {
 			.filter(id -> !requestedMissionIds.contains(id))
 			.toList();
 
-		missionRepository.deleteAllById(toDeleteIdList);
+//		missionRepository.deleteAllById(toDeleteIdList);
+		oldSCenario.getMissionList().removeIf(mission ->
+			mission.getMissionType() == MissionType.BASIC &&
+				toDeleteIdList.contains(mission.getId())
+		);
 		missionRepository.saveAll(toAddList);
 		missionRepository.saveAll(toUpdateList);
 	}

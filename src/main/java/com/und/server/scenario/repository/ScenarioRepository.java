@@ -16,7 +16,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 
 	List<Scenario> findByMemberIdAndNotification_NotifTypeOrderByOrder(Long memberId, NotifType notifType);
 
-	Optional<Scenario> findByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
+	Optional<Scenario> findByIdAndMemberId(@NotNull Long id, @NotNull Long memberId);
 
 	@Query("""
 		SELECT s FROM Scenario s
@@ -33,9 +33,9 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 		LEFT JOIN s.member m
 		LEFT JOIN FETCH s.missionList mission
 		WHERE s.id = :scenarioId
-		  AND m.id = :memberId
-		  AND mission.missionType = :missionType
-		  AND mission.useDate IS NULL
+			AND m.id = :memberId
+			AND mission.missionType = :missionType
+			AND mission.useDate IS NULL
 		""")
 	Optional<Scenario> findByIdWithDefaultBasicMissions(Long memberId, Long scenarioId, MissionType missionType);
 
@@ -47,6 +47,13 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 		""")
 	Optional<Integer> findMaxOrderByMemberIdAndNotifType(Long memberId, NotifType notifType);
 
+	@Query("""
+		SELECT s.order
+		FROM Scenario s
+		WHERE s.member.id = :memberId
+			AND s.notification.notifType = :notifType
+		ORDER BY s.order
+		""")
 	List<Integer> findOrdersByMemberIdAndNotification_NotifType(Long memberId, NotifType notifType);
 
 }

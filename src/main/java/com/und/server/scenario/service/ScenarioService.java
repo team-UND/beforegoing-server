@@ -29,20 +29,22 @@ import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ReorderRequiredException;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.ScenarioRepository;
-import com.und.server.scenario.util.MissionTypeGrouper;
+import com.und.server.scenario.util.MissionTypeGroupSorter;
 import com.und.server.scenario.util.OrderCalculator;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScenarioService {
 
 	private final NotificationService notificationService;
 	private final MissionService missionService;
 	private final ScenarioRepository scenarioRepository;
-	private final MissionTypeGrouper missionTypeGrouper;
+	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final OrderCalculator orderCalculator;
 	private final EntityManager em;
 
@@ -63,33 +65,12 @@ public class ScenarioService {
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		List<Mission> groupdBasicMissionList =
-			missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC);
+			missionTypeGroupSorter.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC);
 
 		Notification notification = scenario.getNotification();
-
 		NotificationInfoDto notifInfo = notificationService.findNotificationDetails(notification);
 
 		return getScenarioDetailResponse(scenario, groupdBasicMissionList, notifInfo);
-	}
-
-
-	@Transactional
-	public void addTodayMissionToScenario(
-		Long memberId,
-		Long scenarioId,
-		TodayMissionRequest missionAddInfo,
-		LocalDate date
-	) {
-		LocalDate today = LocalDate.now();
-		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
-		if (missionSearchType == MissionSearchType.PAST) {
-			throw new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE);
-		}
-
-		Scenario scenario = scenarioRepository.findByIdAndMemberId(memberId, scenarioId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-
-		missionService.addTodayMission(scenario, missionAddInfo, date);
 	}
 
 
@@ -121,8 +102,8 @@ public class ScenarioService {
 			.notification(notification)
 			.build();
 
-		missionService.addBasicMission(scenario, scenarioInfo.getBasicMissionList());
 		scenarioRepository.save(scenario);
+		missionService.addBasicMission(scenario, scenarioInfo.getBasicMissionList());
 	}
 
 	private int getValidScenarioOrder(
@@ -141,6 +122,31 @@ public class ScenarioService {
 
 			return orderCalculator.getOrder(newMaxOrder, null);
 		}
+	}
+
+
+	@Transactional
+	public void addTodayMissionToScenario(
+		Long memberId,
+		Long scenarioId,
+		TodayMissionRequest missionAddInfo,
+		LocalDate date
+	) {
+		LocalDate today = LocalDate.now();
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
+		if (missionSearchType == MissionSearchType.PAST) {
+			throw new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE);
+		}
+
+		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+
+		List<Mission> missionList = scenario.getMissionList();
+		if (missionList.size() >= 20) {
+			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
+		}
+
+		missionService.addTodayMission(scenario, missionAddInfo, date);
 	}
 
 
@@ -166,28 +172,18 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void deleteScenarioWithAllMissions(Long memberId, Long scenarioId) {
-		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-
-		notificationService.deleteNotification(scenario.getNotification());
-		scenarioRepository.delete(scenario);
-	}
-
-
-	@Transactional
 	public void updateScenarioOrder(
 		Long memberId,
 		Long scenarioId,
-		ScenarioOrderUpdateRequest ScenarioOrderInfo
+		ScenarioOrderUpdateRequest scenarioOrderInfo
 	) {
-		Scenario scenario = scenarioRepository.findByIdAndMemberId(memberId, scenarioId)
+		Scenario scenario = scenarioRepository.findByIdAndMemberId(scenarioId, memberId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		try {
 			int toUpdateOrder = orderCalculator.getOrder(
-				ScenarioOrderInfo.getPrevOrder(),
-				ScenarioOrderInfo.getNextOrder()
+				scenarioOrderInfo.getPrevOrder(),
+				scenarioOrderInfo.getNextOrder()
 			);
 			scenario.setOrder(toUpdateOrder);
 
@@ -195,6 +191,16 @@ public class ScenarioService {
 			Notification notification = scenario.getNotification();
 			reorderScenarios(memberId, notification.getNotifType());
 		}
+	}
+
+
+	@Transactional
+	public void deleteScenarioWithAllMissions(Long memberId, Long scenarioId) {
+		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+
+		notificationService.deleteNotification(scenario.getNotification());
+		scenarioRepository.delete(scenario);
 	}
 
 

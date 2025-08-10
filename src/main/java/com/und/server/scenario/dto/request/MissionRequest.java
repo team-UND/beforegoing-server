@@ -30,7 +30,8 @@ public class MissionRequest {
 	private String content;
 
 	@NotNull(message = "MissionType must not be null")
-	private MissionType missionType;
+	@Builder.Default
+	private MissionType missionType = MissionType.BASIC;
 
 
 	public Mission toEntity(Scenario scenario, Integer order) {

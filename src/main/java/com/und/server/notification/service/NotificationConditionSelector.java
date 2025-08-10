@@ -45,17 +45,6 @@ public class NotificationConditionSelector {
 	}
 
 
-	public void deleteNotif(NotifType notfType, Long notificationId) {
-		for (NotificationConditionService service : services) {
-			if (service.supports(notfType)) {
-				service.deleteNotif(notificationId);
-				return;
-			}
-		}
-		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
-	}
-
-
 	public void updateNotif(
 		Notification notification,
 		List<Integer> dayOfWeekOrdinalList,
@@ -64,6 +53,17 @@ public class NotificationConditionSelector {
 		for (NotificationConditionService service : services) {
 			if (service.supports(notification.getNotifType())) {
 				service.updateNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
+				return;
+			}
+		}
+		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
+	}
+
+
+	public void deleteNotif(NotifType notfType, Long notificationId) {
+		for (NotificationConditionService service : services) {
+			if (service.supports(notfType)) {
+				service.deleteNotif(notificationId);
 				return;
 			}
 		}

@@ -14,7 +14,7 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 @Component
-public class MissionTypeGrouper {
+public class MissionTypeGroupSorter {
 
 	public List<Mission> groupAndSortByType(List<Mission> missionList, MissionType missionType) {
 		if (missionType == null) {
