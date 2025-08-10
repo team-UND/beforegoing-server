@@ -33,6 +33,7 @@ public class TimeNotificationRequest implements NotificationConditionRequest {
 		requiredMode = Schema.RequiredMode.REQUIRED
 	)
 	@NotNull
+	@Builder.Default
 	private NotifType notificationType = NotifType.TIME;
 
 	@NotNull(message = "Hour must not be null")

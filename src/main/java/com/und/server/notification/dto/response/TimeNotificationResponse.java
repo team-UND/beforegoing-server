@@ -28,6 +28,7 @@ public class TimeNotificationResponse implements NotificationConditionResponse {
 		requiredMode = Schema.RequiredMode.REQUIRED
 	)
 	@NotNull
+	@Builder.Default
 	private NotifType notificationType = NotifType.TIME;
 
 	private Integer hour;
