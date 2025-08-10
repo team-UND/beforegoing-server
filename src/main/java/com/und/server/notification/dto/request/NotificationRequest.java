@@ -2,6 +2,8 @@ package com.und.server.notification.dto.request;
 
 import java.util.List;
 
+import org.hibernate.validator.constraints.UniqueElements;
+
 import com.und.server.notification.constants.NotifMethodType;
 import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.entity.Notification;
@@ -37,7 +39,9 @@ public class NotificationRequest {
 	private NotifMethodType notificationMethodType;
 
 	@Size(max = 7, message = "DayOfWeek list must contain at most 7 items")
+	@UniqueElements(message = "DayOfWeek must not contain duplicates")
 	private List<
+		@NotNull(message = "DayOfWeek must not be null")
 		@Min(value = 0, message = "DayOfWeek must be between 0 and 6")
 		@Max(value = 6, message = "DayOfWeek must be between 0 and 6") Integer> dayOfWeekOrdinalList;
 
