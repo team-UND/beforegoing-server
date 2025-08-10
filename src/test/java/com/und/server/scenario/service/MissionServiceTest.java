@@ -4,13 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
-import com.und.server.scenario.util.MissionTypeGrouper;
+import com.und.server.scenario.util.MissionTypeGroupSorter;
 
 @ExtendWith(MockitoExtension.class)
 class MissionServiceTest {
@@ -37,7 +37,7 @@ class MissionServiceTest {
 	private MissionRepository missionRepository;
 
 	@Mock
-	private MissionTypeGrouper missionTypeGrouper;
+	private MissionTypeGroupSorter missionTypeGrouper;
 
 	@InjectMocks
 	private MissionService missionService;
@@ -77,7 +77,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = Arrays.asList(basicMission);
 		List<Mission> groupedTodayMissions = Arrays.asList(todayMission);
 
-		when(missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
 			missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
@@ -91,7 +91,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissionList()).isNotEmpty();
 		assertThat(result.todayMissionList()).isNotEmpty();
-		verify(missionRepository).findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date);
+		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.BASIC);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.TODAY);
 	}
@@ -104,7 +104,7 @@ class MissionServiceTest {
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 
-		when(missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
 
 		// when
@@ -114,7 +114,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissionList()).isEmpty();
 		assertThat(result.todayMissionList()).isEmpty();
-		verify(missionRepository).findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date);
+		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
 	}
 
 
@@ -127,7 +127,7 @@ class MissionServiceTest {
 		LocalDate date = LocalDate.now();
 
 		// 권한이 없는 멤버의 시나리오는 조회되지 않음
-		when(missionRepository.findMissionsByScenarioIdWithNullAndDate(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
 
 		// when & then
@@ -207,6 +207,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
+			.missionList(new java.util.ArrayList<>())
 			.build();
 
 		Mission oldMission = Mission.builder()
@@ -239,7 +240,6 @@ class MissionServiceTest {
 
 		// then
 		// 새로운 미션만 있으므로 기존 미션은 삭제됨
-		verify(missionRepository).deleteAllById(eq(Arrays.asList(1L)));
 		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
 	}
 
@@ -249,6 +249,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
+			.missionList(new java.util.ArrayList<>())
 			.build();
 
 		Mission oldMission = Mission.builder()
@@ -269,7 +270,6 @@ class MissionServiceTest {
 		missionService.updateBasicMission(oldScenario, missionInfoList);
 
 		// then
-		verify(missionRepository).deleteAll(oldMissionList);
 		verify(missionRepository, org.mockito.Mockito.never()).saveAll(anyList());
 	}
 
@@ -279,6 +279,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
+			.missionList(new java.util.ArrayList<>())
 			.build();
 
 		Mission existingMission = Mission.builder()
@@ -311,7 +312,6 @@ class MissionServiceTest {
 		missionService.updateBasicMission(oldScenario, missionInfoList);
 
 		// then
-		verify(missionRepository).deleteAllById(eq(List.of()));
 		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
 	}
 
@@ -500,19 +500,183 @@ class MissionServiceTest {
 		Mission mission = Mission.builder()
 			.id(missionId)
 			.scenario(scenario)
-			.content("체크 해제할 미션")
+			.content("미션")
 			.isChecked(true)
-			.missionType(MissionType.BASIC)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+		when(missionRepository.findById(missionId))
+			.thenReturn(Optional.of(mission));
 
 		// when
 		missionService.updateMissionCheck(memberId, missionId, isChecked);
 
 		// then
+		assertThat(mission.getIsChecked()).isFalse();
 		verify(missionRepository).findById(missionId);
-		assertThat(mission.getIsChecked()).isEqualTo(isChecked);
+	}
+
+
+	@Test
+	void Given_NullDate_When_FindMissionsByScenarioId_Then_UseCurrentDate() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate nullDate = null;
+
+		Mission mission = Mission.builder()
+			.id(1L)
+			.content("미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<Mission> missionList = List.of(mission);
+		List<Mission> groupedBasicMissions = List.of(mission);
+		List<Mission> groupedTodayMissions = List.of();
+
+		when(missionRepository.findDefaultMissions(memberId, scenarioId, LocalDate.now())).thenReturn(missionList);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(groupedBasicMissions);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(groupedTodayMissions);
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, nullDate);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissionList()).isNotEmpty();
+		assertThat(result.todayMissionList()).isEmpty();
+		verify(missionRepository).findDefaultMissions(memberId, scenarioId, LocalDate.now());
+	}
+
+
+	@Test
+	void Given_PastDate_When_FindMissionsByScenarioId_Then_UsePastDate() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate pastDate = LocalDate.now().minusDays(1);
+
+		Mission mission = Mission.builder()
+			.id(1L)
+			.content("과거 미션")
+			.missionType(MissionType.TODAY)
+			.useDate(pastDate)
+			.build();
+
+		List<Mission> missionList = List.of(mission);
+		List<Mission> groupedBasicMissions = List.of();
+		List<Mission> groupedTodayMissions = List.of(mission);
+
+		when(missionRepository.findMissionsByDate(memberId, scenarioId, pastDate)).thenReturn(missionList);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(groupedBasicMissions);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(groupedTodayMissions);
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, pastDate);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissionList()).isEmpty();
+		assertThat(result.todayMissionList()).isNotEmpty();
+		verify(missionRepository).findMissionsByDate(memberId, scenarioId, pastDate);
+	}
+
+
+	@Test
+	void Given_FutureDate_When_FindMissionsByScenarioId_Then_UseFutureDate() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate futureDate = LocalDate.now().plusDays(1);
+
+		Mission mission = Mission.builder()
+			.id(1L)
+			.content("미래 미션")
+			.missionType(MissionType.TODAY)
+			.useDate(futureDate)
+			.build();
+
+		List<Mission> missionList = List.of(mission);
+		List<Mission> groupedBasicMissions = List.of();
+		List<Mission> groupedTodayMissions = List.of(mission);
+
+		when(missionRepository.findMissionsByDate(memberId, scenarioId, futureDate)).thenReturn(missionList);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(groupedBasicMissions);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(groupedTodayMissions);
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, futureDate);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissionList()).isEmpty();
+		assertThat(result.todayMissionList()).isNotEmpty();
+		verify(missionRepository).findMissionsByDate(memberId, scenarioId, futureDate);
+	}
+
+
+	@Test
+	void Given_ScenarioAndMissionRequestWithNullMissionId_When_UpdateBasicMission_Then_AddNewMission() {
+		// given
+		Scenario oldScenario = Scenario.builder()
+			.id(1L)
+			.missionList(new java.util.ArrayList<>())
+			.build();
+
+		MissionRequest newMissionRequest = MissionRequest.builder()
+			.content("새 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<MissionRequest> missionInfoList = List.of(newMissionRequest);
+
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+			.thenReturn(List.of());
+
+		// when
+		missionService.updateBasicMission(oldScenario, missionInfoList);
+
+		// then
+		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
+	}
+
+
+	@Test
+	void Given_ScenarioAndMissionRequestWithNonExistentMissionId_When_UpdateBasicMission_Then_IgnoreMission() {
+		// given
+		Scenario oldScenario = Scenario.builder()
+			.id(1L)
+			.missionList(new java.util.ArrayList<>())
+			.build();
+
+		Mission existingMission = Mission.builder()
+			.id(1L)
+			.content("기존 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		MissionRequest nonExistentMissionRequest = MissionRequest.builder()
+			.missionId(99L) // 존재하지 않는 ID
+			.content("존재하지 않는 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<MissionRequest> missionInfoList = List.of(nonExistentMissionRequest);
+		List<Mission> oldMissionList = List.of(existingMission);
+
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+			.thenReturn(oldMissionList);
+
+		// when
+		missionService.updateBasicMission(oldScenario, missionInfoList);
+
+		// then
+		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
 	}
 
 }

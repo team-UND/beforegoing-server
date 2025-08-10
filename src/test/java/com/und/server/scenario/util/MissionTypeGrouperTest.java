@@ -22,12 +22,12 @@ import com.und.server.scenario.exception.ScenarioErrorResult;
 class MissionTypeGrouperTest {
 
 	@InjectMocks
-	private MissionTypeGrouper grouper;
+	private MissionTypeGroupSorter grouper;
 
 
 	@BeforeEach
 	void setUp() {
-		grouper = new MissionTypeGrouper();
+		grouper = new MissionTypeGroupSorter();
 	}
 
 	@Test

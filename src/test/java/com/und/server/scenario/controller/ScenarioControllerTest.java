@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.und.server.notification.constants.NotifType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
@@ -201,6 +202,42 @@ class ScenarioControllerTest {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).updateScenario(memberId, scenarioId, scenarioRequest);
+	}
+
+
+	@Test
+	void Given_ValidMemberIdAndScenarioIdAndOrderRequest_When_UpdateScenarioOrder_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		ScenarioOrderUpdateRequest orderRequest = ScenarioOrderUpdateRequest.builder()
+			.prevOrder(1000)
+			.nextOrder(2000)
+			.build();
+
+		// when
+		ResponseEntity<Void> response = scenarioController.updateScenarioOrder(memberId, scenarioId, orderRequest);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).updateScenarioOrder(memberId, scenarioId, orderRequest);
+	}
+
+
+	@Test
+	void Given_ValidMemberIdAndScenarioId_When_DeleteScenario_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+
+		// when
+		ResponseEntity<Void> response = scenarioController.deleteScenario(memberId, scenarioId);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(scenarioService).deleteScenarioWithAllMissions(memberId, scenarioId);
 	}
 
 }
