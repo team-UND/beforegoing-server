@@ -73,22 +73,21 @@ public class MissionService {
 
 
 	@Transactional
-	public void addBasicMission(Scenario scenario, List<MissionRequest> missionInfoList) {
-		if (missionInfoList.isEmpty()) {
+	public void addBasicMission(Scenario scenario, List<MissionRequest> missionRequestList) {
+		if (missionRequestList.isEmpty()) {
 			return;
 		}
 
 		List<Mission> missionList = new ArrayList<>();
 
 		int order = OrderCalculator.START_ORDER;
-		for (MissionRequest missionInfo : missionInfoList) {
+		for (MissionRequest missionInfo : missionRequestList) {
 			missionList.add(missionInfo.toEntity(scenario, order));
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
 
 		List<Mission> basicMissionList =
 			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.BASIC);
-
 		validateMaxBasicMissionCount(basicMissionList);
 
 		missionRepository.saveAll(missionList);
@@ -96,7 +95,11 @@ public class MissionService {
 
 
 	@Transactional
-	public void addTodayMission(Scenario scenario, TodayMissionRequest missionAddInfo, LocalDate date) {
+	public void addTodayMission(
+		Scenario scenario,
+		TodayMissionRequest todayMissionRequest,
+		LocalDate date
+	) {
 		List<Mission> todayMissionList = missionTypeGroupSorter.groupAndSortByType(
 			scenario.getMissionList(), MissionType.TODAY);
 
@@ -104,7 +107,7 @@ public class MissionService {
 
 		Mission newMission = Mission.builder()
 			.scenario(scenario)
-			.content(missionAddInfo.content())
+			.content(todayMissionRequest.content())
 			.isChecked(false)
 			.useDate(date)
 			.missionType(MissionType.TODAY)
@@ -115,11 +118,11 @@ public class MissionService {
 
 
 	@Transactional
-	public void updateBasicMission(Scenario oldSCenario, List<MissionRequest> missionInfoList) {
+	public void updateBasicMission(Scenario oldSCenario, List<MissionRequest> missionRequestList) {
 		List<Mission> oldMissionList =
 			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissionList(), MissionType.BASIC);
 
-		if (missionInfoList.isEmpty()) {
+		if (missionRequestList.isEmpty()) {
 			oldSCenario.getMissionList().removeIf(mission ->
 				mission.getMissionType() == MissionType.BASIC
 			);
@@ -134,7 +137,7 @@ public class MissionService {
 		List<Mission> toAddList = new ArrayList<>();
 
 		int order = OrderCalculator.START_ORDER;
-		for (MissionRequest missionInfo : missionInfoList) {
+		for (MissionRequest missionInfo : missionRequestList) {
 			Long missionId = missionInfo.getMissionId();
 
 			if (missionId == null) {

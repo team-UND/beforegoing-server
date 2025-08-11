@@ -24,20 +24,21 @@ public class NotificationService {
 
 	@Transactional(readOnly = true)
 	public NotificationInfoDto findNotificationDetails(Notification notification) {
-		return notificationConditionSelector.findNotifByNotifType(notification);
+		return notificationConditionSelector.findNotificationInfoByType(notification);
 	}
 
 
 	@Transactional
 	public Notification addNotification(
-		NotificationRequest notifInfo,
-		NotificationConditionRequest notifConditionInfo
+		NotificationRequest notificationInfo,
+		NotificationConditionRequest notificationConditionRequest
 	) {
-		Notification notification = notifInfo.toEntity();
-		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
+		Notification notification = notificationInfo.toEntity();
+		List<Integer> dayOfWeekOrdinalList = notificationInfo.getDayOfWeekOrdinalList();
 
 		notificationRepository.save(notification);
-		notificationConditionSelector.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
+		notificationConditionSelector.addNotificationCondition(
+			notification, dayOfWeekOrdinalList, notificationConditionRequest);
 
 		return notification;
 	}
@@ -46,31 +47,35 @@ public class NotificationService {
 	@Transactional
 	public Notification updateNotification(
 		Notification oldNotification,
-		NotificationRequest notifInfo,
-		NotificationConditionRequest notifConditionInfo
+		NotificationRequest notificationInfo,
+		NotificationConditionRequest notificationConditionRequest
 	) {
-		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
-		boolean isChangeNotifType = oldNotification.getNotificationType() != notifInfo.getNotificationType();
-		NotificationType oldNotifType = oldNotification.getNotificationType();
+		List<Integer> dayOfWeekOrdinalList = notificationInfo.getDayOfWeekOrdinalList();
+		boolean isChangeNotificationType =
+			oldNotification.getNotificationType() != notificationInfo.getNotificationType();
+		NotificationType oldNotificationType = oldNotification.getNotificationType();
 
 		oldNotification.updateNotification(
-			notifInfo.getNotificationType(),
-			notifInfo.getNotificationMethodType()
+			notificationInfo.getNotificationType(),
+			notificationInfo.getNotificationMethodType()
 		);
-		oldNotification.updateActiveStatus(notifInfo.getIsActive());
+		oldNotification.updateActiveStatus(notificationInfo.getIsActive());
 
-		if (!notifInfo.getIsActive()) {
-			notificationConditionSelector.deleteNotif(notifInfo.getNotificationType(), oldNotification.getId());
+		if (!notificationInfo.getIsActive()) {
+			notificationConditionSelector.deleteNotificationCondition(
+				notificationInfo.getNotificationType(), oldNotification.getId());
 			return oldNotification;
 		}
 
-		if (isChangeNotifType) {
-			notificationConditionSelector.deleteNotif(oldNotifType, oldNotification.getId());
-			notificationConditionSelector.addNotif(oldNotification, dayOfWeekOrdinalList, notifConditionInfo);
+		if (isChangeNotificationType) {
+			notificationConditionSelector.deleteNotificationCondition(oldNotificationType, oldNotification.getId());
+			notificationConditionSelector.addNotificationCondition(
+				oldNotification, dayOfWeekOrdinalList, notificationConditionRequest);
 			return oldNotification;
 		}
 
-		notificationConditionSelector.updateNotif(oldNotification, dayOfWeekOrdinalList, notifConditionInfo);
+		notificationConditionSelector.updateNotificationCondition(
+			oldNotification, dayOfWeekOrdinalList, notificationConditionRequest);
 
 		return oldNotification;
 	}
@@ -78,7 +83,7 @@ public class NotificationService {
 
 	@Transactional
 	public void deleteNotification(Notification notification) {
-		notificationConditionSelector.deleteNotif(
+		notificationConditionSelector.deleteNotificationCondition(
 			notification.getNotificationType(),
 			notification.getId()
 		);

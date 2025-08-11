@@ -8,6 +8,6 @@ public record NotificationInfoDto(
 
 	Boolean isEveryDay,
 	List<Integer> dayOfWeekOrdinalList,
-	NotificationConditionResponse notificationCondition
+	NotificationConditionResponse notificationConditionResponse
 
 ) { }

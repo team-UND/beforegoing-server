@@ -25,69 +25,71 @@ import lombok.RequiredArgsConstructor;
 public class TimeNotificationService implements NotificationConditionService {
 
 	public static final int EVERYDAY = 7;
-	private final TimeNotificationRepository timeNotifRepository;
+	private final TimeNotificationRepository timeNotificationRepository;
 
 
 	@Override
-	public boolean supports(NotificationType notifType) {
-		return notifType == NotificationType.TIME;
+	public boolean supports(NotificationType notificationType) {
+		return notificationType == NotificationType.TIME;
 	}
 
 
 	@Override
-	public NotificationInfoDto findNotifByNotifType(Notification notification) {
+	public NotificationInfoDto findNotificationInfoByType(Notification notification) {
 		if (!notification.isActive()) {
 			return null;
 		}
 
-		List<TimeNotification> timeNotifList = timeNotifRepository.findByNotificationId(notification.getId());
-		if (timeNotifList.isEmpty()) {
+		List<TimeNotification> timeNotificationList =
+			timeNotificationRepository.findByNotificationId(notification.getId());
+		if (timeNotificationList.isEmpty()) {
 			return null;
 		}
 
-		TimeNotification baseTimeNotif = timeNotifList.get(0);
+		TimeNotification baseTimeNotification = timeNotificationList.get(0);
 
-		List<Integer> dayOfWeekOrdinalList = timeNotifList.stream()
+		List<Integer> dayOfWeekOrdinalList = timeNotificationList.stream()
 			.map(tn -> tn.getDayOfWeek().ordinal())
 			.toList();
 
 		boolean isEveryDay = dayOfWeekOrdinalList.size() == EVERYDAY;
-		NotificationConditionResponse notificationDetail = TimeNotificationResponse.of(baseTimeNotif);
+		NotificationConditionResponse timeNotificationResponse = TimeNotificationResponse.of(baseTimeNotification);
 
-		return new NotificationInfoDto(isEveryDay, dayOfWeekOrdinalList, notificationDetail);
+		return new NotificationInfoDto(isEveryDay, dayOfWeekOrdinalList, timeNotificationResponse);
 	}
 
 
 	@Override
-	public void addNotif(
+	public void addNotificationCondition(
 		Notification notification,
 		List<Integer> dayOfWeekOrdinalList,
-		NotificationConditionRequest notifDetailInfo
+		NotificationConditionRequest notificationConditionRequest
 	) {
 		if (!notification.isActive()) {
 			return;
 		}
 
-		TimeNotificationRequest timeNotifInfo = (TimeNotificationRequest) notifDetailInfo;
+		TimeNotificationRequest timeNotificationRequest = (TimeNotificationRequest) notificationConditionRequest;
 
-		List<TimeNotification> timeNotifList = dayOfWeekOrdinalList.stream()
+		List<TimeNotification> timeNotificationList = dayOfWeekOrdinalList.stream()
 			.map(ordinal -> DayOfWeek.values()[ordinal])
-			.map(dayOfWeek -> timeNotifInfo.toEntity(notification, dayOfWeek))
+			.map(dayOfWeek -> timeNotificationRequest.toEntity(notification, dayOfWeek))
 			.toList();
-		timeNotifRepository.saveAll(timeNotifList);
+		timeNotificationRepository.saveAll(timeNotificationList);
 	}
 
 
 	@Override
-	public void updateNotif(
+	public void updateNotificationCondition(
 		Notification oldNotification,
 		List<Integer> newDayOfWeekOrdinalList,
-		NotificationConditionRequest notifDetailInfo
+		NotificationConditionRequest notificationConditionRequest
 	) {
-		TimeNotificationRequest timeNotifInfo = (TimeNotificationRequest) notifDetailInfo;
-		List<TimeNotification> oldTimeNotifList = timeNotifRepository.findByNotificationId(oldNotification.getId());
+		TimeNotificationRequest timeNotificationInfo = (TimeNotificationRequest) notificationConditionRequest;
+		List<TimeNotification> oldTimeNotificationList =
+			timeNotificationRepository.findByNotificationId(oldNotification.getId());
 
-		Set<Integer> oldOrdinals = oldTimeNotifList.stream()
+		Set<Integer> oldOrdinals = oldTimeNotificationList.stream()
 			.map(tn -> tn.getDayOfWeek().ordinal())
 			.collect(Collectors.toSet());
 
@@ -106,39 +108,38 @@ public class TimeNotificationService implements NotificationConditionService {
 			.collect(Collectors.toSet());
 
 		if (!toDeleteOrdinals.isEmpty()) {
-			List<TimeNotification> toDelete = oldTimeNotifList.stream()
+			List<TimeNotification> toDelete = oldTimeNotificationList.stream()
 				.filter(tn -> toDeleteOrdinals.contains(tn.getDayOfWeek().ordinal()))
 				.toList();
-			timeNotifRepository.deleteAll(toDelete);
+			timeNotificationRepository.deleteAll(toDelete);
 		}
 
 		if (!toAddOrdinals.isEmpty()) {
 			List<TimeNotification> toAdd = toAddOrdinals.stream()
 				.map(ordinal -> DayOfWeek.values()[ordinal])
-				.map(dayOfWeek -> timeNotifInfo.toEntity(oldNotification, dayOfWeek))
+				.map(dayOfWeek -> timeNotificationInfo.toEntity(oldNotification, dayOfWeek))
 				.toList();
-			timeNotifRepository.saveAll(toAdd);
+			timeNotificationRepository.saveAll(toAdd);
 		}
 
 		if (!toUpdateOrdinals.isEmpty()) {
-			List<TimeNotification> toUpdate = oldTimeNotifList.stream()
+			List<TimeNotification> toUpdate = oldTimeNotificationList.stream()
 				.filter(tn -> toUpdateOrdinals.contains(tn.getDayOfWeek().ordinal()))
 				.peek(tn -> {
 					tn.updateTimeCondition(
-						timeNotifInfo.getStartHour(),
-						timeNotifInfo.getStartMinute()
-					);
+						timeNotificationInfo.getStartHour(), timeNotificationInfo.getStartMinute());
 				})
 				.toList();
-			timeNotifRepository.saveAll(toUpdate);
+			timeNotificationRepository.saveAll(toUpdate);
 		}
 	}
 
 
 	@Override
-	public void deleteNotif(Long notificationId) {
-		List<TimeNotification> timeNotifList = timeNotifRepository.findByNotificationId(notificationId);
-		timeNotifRepository.deleteAll(timeNotifList);
+	public void deleteNotificationCondition(Long notificationId) {
+		List<TimeNotification> timeNotificationList =
+			timeNotificationRepository.findByNotificationId(notificationId);
+		timeNotificationRepository.deleteAll(timeNotificationList);
 	}
 
 }

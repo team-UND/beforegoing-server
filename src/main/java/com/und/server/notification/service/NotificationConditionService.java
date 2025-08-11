@@ -9,20 +9,20 @@ import com.und.server.notification.entity.Notification;
 
 public interface NotificationConditionService {
 
-	boolean supports(NotificationType notifType);
+	boolean supports(NotificationType notificationType);
 
-	NotificationInfoDto findNotifByNotifType(Notification notification);
+	NotificationInfoDto findNotificationInfoByType(Notification notification);
 
-	void addNotif(
+	void addNotificationCondition(
 		Notification notification,
 		List<Integer> dayOfWeekOrdinalList,
-		NotificationConditionRequest notifDetailInfo);
+		NotificationConditionRequest notificationConditionRequest);
 
-	void updateNotif(
+	void updateNotificationCondition(
 		Notification oldNotification,
 		List<Integer> dayOfWeekOrdinalList,
-		NotificationConditionRequest notifDetailInfo);
+		NotificationConditionRequest notificationConditionRequest);
 
-	void deleteNotif(Long notificationId);
+	void deleteNotificationCondition(Long notificationId);
 
 }

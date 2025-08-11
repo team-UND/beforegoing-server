@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @Table(
 	name = "time_notification",
 	indexes = {
-		@Index(name = "idx_day_time_notif", columnList = "day_of_week, startHour, startMinute")
+		@Index(name = "idx_day_time_notification", columnList = "day_of_week, startHour, startMinute")
 	}
 )
 @Entity

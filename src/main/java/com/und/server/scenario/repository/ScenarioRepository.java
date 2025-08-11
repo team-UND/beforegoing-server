@@ -19,10 +19,10 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 	@Query("""
 		SELECT s FROM Scenario s
 		WHERE s.member.id = :memberId
-			AND s.notification.notificationType = :notifType
+			AND s.notification.notificationType = :notificationType
 		ORDER BY s.scenarioOrder
 		""")
-	List<Scenario> findByMemberIdAndNotificationType(Long memberId, NotificationType notifType);
+	List<Scenario> findByMemberIdAndNotificationType(Long memberId, NotificationType notificationType);
 
 	@Query("""
 		SELECT s FROM Scenario s
@@ -49,17 +49,17 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 		SELECT MAX(s.scenarioOrder)
 		FROM Scenario s
 		WHERE s.member.id = :memberId
-			AND s.notification.notificationType = :notifType
+			AND s.notification.notificationType = :notificationType
 		""")
-	Optional<Integer> findMaxOrderByMemberIdAndNotifType(Long memberId, NotificationType notifType);
+	Optional<Integer> findMaxOrderByMemberIdAndNotificationType(Long memberId, NotificationType notificationType);
 
 	@Query("""
 		SELECT s.scenarioOrder
 		FROM Scenario s
 		WHERE s.member.id = :memberId
-			AND s.notification.notificationType = :notifType
+			AND s.notification.notificationType = :notificationType
 		ORDER BY s.scenarioOrder
 		""")
-	List<Integer> findOrdersByMemberIdAndNotificationType(Long memberId, NotificationType notifType);
+	List<Integer> findOrdersByMemberIdAndNotificationType(Long memberId, NotificationType notificationType);
 
 }
