@@ -309,7 +309,7 @@ class ScenarioServiceTest {
 
 		given(notificationService.addNotification(notifRequest, condition)).willReturn(savedNotification);
 
-		given(scenarioRepository.findOrdersByMemberIdAndNotification_NotifType(memberId, NotifType.TIME))
+		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotifType.TIME))
 			.willReturn(List.of());
 
 		ArgumentCaptor<Scenario> scenarioCaptor = ArgumentCaptor.forClass(Scenario.class);
@@ -370,7 +370,7 @@ class ScenarioServiceTest {
 
 		given(notificationService.addNotification(notifRequest, condition))
 			.willReturn(savedNotification);
-		given(scenarioRepository.findOrdersByMemberIdAndNotification_NotifType(memberId, NotifType.TIME))
+		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotifType.TIME))
 			.willReturn(List.of(10_000_000));
 		given(orderCalculator.getOrder(anyInt(), isNull()))
 			.willThrow(new ReorderRequiredException())

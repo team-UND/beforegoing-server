@@ -122,18 +122,15 @@ class MissionServiceTest {
 	void Given_UnauthorizedMember_When_FindMissionsByScenarioId_Then_ThrowServerException() {
 		// given
 		Long memberId = 1L;
-		Long unauthorizedMemberId = 2L;
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 
-		// 권한이 없는 멤버의 시나리오는 조회되지 않음
 		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
 
 		// when & then
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
-		// 권한이 없는 경우 빈 리스트 반환 (DB에서 필터링됨)
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissionList()).isEmpty();
 		assertThat(result.todayMissionList()).isEmpty();
@@ -239,8 +236,7 @@ class MissionServiceTest {
 		missionService.updateBasicMission(oldScenario, missionInfoList);
 
 		// then
-		// 새로운 미션만 있으므로 기존 미션은 삭제됨
-		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
+		verify(missionRepository, org.mockito.Mockito.times(1)).saveAll(anyList());
 	}
 
 
@@ -312,7 +308,7 @@ class MissionServiceTest {
 		missionService.updateBasicMission(oldScenario, missionInfoList);
 
 		// then
-		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
+		verify(missionRepository, org.mockito.Mockito.times(1)).saveAll(anyList());
 	}
 
 	@Test
@@ -642,7 +638,7 @@ class MissionServiceTest {
 		missionService.updateBasicMission(oldScenario, missionInfoList);
 
 		// then
-		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
+		verify(missionRepository, org.mockito.Mockito.times(1)).saveAll(anyList());
 	}
 
 
@@ -676,7 +672,7 @@ class MissionServiceTest {
 		missionService.updateBasicMission(oldScenario, missionInfoList);
 
 		// then
-		verify(missionRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
+		verify(missionRepository, org.mockito.Mockito.times(1)).saveAll(anyList());
 	}
 
 }
