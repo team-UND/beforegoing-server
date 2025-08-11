@@ -1,8 +1,8 @@
 package com.und.server.notification.entity;
 
 import com.und.server.common.entity.BaseTimeEntity;
-import com.und.server.notification.constants.NotifMethodType;
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationMethodType;
+import com.und.server.notification.constants.NotificationType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,11 +35,11 @@ public class Notification extends BaseTimeEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private NotifType notificationType;
+	private NotificationType notificationType;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private NotifMethodType notificationMethodType;
+	private NotificationMethodType notificationMethodType;
 
 	public boolean isActive() {
 		return isActive;
@@ -50,8 +50,8 @@ public class Notification extends BaseTimeEntity {
 	}
 
 	public void updateNotification(
-		NotifType notificationType,
-		NotifMethodType notificationMethodType
+		NotificationType notificationType,
+		NotificationMethodType notificationMethodType
 	) {
 		this.notificationType = notificationType;
 		this.notificationMethodType = notificationMethodType;

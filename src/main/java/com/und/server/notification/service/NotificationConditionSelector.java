@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.und.server.common.exception.ServerException;
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.entity.Notification;
@@ -20,7 +20,7 @@ public class NotificationConditionSelector {
 	private final List<NotificationConditionService> services;
 
 
-	private NotificationConditionService findServiceByNotifType(NotifType notifType) {
+	private NotificationConditionService findServiceByNotifType(NotificationType notifType) {
 		return services.stream()
 			.filter(service -> service.supports(notifType))
 			.findFirst()
@@ -55,7 +55,7 @@ public class NotificationConditionSelector {
 	}
 
 
-	public void deleteNotif(NotifType notfType, Long notificationId) {
+	public void deleteNotif(NotificationType notfType, Long notificationId) {
 		NotificationConditionService service = findServiceByNotifType(notfType);
 		service.deleteNotif(notificationId);
 	}

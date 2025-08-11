@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.entity.Scenario;
 
@@ -22,7 +22,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 			AND s.notification.notificationType = :notifType
 		ORDER BY s.scenarioOrder
 		""")
-	List<Scenario> findByMemberIdAndNotificationType(Long memberId, NotifType notifType);
+	List<Scenario> findByMemberIdAndNotificationType(Long memberId, NotificationType notifType);
 
 	@Query("""
 		SELECT s FROM Scenario s
@@ -51,7 +51,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 		WHERE s.member.id = :memberId
 			AND s.notification.notificationType = :notifType
 		""")
-	Optional<Integer> findMaxOrderByMemberIdAndNotifType(Long memberId, NotifType notifType);
+	Optional<Integer> findMaxOrderByMemberIdAndNotifType(Long memberId, NotificationType notifType);
 
 	@Query("""
 		SELECT s.scenarioOrder
@@ -60,6 +60,6 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 			AND s.notification.notificationType = :notifType
 		ORDER BY s.scenarioOrder
 		""")
-	List<Integer> findOrdersByMemberIdAndNotificationType(Long memberId, NotifType notifType);
+	List<Integer> findOrdersByMemberIdAndNotificationType(Long memberId, NotificationType notifType);
 
 }

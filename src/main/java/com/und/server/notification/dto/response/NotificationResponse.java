@@ -3,8 +3,8 @@ package com.und.server.notification.dto.response;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.und.server.notification.constants.NotifMethodType;
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationMethodType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.entity.Notification;
 
 import lombok.AllArgsConstructor;
@@ -25,8 +25,8 @@ public class NotificationResponse {
 
 	private Long notificationId;
 	private Boolean isActive;
-	private NotifType notificationType;
-	private NotifMethodType notificationMethodType;
+	private NotificationType notificationType;
+	private NotificationMethodType notificationMethodType;
 	private Boolean isEveryDay;
 	private List<Integer> dayOfWeekOrdinalList;
 

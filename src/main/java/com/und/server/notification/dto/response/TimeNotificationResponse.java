@@ -1,6 +1,6 @@
 package com.und.server.notification.dto.response;
 
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.entity.TimeNotification;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,7 +29,7 @@ public class TimeNotificationResponse implements NotificationConditionResponse {
 	)
 	@NotNull
 	@Builder.Default
-	private NotifType notificationType = NotifType.TIME;
+	private NotificationType notificationType = NotificationType.TIME;
 	private Integer startHour;
 	private Integer startMinute;
 

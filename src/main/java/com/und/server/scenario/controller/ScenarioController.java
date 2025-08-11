@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.filter.AuthMember;
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -39,7 +39,7 @@ public class ScenarioController {
 	@GetMapping("/scenarios")
 	public ResponseEntity<List<ScenarioResponse>> getScenarios(
 		@AuthMember Long memberId,
-		@RequestParam NotifType notifType
+		@RequestParam NotificationType notifType
 	) {
 		List<ScenarioResponse> scenarioList = scenarioService.findScenariosByMemberId(memberId, notifType);
 

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.filter.AuthMember;
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.response.HomeResponse;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -32,7 +32,7 @@ public class HomeController {
 	@GetMapping("/home")
 	public ResponseEntity<HomeResponse> getHomeData(
 		@AuthMember Long memberId,
-		@RequestParam(defaultValue = "TIME") NotifType notifType
+		@RequestParam(defaultValue = "TIME") NotificationType notifType
 	) {
 		List<ScenarioResponse> scenarios = scenarioService.findScenariosByMemberId(memberId, notifType);
 

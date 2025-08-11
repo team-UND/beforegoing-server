@@ -1,6 +1,6 @@
 package com.und.server.notification.constants;
 
-public enum NotifMethodType {
+public enum NotificationMethodType {
 
 	PUSH, ALARM
 

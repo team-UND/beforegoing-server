@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.TimeNotificationRequest;
@@ -29,8 +29,8 @@ public class TimeNotificationService implements NotificationConditionService {
 
 
 	@Override
-	public boolean supports(NotifType notifType) {
-		return notifType == NotifType.TIME;
+	public boolean supports(NotificationType notifType) {
+		return notifType == NotificationType.TIME;
 	}
 
 

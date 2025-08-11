@@ -1,6 +1,6 @@
 package com.und.server.notification.constants;
 
-public enum NotifType {
+public enum NotificationType {
 
 	TIME, LOCATION;
 

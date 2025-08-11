@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.hibernate.validator.constraints.UniqueElements;
 
-import com.und.server.notification.constants.NotifMethodType;
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationMethodType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.entity.Notification;
 
 import jakarta.validation.constraints.Max;
@@ -33,10 +33,10 @@ public class NotificationRequest {
 	private Boolean isActive;
 
 	@NotNull(message = "notificationType must not be null")
-	private NotifType notificationType;
+	private NotificationType notificationType;
 
 	@NotNull(message = "notificationMethod must not be null")
-	private NotifMethodType notificationMethodType;
+	private NotificationMethodType notificationMethodType;
 
 	@Size(max = 7, message = "DayOfWeek list must contain at most 7 items")
 	@UniqueElements(message = "DayOfWeek must not contain duplicates")

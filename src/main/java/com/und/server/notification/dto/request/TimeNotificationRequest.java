@@ -2,7 +2,7 @@ package com.und.server.notification.dto.request;
 
 import java.time.DayOfWeek;
 
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.entity.TimeNotification;
 
@@ -34,7 +34,7 @@ public class TimeNotificationRequest implements NotificationConditionRequest {
 	)
 	@NotNull
 	@Builder.Default
-	private NotifType notificationType = NotifType.TIME;
+	private NotificationType notificationType = NotificationType.TIME;
 
 	@NotNull(message = "Hour must not be null")
 	@Min(value = 0, message = "Hour must be between 0 and 23")

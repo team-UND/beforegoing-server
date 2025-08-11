@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
@@ -51,7 +51,7 @@ public class NotificationService {
 	) {
 		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
 		boolean isChangeNotifType = oldNotification.getNotificationType() != notifInfo.getNotificationType();
-		NotifType oldNotifType = oldNotification.getNotificationType();
+		NotificationType oldNotifType = oldNotification.getNotificationType();
 
 		oldNotification.updateNotification(
 			notifInfo.getNotificationType(),

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationResponse;
@@ -51,7 +51,7 @@ public class ScenarioService {
 
 
 	@Transactional(readOnly = true)
-	public List<ScenarioResponse> findScenariosByMemberId(Long memberId, NotifType notifType) {
+	public List<ScenarioResponse> findScenariosByMemberId(Long memberId, NotificationType notifType) {
 		List<Scenario> scenarioList =
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notifType);
 
@@ -225,7 +225,7 @@ public class ScenarioService {
 		return result;
 	}
 
-	private void reorderScenarios(Long memberId, NotifType notifType) {
+	private void reorderScenarios(Long memberId, NotificationType notifType) {
 		List<Scenario> scenarioList =
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notifType);
 
