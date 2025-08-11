@@ -50,11 +50,11 @@ public class NotificationService {
 		NotificationConditionRequest notifConditionInfo
 	) {
 		List<Integer> dayOfWeekOrdinalList = notifInfo.getDayOfWeekOrdinalList();
-		boolean isChangeNotifType = oldNotification.getNotifType() != notifInfo.getNotificationType();
-		NotifType oldNotifType = oldNotification.getNotifType();
+		boolean isChangeNotifType = oldNotification.getNotificationType() != notifInfo.getNotificationType();
+		NotifType oldNotifType = oldNotification.getNotificationType();
 
-		oldNotification.setNotifType(notifInfo.getNotificationType());
-		oldNotification.setNotifMethodType(notifInfo.getNotificationMethodType());
+		oldNotification.setNotificationType(notifInfo.getNotificationType());
+		oldNotification.setNotificationMethodType(notifInfo.getNotificationMethodType());
 		oldNotification.setIsActive(notifInfo.getIsActive());
 
 		if (!notifInfo.getIsActive()) {
@@ -77,7 +77,7 @@ public class NotificationService {
 	@Transactional
 	public void deleteNotification(Notification notification) {
 		notificationConditionSelector.deleteNotif(
-			notification.getNotifType(),
+			notification.getNotificationType(),
 			notification.getId()
 		);
 		notificationRepository.delete(notification);

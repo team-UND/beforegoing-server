@@ -29,7 +29,7 @@ public class NotificationConditionSelector {
 
 
 	public NotificationInfoDto findNotifByNotifType(Notification notification) {
-		NotificationConditionService service = findServiceByNotifType(notification.getNotifType());
+		NotificationConditionService service = findServiceByNotifType(notification.getNotificationType());
 
 		return service.findNotifByNotifType(notification);
 	}
@@ -40,7 +40,7 @@ public class NotificationConditionSelector {
 		List<Integer> dayOfWeekOrdinalList,
 		NotificationConditionRequest notifConditionInfo
 	) {
-		NotificationConditionService service = findServiceByNotifType(notification.getNotifType());
+		NotificationConditionService service = findServiceByNotifType(notification.getNotificationType());
 		service.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 	}
 
@@ -50,7 +50,7 @@ public class NotificationConditionSelector {
 		List<Integer> dayOfWeekOrdinalList,
 		NotificationConditionRequest notifConditionInfo
 	) {
-		NotificationConditionService service = findServiceByNotifType(notification.getNotifType());
+		NotificationConditionService service = findServiceByNotifType(notification.getNotificationType());
 		service.updateNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 	}
 

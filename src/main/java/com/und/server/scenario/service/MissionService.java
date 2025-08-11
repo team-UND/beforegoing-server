@@ -131,7 +131,7 @@ public class MissionService {
 			} else {
 				Mission existingMission = existingMissions.get(missionId);
 				if (existingMission != null) {
-					existingMission.setOrder(order);
+					existingMission.setMissionOrder(order);
 					toUpdateList.add(existingMission);
 					requestedMissionIds.add(missionId);
 				}

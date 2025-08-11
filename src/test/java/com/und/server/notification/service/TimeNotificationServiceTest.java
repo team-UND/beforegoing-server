@@ -67,50 +67,50 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotification monday = TimeNotification.builder()
 			.id(10L)
 			.dayOfWeek(DayOfWeek.MONDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification tuesday = TimeNotification.builder()
 			.id(11L)
 			.dayOfWeek(DayOfWeek.TUESDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification wednesday = TimeNotification.builder()
 			.id(12L)
 			.dayOfWeek(DayOfWeek.WEDNESDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification thursday = TimeNotification.builder()
 			.id(13L)
 			.dayOfWeek(DayOfWeek.THURSDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification friday = TimeNotification.builder()
 			.id(14L)
 			.dayOfWeek(DayOfWeek.FRIDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification saturday = TimeNotification.builder()
 			.id(15L)
 			.dayOfWeek(DayOfWeek.SATURDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification sunday = TimeNotification.builder()
 			.id(16L)
 			.dayOfWeek(DayOfWeek.SUNDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		when(timeNotifRepository.findByNotificationId(notification.getId()))
@@ -134,21 +134,21 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotification monday = TimeNotification.builder()
 			.id(10L)
 			.dayOfWeek(DayOfWeek.MONDAY)
-			.hour(10)
-			.minute(30)
+			.startHour(10)
+			.startMinute(30)
 			.build();
 
 		TimeNotification wednesday = TimeNotification.builder()
 			.id(11L)
 			.dayOfWeek(DayOfWeek.WEDNESDAY)
-			.hour(10)
-			.minute(30)
+			.startHour(10)
+			.startMinute(30)
 			.build();
 
 		when(timeNotifRepository.findByNotificationId(notification.getId()))
@@ -172,12 +172,12 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotificationRequest request = TimeNotificationRequest.builder()
-			.hour(8)
-			.minute(30)
+			.startHour(8)
+			.startMinute(30)
 			.build();
 		List<Integer> allDays = List.of(0, 1, 2, 3, 4, 5, 6); // MONDAY=0, TUESDAY=1, ..., SUNDAY=6
 
@@ -206,12 +206,12 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotificationRequest request = TimeNotificationRequest.builder()
-			.hour(7)
-			.minute(45)
+			.startHour(7)
+			.startMinute(45)
 			.build();
 		List<Integer> days = List.of(1, 3, 5); // TUESDAY, THURSDAY, SATURDAY
 
@@ -249,56 +249,56 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotificationRequest request = TimeNotificationRequest.builder()
-			.hour(10)
-			.minute(30)
+			.startHour(10)
+			.startMinute(30)
 			.build();
 		List<Integer> allDays = List.of(0, 1, 2, 3, 4, 5, 6);
 
 		TimeNotification existingMonday = TimeNotification.builder()
 			.id(10L)
 			.dayOfWeek(DayOfWeek.MONDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingTuesday = TimeNotification.builder()
 			.id(11L)
 			.dayOfWeek(DayOfWeek.TUESDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingWednesday = TimeNotification.builder()
 			.id(12L)
 			.dayOfWeek(DayOfWeek.WEDNESDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingThursday = TimeNotification.builder()
 			.id(13L)
 			.dayOfWeek(DayOfWeek.THURSDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingFriday = TimeNotification.builder()
 			.id(14L)
 			.dayOfWeek(DayOfWeek.FRIDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingSaturday = TimeNotification.builder()
 			.id(15L)
 			.dayOfWeek(DayOfWeek.SATURDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingSunday = TimeNotification.builder()
 			.id(16L)
 			.dayOfWeek(DayOfWeek.SUNDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		when(timeNotifRepository.findByNotificationId(notification.getId()))
@@ -311,20 +311,20 @@ class TimeNotificationServiceTest {
 		// then
 		verify(timeNotifRepository).findByNotificationId(notification.getId());
 		verify(timeNotifRepository).saveAll(anyList());
-		assertThat(existingMonday.getHour()).isEqualTo(10);
-		assertThat(existingMonday.getMinute()).isEqualTo(30);
-		assertThat(existingTuesday.getHour()).isEqualTo(10);
-		assertThat(existingTuesday.getMinute()).isEqualTo(30);
-		assertThat(existingWednesday.getHour()).isEqualTo(10);
-		assertThat(existingWednesday.getMinute()).isEqualTo(30);
-		assertThat(existingThursday.getHour()).isEqualTo(10);
-		assertThat(existingThursday.getMinute()).isEqualTo(30);
-		assertThat(existingFriday.getHour()).isEqualTo(10);
-		assertThat(existingFriday.getMinute()).isEqualTo(30);
-		assertThat(existingSaturday.getHour()).isEqualTo(10);
-		assertThat(existingSaturday.getMinute()).isEqualTo(30);
-		assertThat(existingSunday.getHour()).isEqualTo(10);
-		assertThat(existingSunday.getMinute()).isEqualTo(30);
+		assertThat(existingMonday.getStartHour()).isEqualTo(10);
+		assertThat(existingMonday.getStartMinute()).isEqualTo(30);
+		assertThat(existingTuesday.getStartHour()).isEqualTo(10);
+		assertThat(existingTuesday.getStartMinute()).isEqualTo(30);
+		assertThat(existingWednesday.getStartHour()).isEqualTo(10);
+		assertThat(existingWednesday.getStartMinute()).isEqualTo(30);
+		assertThat(existingThursday.getStartHour()).isEqualTo(10);
+		assertThat(existingThursday.getStartMinute()).isEqualTo(30);
+		assertThat(existingFriday.getStartHour()).isEqualTo(10);
+		assertThat(existingFriday.getStartMinute()).isEqualTo(30);
+		assertThat(existingSaturday.getStartHour()).isEqualTo(10);
+		assertThat(existingSaturday.getStartMinute()).isEqualTo(30);
+		assertThat(existingSunday.getStartHour()).isEqualTo(10);
+		assertThat(existingSunday.getStartMinute()).isEqualTo(30);
 	}
 
 
@@ -334,26 +334,26 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotificationRequest request = TimeNotificationRequest.builder()
-			.hour(10)
-			.minute(30)
+			.startHour(10)
+			.startMinute(30)
 			.build();
 		List<Integer> sameDays = List.of(0, 2); // MONDAY, WEDNESDAY
 
 		TimeNotification existingMonday = TimeNotification.builder()
 			.id(10L)
 			.dayOfWeek(DayOfWeek.MONDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingWednesday = TimeNotification.builder()
 			.id(11L)
 			.dayOfWeek(DayOfWeek.WEDNESDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		when(timeNotifRepository.findByNotificationId(notification.getId()))
@@ -365,10 +365,10 @@ class TimeNotificationServiceTest {
 		// then
 		verify(timeNotifRepository).findByNotificationId(notification.getId());
 		verify(timeNotifRepository).saveAll(anyList());
-		assertThat(existingMonday.getHour()).isEqualTo(10);
-		assertThat(existingMonday.getMinute()).isEqualTo(30);
-		assertThat(existingWednesday.getHour()).isEqualTo(10);
-		assertThat(existingWednesday.getMinute()).isEqualTo(30);
+		assertThat(existingMonday.getStartHour()).isEqualTo(10);
+		assertThat(existingMonday.getStartMinute()).isEqualTo(30);
+		assertThat(existingWednesday.getStartHour()).isEqualTo(10);
+		assertThat(existingWednesday.getStartMinute()).isEqualTo(30);
 	}
 
 
@@ -378,26 +378,26 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotificationRequest request = TimeNotificationRequest.builder()
-			.hour(10)
-			.minute(30)
+			.startHour(10)
+			.startMinute(30)
 			.build();
 		List<Integer> newDays = List.of(1, 3); // TUESDAY, THURSDAY
 
 		TimeNotification existingMonday = TimeNotification.builder()
 			.id(10L)
 			.dayOfWeek(DayOfWeek.MONDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingWednesday = TimeNotification.builder()
 			.id(11L)
 			.dayOfWeek(DayOfWeek.WEDNESDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		when(timeNotifRepository.findByNotificationId(notification.getId()))
@@ -419,26 +419,26 @@ class TimeNotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		TimeNotificationRequest request = TimeNotificationRequest.builder()
-			.hour(10)
-			.minute(30)
+			.startHour(10)
+			.startMinute(30)
 			.build();
 		List<Integer> mixedDays = List.of(0, 1, 3); // MONDAY, TUESDAY, THURSDAY
 
 		TimeNotification existingMonday = TimeNotification.builder()
 			.id(10L)
 			.dayOfWeek(DayOfWeek.MONDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 		TimeNotification existingWednesday = TimeNotification.builder()
 			.id(11L)
 			.dayOfWeek(DayOfWeek.WEDNESDAY)
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		when(timeNotifRepository.findByNotificationId(notification.getId()))
@@ -452,8 +452,8 @@ class TimeNotificationServiceTest {
 		verify(timeNotifRepository).deleteAll(anyList());
 		// saveAll이 2번 호출됨: toAdd(1개) + toUpdate(1개)
 		verify(timeNotifRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
-		assertThat(existingMonday.getHour()).isEqualTo(10);
-		assertThat(existingMonday.getMinute()).isEqualTo(30);
+		assertThat(existingMonday.getStartHour()).isEqualTo(10);
+		assertThat(existingMonday.getStartMinute()).isEqualTo(30);
 	}
 
 }

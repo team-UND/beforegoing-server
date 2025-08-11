@@ -48,8 +48,8 @@ public class NotificationRequest {
 	public Notification toEntity() {
 		return Notification.builder()
 			.isActive(isActive)
-			.notifType(notificationType)
-			.notifMethodType(notificationMethodType)
+			.notificationType(notificationType)
+			.notificationMethodType(notificationMethodType)
 			.build();
 	}
 

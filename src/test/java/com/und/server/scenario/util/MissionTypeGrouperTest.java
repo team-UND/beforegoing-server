@@ -33,9 +33,9 @@ class MissionTypeGrouperTest {
 	@Test
 	void Given_BasicMissions_When_GroupAndSort_Then_ReturnSortedList() {
 		// given
-		Mission m1 = Mission.builder().order(2).missionType(MissionType.BASIC).build();
-		Mission m2 = Mission.builder().order(1).missionType(MissionType.BASIC).build();
-		Mission m3 = Mission.builder().order(null).missionType(MissionType.TODAY).build();
+		Mission m1 = Mission.builder().missionOrder(2).missionType(MissionType.BASIC).build();
+		Mission m2 = Mission.builder().missionOrder(1).missionType(MissionType.BASIC).build();
+		Mission m3 = Mission.builder().missionOrder(null).missionType(MissionType.TODAY).build();
 		List<Mission> input = List.of(m1, m2, m3);
 
 		// when
@@ -43,8 +43,8 @@ class MissionTypeGrouperTest {
 
 		// then
 		assertThat(result).hasSize(2);
-		assertThat(result.get(0).getOrder()).isEqualTo(1);
-		assertThat(result.get(1).getOrder()).isEqualTo(2);
+		assertThat(result.get(0).getMissionOrder()).isEqualTo(1);
+		assertThat(result.get(1).getMissionOrder()).isEqualTo(2);
 	}
 
 
@@ -54,19 +54,19 @@ class MissionTypeGrouperTest {
 		LocalDateTime now = LocalDateTime.now();
 
 		Mission m1 = Mission.builder()
-			.order(null)
+			.missionOrder(null)
 			.missionType(MissionType.TODAY)
 			.build();
 		ReflectionTestUtils.setField(m1, "createdAt", now.minusDays(1));
 
 		Mission m2 = Mission.builder()
-			.order(null)
+			.missionOrder(null)
 			.missionType(MissionType.TODAY)
 			.build();
 		ReflectionTestUtils.setField(m2, "createdAt", now);
 
 		Mission m3 = Mission.builder()
-			.order(2)
+			.missionOrder(2)
 			.missionType(MissionType.BASIC)
 			.build();
 
@@ -85,7 +85,7 @@ class MissionTypeGrouperTest {
 	@Test
 	void Given_UnsupportedType_When_GroupAndSort_Then_ThrowException() {
 		// given
-		Mission invalidMission = Mission.builder().order(1).missionType(null).build();
+		Mission invalidMission = Mission.builder().missionOrder(1).missionType(null).build();
 		List<Mission> input = List.of(invalidMission);
 
 		// then

@@ -39,19 +39,19 @@ public class TimeNotificationRequest implements NotificationConditionRequest {
 	@NotNull(message = "Hour must not be null")
 	@Min(value = 0, message = "Hour must be between 0 and 23")
 	@Max(value = 23, message = "Hour must be between 0 and 23")
-	private Integer hour;
+	private Integer startHour;
 
 	@NotNull(message = "Minute must not be null")
 	@Min(value = 0, message = "Minute must be between 0 and 59")
 	@Max(value = 59, message = "Minute must be between 0 and 59")
-	private Integer minute;
+	private Integer startMinute;
 
 	public TimeNotification toEntity(Notification notification, DayOfWeek dayOfWeek) {
 		return TimeNotification.builder()
 			.notification(notification)
 			.dayOfWeek(dayOfWeek)
-			.hour(hour)
-			.minute(minute)
+			.startHour(startHour)
+			.startMinute(startMinute)
 			.build();
 	}
 

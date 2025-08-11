@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.und.server.common.exception.ServerException;
 import com.und.server.notification.constants.NotifType;
 import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
@@ -17,7 +16,6 @@ import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.entity.TimeNotification;
-import com.und.server.notification.exception.NotificationErrorResult;
 import com.und.server.notification.repository.TimeNotificationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -126,8 +124,8 @@ public class TimeNotificationService implements NotificationConditionService {
 			List<TimeNotification> toUpdate = oldTimeNotifList.stream()
 				.filter(tn -> toUpdateOrdinals.contains(tn.getDayOfWeek().ordinal()))
 				.peek(tn -> {
-					tn.setHour(timeNotifInfo.getHour());
-					tn.setMinute(timeNotifInfo.getMinute());
+					tn.setStartHour(timeNotifInfo.getStartHour());
+					tn.setStartMinute(timeNotifInfo.getStartMinute());
 				})
 				.toList();
 			timeNotifRepository.saveAll(toUpdate);

@@ -32,7 +32,7 @@ import lombok.Setter;
 @Table(
 	name = "time_notification",
 	indexes = {
-		@Index(name = "idx_day_time_notif", columnList = "day_of_week, `hour`, `minute`")
+		@Index(name = "idx_day_time_notif", columnList = "day_of_week, startHour, startMinute")
 	}
 )
 @Entity
@@ -51,15 +51,15 @@ public class TimeNotification extends BaseTimeEntity {
 	private DayOfWeek dayOfWeek;
 
 	@Setter
-	@Column(name = "`hour`", nullable = false)
+	@Column(nullable = false)
 	@Min(0)
 	@Max(23)
-	private Integer hour;
+	private Integer startHour;
 
 	@Setter
-	@Column(name = "`minute`", nullable = false)
+	@Column(nullable = false)
 	@Min(0)
 	@Max(59)
-	private Integer minute;
+	private Integer startMinute;
 
 }

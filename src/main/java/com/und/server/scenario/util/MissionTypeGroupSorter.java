@@ -10,8 +10,6 @@ import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 
-import lombok.AllArgsConstructor;
-
 @Component
 public class MissionTypeGroupSorter {
 
@@ -32,7 +30,7 @@ public class MissionTypeGroupSorter {
 	private Comparator<Mission> getComparatorByType(MissionType type) {
 		return switch (type) {
 
-			case BASIC -> Comparator.comparing(Mission::getOrder);
+			case BASIC -> Comparator.comparing(Mission::getMissionOrder);
 			case TODAY -> Comparator.comparing(Mission::getCreatedAt).reversed();
 
 			default -> throw new ServerException(ScenarioErrorResult.UNSUPPORTED_MISSION_TYPE);

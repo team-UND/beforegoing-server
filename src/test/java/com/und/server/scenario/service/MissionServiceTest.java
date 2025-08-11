@@ -215,7 +215,7 @@ class MissionServiceTest {
 			.scenario(oldScenario)
 			.content("기존 미션")
 			.missionType(MissionType.BASIC)
-			.order(1)
+			.missionOrder(1)
 			.build();
 
 		List<Mission> oldMissionList = Arrays.asList(oldMission);
@@ -257,7 +257,7 @@ class MissionServiceTest {
 			.scenario(oldScenario)
 			.content("기존 미션")
 			.missionType(MissionType.BASIC)
-			.order(1)
+			.missionOrder(1)
 			.build();
 
 		List<Mission> oldMissionList = Arrays.asList(oldMission);
@@ -287,7 +287,7 @@ class MissionServiceTest {
 			.scenario(oldScenario)
 			.content("기존 미션")
 			.missionType(MissionType.BASIC)
-			.order(1)
+			.missionOrder(1)
 			.build();
 
 		List<Mission> oldMissionList = Arrays.asList(existingMission);

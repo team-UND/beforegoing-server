@@ -14,9 +14,15 @@ import jakarta.validation.constraints.NotNull;
 
 public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 
-	List<Scenario> findByMemberIdAndNotification_NotifTypeOrderByOrder(Long memberId, NotifType notifType);
-
 	Optional<Scenario> findByIdAndMemberId(@NotNull Long id, @NotNull Long memberId);
+
+	@Query("""
+		SELECT s FROM Scenario s
+		WHERE s.member.id = :memberId
+			AND s.notification.notificationType = :notifType
+		ORDER BY s.scenarioOrder
+		""")
+	List<Scenario> findByMemberIdAndNotificationType(Long memberId, NotifType notifType);
 
 	@Query("""
 		SELECT s FROM Scenario s
@@ -40,19 +46,19 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 	Optional<Scenario> findByIdWithDefaultBasicMissions(Long memberId, Long scenarioId, MissionType missionType);
 
 	@Query("""
-		SELECT MAX(s.order)
+		SELECT MAX(s.scenarioOrder)
 		FROM Scenario s
 		WHERE s.member.id = :memberId
-			AND s.notification.notifType = :notifType
+			AND s.notification.notificationType = :notifType
 		""")
 	Optional<Integer> findMaxOrderByMemberIdAndNotifType(Long memberId, NotifType notifType);
 
 	@Query("""
-		SELECT s.order
+		SELECT s.scenarioOrder
 		FROM Scenario s
 		WHERE s.member.id = :memberId
-			AND s.notification.notifType = :notifType
-		ORDER BY s.order
+			AND s.notification.notificationType = :notifType
+		ORDER BY s.scenarioOrder
 		""")
 	List<Integer> findOrdersByMemberIdAndNotification_NotifType(Long memberId, NotifType notifType);
 

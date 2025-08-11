@@ -24,14 +24,14 @@ public class ScenarioResponse {
 	private Long scenarioId;
 	private String scenarioName;
 	private String memo;
-	private Integer order;
+	private Integer scenarioOrder;
 
 	public static ScenarioResponse of(Scenario scenario) {
 		return ScenarioResponse.builder()
 			.scenarioId(scenario.getId())
 			.scenarioName(scenario.getScenarioName())
 			.memo(scenario.getMemo())
-			.order(scenario.getOrder())
+			.scenarioOrder(scenario.getScenarioOrder())
 			.build();
 	}
 

@@ -30,13 +30,13 @@ public class TimeNotificationResponse implements NotificationConditionResponse {
 	@NotNull
 	@Builder.Default
 	private NotifType notificationType = NotifType.TIME;
-	private Integer hour;
-	private Integer minute;
+	private Integer startHour;
+	private Integer startMinute;
 
 	public static NotificationConditionResponse of(TimeNotification timeNotif) {
 		return TimeNotificationResponse.builder()
-			.hour(timeNotif.getHour())
-			.minute(timeNotif.getMinute())
+			.startHour(timeNotif.getStartHour())
+			.startMinute(timeNotif.getStartMinute())
 			.build();
 	}
 

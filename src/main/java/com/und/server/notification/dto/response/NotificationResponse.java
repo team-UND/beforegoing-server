@@ -34,8 +34,8 @@ public class NotificationResponse {
 		return NotificationResponse.builder()
 			.notificationId(notification.getId())
 			.isActive(notification.isActive())
-			.notificationType(notification.getNotifType())
-			.notificationMethodType(notification.getNotifMethodType())
+			.notificationType(notification.getNotificationType())
+			.notificationMethodType(notification.getNotificationMethodType())
 			.build();
 	}
 

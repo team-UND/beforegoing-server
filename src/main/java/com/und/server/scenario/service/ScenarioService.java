@@ -52,7 +52,7 @@ public class ScenarioService {
 	@Transactional(readOnly = true)
 	public List<ScenarioResponse> findScenariosByMemberId(Long memberId, NotifType notifType) {
 		List<Scenario> scenarioList =
-			scenarioRepository.findByMemberIdAndNotification_NotifTypeOrderByOrder(memberId, notifType);
+			scenarioRepository.findByMemberIdAndNotificationType(memberId, notifType);
 
 		return ScenarioResponse.listOf(scenarioList);
 	}
@@ -97,7 +97,7 @@ public class ScenarioService {
 			.member(member)
 			.scenarioName(scenarioInfo.getScenarioName())
 			.memo(scenarioInfo.getMemo())
-			.order(order)
+			.scenarioOrder(order)
 			.notification(notification)
 			.build();
 
@@ -183,11 +183,11 @@ public class ScenarioService {
 				scenarioOrderInfo.getPrevOrder(),
 				scenarioOrderInfo.getNextOrder()
 			);
-			scenario.setOrder(toUpdateOrder);
+			scenario.setScenarioOrder(toUpdateOrder);
 
 		} catch (ReorderRequiredException e) {
 			Notification notification = scenario.getNotification();
-			reorderScenarios(memberId, notification.getNotifType());
+			reorderScenarios(memberId, notification.getNotificationType());
 		}
 	}
 
@@ -233,13 +233,11 @@ public class ScenarioService {
 
 	private void reorderScenarios(Long memberId, NotifType notifType) {
 		List<Scenario> scenarioList =
-			scenarioRepository.findByMemberIdAndNotification_NotifTypeOrderByOrder(
-				memberId, notifType
-			);
+			scenarioRepository.findByMemberIdAndNotificationType(memberId, notifType);
 
 		int order = OrderCalculator.START_ORDER;
 		for (Scenario s : scenarioList) {
-			s.setOrder(order);
+			s.setScenarioOrder(order);
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
 		scenarioRepository.saveAll(scenarioList);

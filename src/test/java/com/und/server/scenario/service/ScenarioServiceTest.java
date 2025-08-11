@@ -86,12 +86,12 @@ class ScenarioServiceTest {
 		final Notification notification1 = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 		final Notification notification2 = Notification.builder()
 			.id(2L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		final Scenario scenarioA = Scenario.builder()
@@ -99,7 +99,7 @@ class ScenarioServiceTest {
 			.member(member)
 			.scenarioName("시나리오A")
 			.memo("메모A")
-			.order(1)
+			.scenarioOrder(1)
 			.notification(notification1)
 			.build();
 		final Scenario scenarioB = Scenario.builder()
@@ -107,7 +107,7 @@ class ScenarioServiceTest {
 			.member(member)
 			.scenarioName("시나리오B")
 			.memo("메모B")
-			.order(2)
+			.scenarioOrder(2)
 			.notification(notification2)
 			.build();
 
@@ -115,7 +115,7 @@ class ScenarioServiceTest {
 
 		//when
 		Mockito
-			.when(scenarioRepository.findByMemberIdAndNotification_NotifTypeOrderByOrder(memberId, NotifType.TIME))
+			.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotifType.TIME))
 			.thenReturn(scenarioList);
 
 		List<ScenarioResponse> result = scenarioService.findScenariosByMemberId(memberId, NotifType.TIME);
@@ -141,7 +141,7 @@ class ScenarioServiceTest {
 		final Notification notification = Notification.builder()
 			.id(100L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		final Scenario scenario = Scenario.builder()
@@ -149,14 +149,14 @@ class ScenarioServiceTest {
 			.member(member)
 			.scenarioName("아침 루틴")
 			.memo("메모")
-			.order(1)
+			.scenarioOrder(1)
 			.notification(notification)
 			.missionList(List.of())
 			.build();
 
 		final TimeNotificationResponse notifDetail = TimeNotificationResponse.builder()
-			.hour(8)
-			.minute(30)
+			.startHour(8)
+			.startMinute(30)
 			.build();
 
 		final NotificationInfoDto notifInfoDto = new NotificationInfoDto(
@@ -180,8 +180,8 @@ class ScenarioServiceTest {
 		assertThat(response.getScenarioId()).isEqualTo(scenarioId);
 		assertThat(response.getNotificationCondition()).isInstanceOf(TimeNotificationResponse.class);
 		TimeNotificationResponse detail = (TimeNotificationResponse) response.getNotificationCondition();
-		assertThat(detail.getHour()).isEqualTo(8);
-		assertThat(detail.getMinute()).isEqualTo(30);
+		assertThat(detail.getStartHour()).isEqualTo(8);
+		assertThat(detail.getStartMinute()).isEqualTo(30);
 	}
 
 
@@ -288,8 +288,8 @@ class ScenarioServiceTest {
 			.build();
 
 		TimeNotificationRequest condition = TimeNotificationRequest.builder()
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
@@ -303,8 +303,8 @@ class ScenarioServiceTest {
 		Notification savedNotification = Notification.builder()
 			.id(10L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
-			.notifMethodType(NotifMethodType.ALARM)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.ALARM)
 			.build();
 
 		given(notificationService.addNotification(notifRequest, condition)).willReturn(savedNotification);
@@ -326,7 +326,7 @@ class ScenarioServiceTest {
 
 		assertThat(saved.getScenarioName()).isEqualTo("Morning");
 		assertThat(saved.getMemo()).isEqualTo("Routine");
-		assertThat(saved.getOrder()).isEqualTo(calculatedOrder);
+		assertThat(saved.getScenarioOrder()).isEqualTo(calculatedOrder);
 		assertThat(saved.getNotification()).isEqualTo(savedNotification);
 		assertThat(saved.getMember().getId()).isEqualTo(member.getId());
 	}
@@ -348,8 +348,8 @@ class ScenarioServiceTest {
 			.build();
 
 		TimeNotificationRequest condition = TimeNotificationRequest.builder()
-			.hour(7)
-			.minute(0)
+			.startHour(7)
+			.startMinute(0)
 			.build();
 
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
@@ -363,8 +363,8 @@ class ScenarioServiceTest {
 		Notification savedNotification = Notification.builder()
 			.id(11L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
-			.notifMethodType(NotifMethodType.ALARM)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.ALARM)
 			.build();
 
 
@@ -378,8 +378,8 @@ class ScenarioServiceTest {
 		given(scenarioRepository.findMaxOrderByMemberIdAndNotifType(memberId, NotifType.TIME))
 			.willReturn(Optional.of(10_000_000));
 
-		Scenario s1 = Scenario.builder().id(1L).order(10_000_000).build();
-		given(scenarioRepository.findByMemberIdAndNotification_NotifTypeOrderByOrder(memberId, NotifType.TIME))
+		Scenario s1 = Scenario.builder().id(1L).scenarioOrder(10_000_000).build();
+		given(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotifType.TIME))
 			.willReturn(List.of(s1));
 
 		ArgumentCaptor<Scenario> captor = ArgumentCaptor.forClass(Scenario.class);
@@ -392,7 +392,7 @@ class ScenarioServiceTest {
 		verify(scenarioRepository).save(captor.capture());
 
 		Scenario saved = captor.getValue();
-		assertThat(saved.getOrder()).isEqualTo(reorderedOrder);
+		assertThat(saved.getScenarioOrder()).isEqualTo(reorderedOrder);
 	}
 
 	@Test
@@ -421,11 +421,11 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification oldNotification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 		Notification newNotification = Notification.builder()
 			.id(2L)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		Scenario oldScenario = Scenario.builder()
@@ -445,8 +445,8 @@ class ScenarioServiceTest {
 			.build();
 
 		TimeNotificationRequest condition = TimeNotificationRequest.builder()
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
@@ -484,14 +484,14 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification notification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		Scenario scenario = Scenario.builder()
 			.id(scenarioId)
 			.member(member)
 			.notification(notification)
-			.order(1000)
+			.scenarioOrder(1000)
 			.build();
 
 		ScenarioOrderUpdateRequest orderRequest = ScenarioOrderUpdateRequest.builder()
@@ -508,7 +508,7 @@ class ScenarioServiceTest {
 		scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
 
 		// then
-		assertThat(scenario.getOrder()).isEqualTo(newOrder);
+		assertThat(scenario.getScenarioOrder()).isEqualTo(newOrder);
 		verify(orderCalculator).getOrder(1000, 2000);
 	}
 
@@ -522,14 +522,14 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification notification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		Scenario scenario = Scenario.builder()
 			.id(scenarioId)
 			.member(member)
 			.notification(notification)
-			.order(1000)
+			.scenarioOrder(1000)
 			.build();
 
 		ScenarioOrderUpdateRequest orderRequest = ScenarioOrderUpdateRequest.builder()
@@ -537,14 +537,14 @@ class ScenarioServiceTest {
 			.nextOrder(1001) // 너무 가까워서 ReorderRequiredException 발생
 			.build();
 
-		Scenario scenario1 = Scenario.builder().id(1L).order(1000).build();
-		Scenario scenario2 = Scenario.builder().id(2L).order(2000).build();
+		Scenario scenario1 = Scenario.builder().id(1L).scenarioOrder(1000).build();
+		Scenario scenario2 = Scenario.builder().id(2L).scenarioOrder(2000).build();
 
 		Mockito.when(scenarioRepository.findByIdAndMemberId(scenarioId, memberId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(orderCalculator.getOrder(1000, 1001))
 			.thenThrow(new ReorderRequiredException());
-		Mockito.when(scenarioRepository.findByMemberIdAndNotification_NotifTypeOrderByOrder(memberId, NotifType.TIME))
+		Mockito.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotifType.TIME))
 			.thenReturn(List.of(scenario1, scenario2));
 
 		// when
@@ -552,8 +552,8 @@ class ScenarioServiceTest {
 
 		// then
 		verify(scenarioRepository).saveAll(anyList());
-		assertThat(scenario1.getOrder()).isEqualTo(1000);
-		assertThat(scenario2.getOrder()).isEqualTo(2000);
+		assertThat(scenario1.getScenarioOrder()).isEqualTo(1000);
+		assertThat(scenario2.getScenarioOrder()).isEqualTo(2000);
 	}
 
 
@@ -566,7 +566,7 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification notification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		Scenario scenario = Scenario.builder()

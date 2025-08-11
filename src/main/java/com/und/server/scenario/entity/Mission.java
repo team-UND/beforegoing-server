@@ -49,10 +49,10 @@ public class Mission extends BaseTimeEntity {
 	private Boolean isChecked;
 
 	@Setter
-	@Column(name = "`order`", nullable = false)
+	@Column
 	@Min(0)
 	@Max(10_000_000)
-	private Integer order;
+	private Integer missionOrder;
 
 	@Column
 	private LocalDate useDate;

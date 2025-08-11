@@ -52,10 +52,10 @@ public class Scenario extends BaseTimeEntity {
 	private String memo;
 
 	@Setter
-	@Column(name = "`order`", nullable = false)
+	@Column(nullable = false)
 	@Min(0)
 	@Max(10_000_000)
-	private Integer order;
+	private Integer scenarioOrder;
 
 	@Setter
 	@OneToOne(fetch = FetchType.LAZY)

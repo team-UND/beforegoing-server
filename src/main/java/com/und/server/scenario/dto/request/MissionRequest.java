@@ -37,7 +37,7 @@ public class MissionRequest {
 			.scenario(scenario)
 			.content(content)
 			.isChecked(false)
-			.order(order)
+			.missionOrder(order)
 			.missionType(missionType)
 			.build();
 	}

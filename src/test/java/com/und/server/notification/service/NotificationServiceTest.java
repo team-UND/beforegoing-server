@@ -41,7 +41,7 @@ class NotificationServiceTest {
 		Notification notification = Notification.builder()
 			.id(1L)
 			.isActive(true)
-			.notifType(NotifType.TIME)
+			.notificationType(NotifType.TIME)
 			.build();
 
 		NotificationInfoDto expectedInfo =
@@ -69,14 +69,14 @@ class NotificationServiceTest {
 			.build();
 
 		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		Notification savedNotification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
-			.notifMethodType(NotifMethodType.PUSH)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.PUSH)
 			.isActive(true)
 			.build();
 
@@ -88,8 +88,8 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isNotNull();
-		assertThat(result.getNotifType()).isEqualTo(NotifType.TIME);
-		assertThat(result.getNotifMethodType()).isEqualTo(NotifMethodType.PUSH);
+		assertThat(result.getNotificationType()).isEqualTo(NotifType.TIME);
+		assertThat(result.getNotificationMethodType()).isEqualTo(NotifMethodType.PUSH);
 		assertThat(result.getIsActive()).isTrue();
 		verify(notificationRepository).save(any(Notification.class));
 		verify(notificationConditionSelector).addNotif(any(Notification.class), eq(List.of(0, 1, 2)),
@@ -102,8 +102,8 @@ class NotificationServiceTest {
 		// given
 		Notification oldNotification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
-			.notifMethodType(NotifMethodType.PUSH)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.PUSH)
 			.isActive(true)
 			.build();
 
@@ -115,8 +115,8 @@ class NotificationServiceTest {
 			.build();
 
 		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
-			.hour(10)
-			.minute(30)
+			.startHour(10)
+			.startMinute(30)
 			.build();
 
 		// when
@@ -124,8 +124,8 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(oldNotification);
-		assertThat(oldNotification.getNotifType()).isEqualTo(NotifType.TIME);
-		assertThat(oldNotification.getNotifMethodType()).isEqualTo(NotifMethodType.ALARM);
+		assertThat(oldNotification.getNotificationType()).isEqualTo(NotifType.TIME);
+		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotifMethodType.ALARM);
 		assertThat(oldNotification.getIsActive()).isTrue();
 		verify(notificationConditionSelector).updateNotif(oldNotification, List.of(0, 1, 2, 3), conditionInfo);
 	}
@@ -136,8 +136,8 @@ class NotificationServiceTest {
 		// given
 		Notification oldNotification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
-			.notifMethodType(NotifMethodType.PUSH)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.PUSH)
 			.isActive(true)
 			.build();
 
@@ -149,8 +149,8 @@ class NotificationServiceTest {
 			.build();
 
 		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		// when
@@ -158,8 +158,8 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(oldNotification);
-		assertThat(oldNotification.getNotifType()).isEqualTo(NotifType.LOCATION);
-		assertThat(oldNotification.getNotifMethodType()).isEqualTo(NotifMethodType.ALARM);
+		assertThat(oldNotification.getNotificationType()).isEqualTo(NotifType.LOCATION);
+		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotifMethodType.ALARM);
 		assertThat(oldNotification.getIsActive()).isTrue();
 		verify(notificationConditionSelector).deleteNotif(NotifType.TIME, oldNotification.getId());
 		verify(notificationConditionSelector).addNotif(oldNotification, List.of(0, 1, 2), conditionInfo);
@@ -171,8 +171,8 @@ class NotificationServiceTest {
 		// given
 		Notification oldNotification = Notification.builder()
 			.id(1L)
-			.notifType(NotifType.TIME)
-			.notifMethodType(NotifMethodType.PUSH)
+			.notificationType(NotifType.TIME)
+			.notificationMethodType(NotifMethodType.PUSH)
 			.isActive(true)
 			.build();
 
@@ -184,8 +184,8 @@ class NotificationServiceTest {
 			.build();
 
 		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
 		// when

@@ -59,7 +59,7 @@ class NotificationConditionSelectorTest {
 		NotificationInfoDto expectedDto =
 			new NotificationInfoDto(true, List.of(0, 1, 2), null);
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 		when(timeNotificationService.findNotifByNotifType(notification)).thenReturn(expectedDto);
 
@@ -78,7 +78,7 @@ class NotificationConditionSelectorTest {
 		// given
 		NotifType notifType = NotifType.LOCATION;
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
 		when(locationNotificationService.supports(notifType)).thenReturn(false);
 
@@ -95,11 +95,11 @@ class NotificationConditionSelectorTest {
 		NotifType notifType = NotifType.TIME;
 		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 		TimeNotificationRequest timeRequest = TimeNotificationRequest.builder()
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 
 		// when
@@ -117,7 +117,7 @@ class NotificationConditionSelectorTest {
 		NotifType notifType = NotifType.LOCATION;
 		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
 		when(locationNotificationService.supports(notifType)).thenReturn(false);
 
@@ -167,11 +167,11 @@ class NotificationConditionSelectorTest {
 		NotifType notifType = NotifType.TIME;
 		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 		TimeNotificationRequest timeRequest = TimeNotificationRequest.builder()
-			.hour(9)
-			.minute(0)
+			.startHour(9)
+			.startMinute(0)
 			.build();
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 
 		// when
@@ -189,7 +189,7 @@ class NotificationConditionSelectorTest {
 		NotifType notifType = NotifType.LOCATION;
 		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
 		when(locationNotificationService.supports(notifType)).thenReturn(false);
 
@@ -207,7 +207,7 @@ class NotificationConditionSelectorTest {
 		NotificationInfoDto expectedDto =
 			new NotificationInfoDto(true, List.of(0, 1, 2), null);
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 		when(timeNotificationService.findNotifByNotifType(notification)).thenReturn(expectedDto);
 
@@ -230,7 +230,7 @@ class NotificationConditionSelectorTest {
 		NotificationInfoDto expectedDto =
 			new NotificationInfoDto(false, List.of(0, 1), null);
 
-		when(notification.getNotifType()).thenReturn(notifType);
+		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
 		when(locationNotificationService.supports(notifType)).thenReturn(true);
 		when(locationNotificationService.findNotifByNotifType(notification)).thenReturn(expectedDto);

@@ -1,5 +1,6 @@
 package com.und.server.notification.entity;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 
 import com.und.server.common.entity.BaseTimeEntity;
@@ -35,7 +36,7 @@ import lombok.NoArgsConstructor;
 @Table(
 	name = "location_notification",
 	indexes = {
-		@Index(name = "idx_day_location_notif", columnList = "day_of_week, `start_hour`, `start_minute`")
+		@Index(name = "idx_day_location_notif", columnList = "day_of_week, start_hour, start_minute")
 	}
 )
 @Entity
@@ -54,37 +55,37 @@ public class LocationNotification extends BaseTimeEntity {
 	private DayOfWeek dayOfWeek;
 
 	@Column(nullable = false, precision = 9, scale = 6)
-	@DecimalMin(value = "-90.0")
-	@DecimalMax(value = "90.0")
+	@DecimalMin("-90.0")
+	@DecimalMax("90.0")
 	@Digits(integer = 3, fraction = 6)
-	private Double latitude;
+	private BigDecimal latitude;
 
 	@Column(nullable = false, precision = 9, scale = 6)
-	@DecimalMin(value = "-180.0")
-	@DecimalMax(value = "180.0")
+	@DecimalMin("-180.0")
+	@DecimalMax("180.0")
 	@Digits(integer = 3, fraction = 6)
-	private Double longitude;
+	private BigDecimal longitude;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private LocationTrackingRadiusType trackingRadiusType;
 
-	@Column(name = "`start_hour`", nullable = false)
+	@Column(nullable = false)
 	@Min(0)
 	@Max(23)
 	private Integer startHour;
 
-	@Column(name = "`start_minute`", nullable = false)
+	@Column(nullable = false)
 	@Min(0)
 	@Max(59)
 	private Integer startMinute;
 
-	@Column(name = "`end_hour`", nullable = false)
+	@Column(nullable = false)
 	@Min(0)
 	@Max(23)
 	private Integer endHour;
 
-	@Column(name = "`end_minute`", nullable = false)
+	@Column(nullable = false)
 	@Min(0)
 	@Max(59)
 	private Integer endMinute;

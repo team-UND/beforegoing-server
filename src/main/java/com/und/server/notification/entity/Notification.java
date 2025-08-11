@@ -38,12 +38,12 @@ public class Notification extends BaseTimeEntity {
 	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private NotifType notifType;
+	private NotifType notificationType;
 
 	@Setter
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private NotifMethodType notifMethodType;
+	private NotifMethodType notificationMethodType;
 
 	public boolean isActive() {
 		return isActive;
