@@ -2,14 +2,13 @@ package com.und.server.scenario.dto.request;
 
 import java.util.List;
 
-import org.apache.logging.log4j.core.config.plugins.validation.constraints.NotBlank;
-
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.request.TimeNotificationRequest;
 
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,11 +1,10 @@
 package com.und.server.scenario.dto.request;
 
-import org.apache.logging.log4j.core.config.plugins.validation.constraints.NotBlank;
-
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
