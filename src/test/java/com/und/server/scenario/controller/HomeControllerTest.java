@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.response.HomeResponse;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -40,7 +40,7 @@ class HomeControllerTest {
 	void Given_ValidMemberIdAndNotifType_When_GetHomeData_Then_ReturnHomeResponse() {
 		// given
 		Long memberId = 1L;
-		NotifType notifType = NotifType.TIME;
+		NotificationType notifType = NotificationType.TIME;
 
 		ScenarioResponse scenario1 = ScenarioResponse.builder()
 			.scenarioId(1L)
@@ -80,7 +80,7 @@ class HomeControllerTest {
 	void Given_ValidMemberIdAndDefaultNotifType_When_GetHomeData_Then_ReturnHomeResponse() {
 		// given
 		Long memberId = 1L;
-		NotifType notifType = NotifType.TIME; // 기본값
+		NotificationType notifType = NotificationType.TIME; // 기본값
 
 		ScenarioResponse scenario = ScenarioResponse.builder()
 			.scenarioId(1L)
@@ -115,7 +115,7 @@ class HomeControllerTest {
 	void Given_ValidMemberIdAndLocationNotifType_When_GetHomeData_Then_ReturnHomeResponse() {
 		// given
 		Long memberId = 1L;
-		NotifType notifType = NotifType.LOCATION;
+		NotificationType notifType = NotificationType.LOCATION;
 
 		ScenarioResponse scenario = ScenarioResponse.builder()
 			.scenarioId(1L)
@@ -150,7 +150,7 @@ class HomeControllerTest {
 	void Given_EmptyScenarios_When_GetHomeData_Then_ReturnHomeResponseWithNullMissions() {
 		// given
 		Long memberId = 1L;
-		NotifType notifType = NotifType.TIME;
+		NotificationType notifType = NotificationType.TIME;
 
 		List<ScenarioResponse> scenarios = List.of();
 
@@ -174,7 +174,7 @@ class HomeControllerTest {
 	void Given_MultipleScenarios_When_GetHomeData_Then_UseFirstScenarioForMissions() {
 		// given
 		Long memberId = 1L;
-		NotifType notifType = NotifType.TIME;
+		NotificationType notifType = NotificationType.TIME;
 
 		ScenarioResponse scenario1 = ScenarioResponse.builder()
 			.scenarioId(1L)

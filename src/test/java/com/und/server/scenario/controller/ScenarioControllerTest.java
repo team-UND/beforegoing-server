@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.und.server.notification.constants.NotifType;
+import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -36,7 +36,7 @@ class ScenarioControllerTest {
 	void Given_ValidMemberIdAndNotifType_When_GetScenarios_Then_ReturnScenarioList() {
 		// given
 		Long memberId = 1L;
-		NotifType notifType = NotifType.TIME;
+		NotificationType notifType = NotificationType.TIME;
 
 		ScenarioResponse scenario1 = ScenarioResponse.builder()
 			.scenarioId(1L)
