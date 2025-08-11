@@ -3,6 +3,7 @@ package com.und.server.notification.entity;
 import java.time.DayOfWeek;
 
 import com.und.server.common.entity.BaseTimeEntity;
+import com.und.server.notification.constants.LocationTrackingRadiusType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,6 +17,11 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,28 +50,43 @@ public class LocationNotification extends BaseTimeEntity {
 	private Notification notification;
 
 	@Enumerated(EnumType.ORDINAL)
-	@Column
+	@Column(nullable = false)
 	private DayOfWeek dayOfWeek;
 
-	@Column
+	@Column(nullable = false, precision = 9, scale = 6)
+	@DecimalMin(value = "-90.0")
+	@DecimalMax(value = "90.0")
+	@Digits(integer = 3, fraction = 6)
 	private Double latitude;
 
-	@Column
+	@Column(nullable = false, precision = 9, scale = 6)
+	@DecimalMin(value = "-180.0")
+	@DecimalMax(value = "180.0")
+	@Digits(integer = 3, fraction = 6)
 	private Double longitude;
 
-	@Column
-	private Integer trackingRadiusKm;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private LocationTrackingRadiusType trackingRadiusType;
 
-	@Column(name = "`start_hour`")
+	@Column(name = "`start_hour`", nullable = false)
+	@Min(0)
+	@Max(23)
 	private Integer startHour;
 
-	@Column(name = "`start_minute`")
+	@Column(name = "`start_minute`", nullable = false)
+	@Min(0)
+	@Max(59)
 	private Integer startMinute;
 
-	@Column(name = "`end_hour`")
+	@Column(name = "`end_hour`", nullable = false)
+	@Min(0)
+	@Max(23)
 	private Integer endHour;
 
-	@Column(name = "`end_minute`")
+	@Column(name = "`end_minute`", nullable = false)
+	@Min(0)
+	@Max(59)
 	private Integer endMinute;
 
 }

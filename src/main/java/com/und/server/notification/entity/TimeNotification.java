@@ -16,6 +16,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,15 +47,19 @@ public class TimeNotification extends BaseTimeEntity {
 	private Notification notification;
 
 	@Enumerated(EnumType.ORDINAL)
-	@Column
+	@Column(nullable = false)
 	private DayOfWeek dayOfWeek;
 
 	@Setter
-	@Column(name = "`hour`")
+	@Column(name = "`hour`", nullable = false)
+	@Min(0)
+	@Max(23)
 	private Integer hour;
 
 	@Setter
-	@Column(name = "`minute`")
+	@Column(name = "`minute`", nullable = false)
+	@Min(0)
+	@Max(59)
 	private Integer minute;
 
 }

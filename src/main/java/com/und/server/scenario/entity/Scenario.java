@@ -18,6 +18,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,11 +53,13 @@ public class Scenario extends BaseTimeEntity {
 
 	@Setter
 	@Column(name = "`order`", nullable = false)
+	@Min(0)
+	@Max(10_000_000)
 	private Integer order;
 
 	@Setter
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "notification_id")
+	@JoinColumn(name = "notification_id", nullable = false, unique = true)
 	private Notification notification;
 
 	@OneToMany(mappedBy = "scenario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

@@ -16,6 +16,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,7 +49,9 @@ public class Mission extends BaseTimeEntity {
 	private Boolean isChecked;
 
 	@Setter
-	@Column(name = "`order`")
+	@Column(name = "`order`", nullable = false)
+	@Min(0)
+	@Max(10_000_000)
 	private Integer order;
 
 	@Column
