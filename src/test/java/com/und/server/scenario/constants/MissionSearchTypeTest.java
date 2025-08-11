@@ -31,7 +31,7 @@ class MissionSearchTypeTest {
 		int rangeDays = MissionSearchType.PAST.getRangeDays();
 
 		// then
-		assertThat(rangeDays).isEqualTo(7);
+		assertThat(rangeDays).isEqualTo(14);
 	}
 
 	@Test
@@ -41,7 +41,7 @@ class MissionSearchTypeTest {
 		int rangeDays = MissionSearchType.FUTURE.getRangeDays();
 
 		// then
-		assertThat(rangeDays).isEqualTo(7);
+		assertThat(rangeDays).isEqualTo(14);
 	}
 
 	@Test
@@ -105,7 +105,7 @@ class MissionSearchTypeTest {
 	void Given_EightDaysAgoDate_When_GetMissionSearchType_Then_ThrowException() {
 		// given
 		LocalDate today = LocalDate.now();
-		LocalDate requestDate = today.minusDays(8);
+		LocalDate requestDate = today.minusDays(40);
 
 		// when & then
 		assertThatThrownBy(() -> MissionSearchType.getMissionSearchType(today, requestDate))
@@ -146,7 +146,7 @@ class MissionSearchTypeTest {
 	void Given_EightDaysLaterDate_When_GetMissionSearchType_Then_ThrowException() {
 		// given
 		LocalDate today = LocalDate.now();
-		LocalDate requestDate = today.plusDays(8);
+		LocalDate requestDate = today.plusDays(40);
 
 		// when & then
 		assertThatThrownBy(() -> MissionSearchType.getMissionSearchType(today, requestDate))
@@ -189,7 +189,7 @@ class MissionSearchTypeTest {
 		LocalDate today = LocalDate.now();
 
 		// when & then
-		for (int i = 8; i <= 10; i++) {
+		for (int i = 15; i <= 17; i++) {
 			LocalDate requestDate = today.minusDays(i);
 			assertThatThrownBy(() -> MissionSearchType.getMissionSearchType(today, requestDate))
 				.isInstanceOf(ServerException.class)
@@ -204,7 +204,7 @@ class MissionSearchTypeTest {
 		LocalDate today = LocalDate.now();
 
 		// when & then
-		for (int i = 8; i <= 10; i++) {
+		for (int i = 15; i <= 17; i++) {
 			LocalDate requestDate = today.plusDays(i);
 			assertThatThrownBy(() -> MissionSearchType.getMissionSearchType(today, requestDate))
 				.isInstanceOf(ServerException.class)
