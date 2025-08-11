@@ -20,13 +20,18 @@ public class NotificationConditionSelector {
 	private final List<NotificationConditionService> services;
 
 
+	private NotificationConditionService findServiceByNotifType(NotifType notifType) {
+		return services.stream()
+			.filter(service -> service.supports(notifType))
+			.findFirst()
+			.orElseThrow(() -> new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF));
+	}
+
+
 	public NotificationInfoDto findNotifByNotifType(Notification notification) {
-		for (NotificationConditionService service : services) {
-			if (service.supports(notification.getNotifType())) {
-				return service.findNotifByNotifType(notification);
-			}
-		}
-		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
+		NotificationConditionService service = findServiceByNotifType(notification.getNotifType());
+
+		return service.findNotifByNotifType(notification);
 	}
 
 
@@ -35,13 +40,8 @@ public class NotificationConditionSelector {
 		List<Integer> dayOfWeekOrdinalList,
 		NotificationConditionRequest notifConditionInfo
 	) {
-		for (NotificationConditionService service : services) {
-			if (service.supports(notification.getNotifType())) {
-				service.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
-				return;
-			}
-		}
-		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
+		NotificationConditionService service = findServiceByNotifType(notification.getNotifType());
+		service.addNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 	}
 
 
@@ -50,24 +50,14 @@ public class NotificationConditionSelector {
 		List<Integer> dayOfWeekOrdinalList,
 		NotificationConditionRequest notifConditionInfo
 	) {
-		for (NotificationConditionService service : services) {
-			if (service.supports(notification.getNotifType())) {
-				service.updateNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
-				return;
-			}
-		}
-		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
+		NotificationConditionService service = findServiceByNotifType(notification.getNotifType());
+		service.updateNotif(notification, dayOfWeekOrdinalList, notifConditionInfo);
 	}
 
 
 	public void deleteNotif(NotifType notfType, Long notificationId) {
-		for (NotificationConditionService service : services) {
-			if (service.supports(notfType)) {
-				service.deleteNotif(notificationId);
-				return;
-			}
-		}
-		throw new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIF);
+		NotificationConditionService service = findServiceByNotifType(notfType);
+		service.deleteNotif(notificationId);
 	}
 
 }
