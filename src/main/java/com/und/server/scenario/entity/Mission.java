@@ -27,7 +27,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Builder
-
 @Table
 @Entity
 public class Mission extends BaseTimeEntity {

@@ -12,7 +12,6 @@ import com.und.server.scenario.exception.ScenarioErrorResult;
 
 import lombok.AllArgsConstructor;
 
-@AllArgsConstructor
 @Component
 public class MissionTypeGroupSorter {
 

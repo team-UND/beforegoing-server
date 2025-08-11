@@ -26,7 +26,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
-
 @Table(
 	name = "location_notification",
 	indexes = {

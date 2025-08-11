@@ -27,7 +27,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Builder
-
 @Table(
 	name = "time_notification",
 	indexes = {

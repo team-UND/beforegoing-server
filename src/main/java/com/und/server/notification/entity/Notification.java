@@ -23,7 +23,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Builder
-
 @Table
 @Entity
 public class Notification extends BaseTimeEntity {

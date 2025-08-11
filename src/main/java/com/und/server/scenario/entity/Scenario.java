@@ -29,7 +29,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Builder
-
 @Table
 @Entity
 public class Scenario extends BaseTimeEntity {
