@@ -29,7 +29,6 @@ public enum ScenarioErrorResult implements ErrorResult {
 	MAX_MISSION_COUNT_EXCEEDED(
 		HttpStatus.BAD_REQUEST, "Maximum mission count exceeded");
 
-
 	private final HttpStatus httpStatus;
 	private final String message;
 

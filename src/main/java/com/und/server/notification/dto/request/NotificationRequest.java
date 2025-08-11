@@ -45,7 +45,6 @@ public class NotificationRequest {
 		@Min(value = 0, message = "DayOfWeek must be between 0 and 6")
 		@Max(value = 6, message = "DayOfWeek must be between 0 and 6") Integer> dayOfWeekOrdinalList;
 
-
 	public Notification toEntity() {
 		return Notification.builder()
 			.isActive(isActive)

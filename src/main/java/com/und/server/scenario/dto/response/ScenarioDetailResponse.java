@@ -29,7 +29,6 @@ public class ScenarioDetailResponse {
 	private String scenarioName;
 	private String memo;
 	private List<MissionResponse> basicMissionList;
-
 	private NotificationResponse notification;
 
 	@Schema(

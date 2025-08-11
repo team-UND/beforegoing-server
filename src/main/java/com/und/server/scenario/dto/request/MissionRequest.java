@@ -32,7 +32,6 @@ public class MissionRequest {
 	@Builder.Default
 	private MissionType missionType = MissionType.BASIC;
 
-
 	public Mission toEntity(Scenario scenario, Integer order) {
 		return Mission.builder()
 			.scenario(scenario)

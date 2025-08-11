@@ -46,7 +46,6 @@ public class TimeNotificationRequest implements NotificationConditionRequest {
 	@Max(value = 59, message = "Minute must be between 0 and 59")
 	private Integer minute;
 
-
 	public TimeNotification toEntity(Notification notification, DayOfWeek dayOfWeek) {
 		return TimeNotification.builder()
 			.notification(notification)

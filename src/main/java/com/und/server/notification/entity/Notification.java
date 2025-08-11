@@ -46,7 +46,6 @@ public class Notification extends BaseTimeEntity {
 	@Column(nullable = false)
 	private NotifMethodType notifMethodType;
 
-
 	public boolean isActive() {
 		return isActive;
 	}

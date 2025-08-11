@@ -26,7 +26,6 @@ public class ScenarioResponse {
 	private String memo;
 	private Integer order;
 
-
 	public static ScenarioResponse of(Scenario scenario) {
 		return ScenarioResponse.builder()
 			.scenarioId(scenario.getId())

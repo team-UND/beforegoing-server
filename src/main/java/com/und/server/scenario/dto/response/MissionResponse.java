@@ -25,7 +25,6 @@ public class MissionResponse {
 	private Boolean isChecked;
 	private MissionType missionType;
 
-
 	public static MissionResponse of(Mission mission) {
 		return MissionResponse.builder()
 			.missionId(mission.getId())

@@ -14,9 +14,7 @@ public enum NotificationErrorResult implements ErrorResult {
 	UNSUPPORTED_NOTIF(
 		HttpStatus.BAD_REQUEST, "Unsupported notification type"),
 	NOT_FOUND_NOTIF(
-		HttpStatus.NOT_FOUND, "Notification not found"
-	);
-
+		HttpStatus.NOT_FOUND, "Notification not found");
 
 	private final HttpStatus httpStatus;
 	private final String message;

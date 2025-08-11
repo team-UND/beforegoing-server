@@ -30,7 +30,6 @@ public class NotificationResponse {
 	private Boolean isEveryDay;
 	private List<Integer> dayOfWeekOrdinalList;
 
-
 	public static NotificationResponse of(Notification notification) {
 		return NotificationResponse.builder()
 			.notificationId(notification.getId())

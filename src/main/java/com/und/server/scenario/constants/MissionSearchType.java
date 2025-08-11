@@ -18,7 +18,6 @@ public enum MissionSearchType {
 
 	private final int rangeDays;
 
-
 	public static MissionSearchType getMissionSearchType(LocalDate today, LocalDate requestDate) {
 		if (requestDate == null || today.isEqual(requestDate)) {
 			return TODAY;
