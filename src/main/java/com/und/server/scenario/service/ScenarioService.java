@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ScenarioService {
 
+	private static final int SCENARIO_MAX_COUNT = 20;
 	private final NotificationService notificationService;
 	private final MissionService missionService;
 	private final ScenarioRepository scenarioRepository;
@@ -82,12 +83,10 @@ public class ScenarioService {
 			notificationService.addNotification(notifInfo, scenarioInfo.getNotificationCondition());
 
 		List<Integer> orderList =
-			scenarioRepository.findOrdersByMemberIdAndNotification_NotifType(
+			scenarioRepository.findOrdersByMemberIdAndNotificationType(
 				memberId, notifInfo.getNotificationType());
 
-		if (orderList.size() >= 20) {
-			throw new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED);
-		}
+		validateMaxScenarioCount(orderList);
 
 		int order = orderList.isEmpty()
 			? OrderCalculator.START_ORDER
@@ -140,11 +139,6 @@ public class ScenarioService {
 		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
-		List<Mission> missionList = scenario.getMissionList();
-		if (missionList.size() >= 20) {
-			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
-		}
-
 		missionService.addTodayMission(scenario, missionAddInfo, date);
 	}
 
@@ -163,9 +157,9 @@ public class ScenarioService {
 		List<MissionRequest> newBasicMissionList = scenarioInfo.getBasicMissionList();
 		missionService.updateBasicMission(oldSCenario, newBasicMissionList);
 
-		oldSCenario.setScenarioName(scenarioInfo.getScenarioName());
-		oldSCenario.setMemo(scenarioInfo.getMemo());
-		oldSCenario.setNotification(newNotification);
+		oldSCenario.updateScenarioName(scenarioInfo.getScenarioName());
+		oldSCenario.updateMemo(scenarioInfo.getMemo());
+		oldSCenario.updateNotification(newNotification);
 	}
 
 
@@ -183,7 +177,7 @@ public class ScenarioService {
 				scenarioOrderInfo.getPrevOrder(),
 				scenarioOrderInfo.getNextOrder()
 			);
-			scenario.setScenarioOrder(toUpdateOrder);
+			scenario.updateScenarioOrder(toUpdateOrder);
 
 		} catch (ReorderRequiredException e) {
 			Notification notification = scenario.getNotification();
@@ -236,11 +230,17 @@ public class ScenarioService {
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notifType);
 
 		int order = OrderCalculator.START_ORDER;
-		for (Scenario s : scenarioList) {
-			s.setScenarioOrder(order);
+		for (Scenario scenario : scenarioList) {
+			scenario.updateScenarioOrder(order);
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
 		scenarioRepository.saveAll(scenarioList);
+	}
+
+	private void validateMaxScenarioCount(List<Integer> orderList) {
+		if (orderList.size() >= SCENARIO_MAX_COUNT) {
+			throw new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED);
+		}
 	}
 
 }

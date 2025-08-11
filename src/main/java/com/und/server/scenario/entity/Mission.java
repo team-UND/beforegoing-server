@@ -23,7 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -44,11 +43,9 @@ public class Mission extends BaseTimeEntity {
 	@Column(nullable = false, length = 10)
 	private String content;
 
-	@Setter
 	@Column(nullable = false)
 	private Boolean isChecked;
 
-	@Setter
 	@Column
 	@Min(0)
 	@Max(10_000_000)
@@ -60,5 +57,13 @@ public class Mission extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private MissionType missionType;
+
+	public void updateCheckStatus(Boolean checked) {
+		this.isChecked = checked;
+	}
+
+	public void updateMissionOrder(Integer missionOrder) {
+		this.missionOrder = missionOrder;
+	}
 
 }

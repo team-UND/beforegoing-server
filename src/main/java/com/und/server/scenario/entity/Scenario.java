@@ -25,7 +25,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -43,26 +42,38 @@ public class Scenario extends BaseTimeEntity {
 	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
 
-	@Setter
 	@Column(nullable = false, length = 10)
 	private String scenarioName;
 
-	@Setter
 	@Column(length = 15)
 	private String memo;
 
-	@Setter
 	@Column(nullable = false)
 	@Min(0)
 	@Max(10_000_000)
 	private Integer scenarioOrder;
 
-	@Setter
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "notification_id", nullable = false, unique = true)
 	private Notification notification;
 
 	@OneToMany(mappedBy = "scenario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Mission> missionList;
+
+	public void updateScenarioName(String scenarioName) {
+		this.scenarioName = scenarioName;
+	}
+
+	public void updateMemo(String memo) {
+		this.memo = memo;
+	}
+
+	public void updateScenarioOrder(Integer scenarioOrder) {
+		this.scenarioOrder = scenarioOrder;
+	}
+
+	public void updateNotification(Notification notification) {
+		this.notification = notification;
+	}
 
 }

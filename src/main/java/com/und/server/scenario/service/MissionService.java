@@ -30,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class MissionService {
 
+	private static final int BASIC_MISSION_MAX_COUNT = 20;
+	private static final int TODAY_MISSION_MAX_COUNT = 20;
 	private final MissionRepository missionRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 
@@ -84,12 +86,22 @@ public class MissionService {
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
 
+		List<Mission> basicMissionList =
+			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.BASIC);
+
+		validateMaxBasicMissionCount(basicMissionList);
+
 		missionRepository.saveAll(missionList);
 	}
 
 
 	@Transactional
 	public void addTodayMission(Scenario scenario, TodayMissionRequest missionAddInfo, LocalDate date) {
+		List<Mission> todayMissionList = missionTypeGroupSorter.groupAndSortByType(
+			scenario.getMissionList(), MissionType.TODAY);
+
+		validateMaxTodayMissionCount(todayMissionList);
+
 		Mission newMission = Mission.builder()
 			.scenario(scenario)
 			.content(missionAddInfo.content())
@@ -120,7 +132,6 @@ public class MissionService {
 		List<Long> requestedMissionIds = new ArrayList<>();
 
 		List<Mission> toAddList = new ArrayList<>();
-		List<Mission> toUpdateList = new ArrayList<>();
 
 		int order = OrderCalculator.START_ORDER;
 		for (MissionRequest missionInfo : missionInfoList) {
@@ -131,13 +142,14 @@ public class MissionService {
 			} else {
 				Mission existingMission = existingMissions.get(missionId);
 				if (existingMission != null) {
-					existingMission.setMissionOrder(order);
-					toUpdateList.add(existingMission);
+					existingMission.updateMissionOrder(order);
+					toAddList.add(existingMission);
 					requestedMissionIds.add(missionId);
 				}
 			}
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
+		validateMaxBasicMissionCount(toAddList);
 
 		List<Long> toDeleteIdList = existingMissionIds.stream()
 			.filter(id -> !requestedMissionIds.contains(id))
@@ -148,37 +160,45 @@ public class MissionService {
 				&& toDeleteIdList.contains(mission.getId())
 		);
 		missionRepository.saveAll(toAddList);
-		missionRepository.saveAll(toUpdateList);
 	}
 
 
 	@Transactional
 	public void updateMissionCheck(Long memberId, Long missionId, Boolean isChecked) {
-		Mission mission = findMissionById(missionId);
+		Mission mission = missionRepository.findById(missionId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 		validateMissionAccessibleMember(mission, memberId);
 
-		mission.setIsChecked(isChecked);
+		mission.updateCheckStatus(isChecked);
 	}
 
 
 	@Transactional
 	public void deleteTodayMission(Long memberId, Long missionId) {
-		Mission mission = findMissionById(missionId);
+		Mission mission = missionRepository.findById(missionId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 		validateMissionAccessibleMember(mission, memberId);
 
 		missionRepository.delete(mission);
 	}
 
 
-	private Mission findMissionById(Long missionId) {
-		return missionRepository.findById(missionId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
-	}
-
 	private void validateMissionAccessibleMember(Mission mission, Long memberId) {
 		Member member = mission.getScenario().getMember();
 		if (!memberId.equals(member.getId())) {
 			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
+		}
+	}
+
+	private void validateMaxBasicMissionCount(List<Mission> missionList) {
+		if (missionList.size() >= BASIC_MISSION_MAX_COUNT) {
+			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
+		}
+	}
+
+	private void validateMaxTodayMissionCount(List<Mission> missionList) {
+		if (missionList.size() >= TODAY_MISSION_MAX_COUNT) {
+			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
 		}
 	}
 

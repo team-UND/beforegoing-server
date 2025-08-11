@@ -23,7 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -50,16 +49,19 @@ public class TimeNotification extends BaseTimeEntity {
 	@Column(nullable = false)
 	private DayOfWeek dayOfWeek;
 
-	@Setter
 	@Column(nullable = false)
 	@Min(0)
 	@Max(23)
 	private Integer startHour;
 
-	@Setter
 	@Column(nullable = false)
 	@Min(0)
 	@Max(59)
 	private Integer startMinute;
+
+	public void updateTimeCondition(Integer hour, Integer minute) {
+		this.startHour = hour;
+		this.startMinute = minute;
+	}
 
 }

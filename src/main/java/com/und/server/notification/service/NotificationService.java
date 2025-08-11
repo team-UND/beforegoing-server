@@ -53,9 +53,11 @@ public class NotificationService {
 		boolean isChangeNotifType = oldNotification.getNotificationType() != notifInfo.getNotificationType();
 		NotifType oldNotifType = oldNotification.getNotificationType();
 
-		oldNotification.setNotificationType(notifInfo.getNotificationType());
-		oldNotification.setNotificationMethodType(notifInfo.getNotificationMethodType());
-		oldNotification.setIsActive(notifInfo.getIsActive());
+		oldNotification.updateNotification(
+			notifInfo.getNotificationType(),
+			notifInfo.getNotificationMethodType()
+		);
+		oldNotification.updateActiveStatus(notifInfo.getIsActive());
 
 		if (!notifInfo.getIsActive()) {
 			notificationConditionSelector.deleteNotif(notifInfo.getNotificationType(), oldNotification.getId());
@@ -80,7 +82,6 @@ public class NotificationService {
 			notification.getNotificationType(),
 			notification.getId()
 		);
-		notificationRepository.delete(notification);
 	}
 
 }

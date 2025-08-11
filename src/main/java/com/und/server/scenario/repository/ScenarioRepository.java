@@ -60,6 +60,6 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 			AND s.notification.notificationType = :notifType
 		ORDER BY s.scenarioOrder
 		""")
-	List<Integer> findOrdersByMemberIdAndNotification_NotifType(Long memberId, NotifType notifType);
+	List<Integer> findOrdersByMemberIdAndNotificationType(Long memberId, NotifType notifType);
 
 }

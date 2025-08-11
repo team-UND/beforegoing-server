@@ -124,8 +124,10 @@ public class TimeNotificationService implements NotificationConditionService {
 			List<TimeNotification> toUpdate = oldTimeNotifList.stream()
 				.filter(tn -> toUpdateOrdinals.contains(tn.getDayOfWeek().ordinal()))
 				.peek(tn -> {
-					tn.setStartHour(timeNotifInfo.getStartHour());
-					tn.setStartMinute(timeNotifInfo.getStartMinute());
+					tn.updateTimeCondition(
+						timeNotifInfo.getStartHour(),
+						timeNotifInfo.getStartMinute()
+					);
 				})
 				.toList();
 			timeNotifRepository.saveAll(toUpdate);
