@@ -13,8 +13,8 @@ import lombok.Getter;
 public enum MissionSearchType {
 
 	TODAY(0),
-	PAST(7),
-	FUTURE(7);
+	PAST(14),
+	FUTURE(14);
 
 	private final int rangeDays;
 
