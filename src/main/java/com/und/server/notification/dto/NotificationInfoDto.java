@@ -10,6 +10,4 @@ public record NotificationInfoDto(
 	List<Integer> dayOfWeekOrdinalList,
 	NotificationConditionResponse notificationCondition
 
-) {
-
-}
+) { }

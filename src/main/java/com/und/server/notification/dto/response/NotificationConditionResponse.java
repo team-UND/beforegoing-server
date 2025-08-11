@@ -11,5 +11,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
 	@JsonSubTypes.Type(value = TimeNotificationResponse.class, name = "TIME")
 })
-public interface NotificationConditionResponse {
-}
+public interface NotificationConditionResponse { }

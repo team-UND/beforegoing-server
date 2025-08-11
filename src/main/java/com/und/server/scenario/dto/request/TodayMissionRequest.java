@@ -9,5 +9,4 @@ public record TodayMissionRequest(
 	@Size(max = 10, message = "Content must be at most 10 characters")
 	String content
 
-) {
-}
+) { }
