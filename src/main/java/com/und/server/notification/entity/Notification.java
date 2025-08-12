@@ -38,15 +38,14 @@ public class Notification extends BaseTimeEntity {
 	private NotificationType notificationType;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
 	private NotificationMethodType notificationMethodType;
 
 	public boolean isActive() {
 		return isActive;
 	}
 
-	public void updateActiveStatus(Boolean active) {
-		isActive = active;
+	public void updateActiveStatus(Boolean isActive) {
+		this.isActive = isActive;
 	}
 
 	public void updateNotification(
@@ -55,6 +54,10 @@ public class Notification extends BaseTimeEntity {
 	) {
 		this.notificationType = notificationType;
 		this.notificationMethodType = notificationMethodType;
+	}
+
+	public void deleteNotificationMethodType() {
+		this.notificationMethodType = null;
 	}
 
 }
