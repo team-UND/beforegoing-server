@@ -42,7 +42,8 @@ public class MissionController {
 		@PathVariable Long scenarioId,
 		@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
-		MissionGroupResponse missionList = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
+		MissionGroupResponse missionList =
+			scenarioService.findMissionsGroupByMissionType(memberId, scenarioId, date);
 
 		return ResponseEntity.ok().body(missionList);
 	}

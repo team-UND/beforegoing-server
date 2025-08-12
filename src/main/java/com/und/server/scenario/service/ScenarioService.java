@@ -25,6 +25,7 @@ import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.HomeScenarioResponse;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -84,6 +85,16 @@ public class ScenarioService {
 		NotificationInfoDto notificationInfo = notificationService.findNotificationDetails(notification);
 
 		return getScenarioDetailResponse(scenario, groupdBasicMissionList, notificationInfo);
+	}
+
+
+	@Transactional(readOnly = true)
+	public MissionGroupResponse findMissionsGroupByMissionType(Long memberId, Long scenarioId, LocalDate date) {
+		if (!scenarioRepository.existsById(scenarioId)) {
+			throw new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO);
+		}
+
+		return missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 	}
 
 
