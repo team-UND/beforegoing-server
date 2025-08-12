@@ -10,41 +10,33 @@ import com.und.server.notification.dto.response.TimeNotificationResponse;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Scenario detail response")
-public class ScenarioDetailResponse {
+public record ScenarioDetailResponse(
 
 	@Schema(description = "Scenario id", example = "1")
-	private Long scenarioId;
+	Long scenarioId,
 
 	@Schema(description = "Scenario name", example = "Before house")
-	private String scenarioName;
+	String scenarioName,
 
 	@Schema(description = "Scenario memo", example = "Item to carry")
-	private String memo;
+	String memo,
 
 	@ArraySchema(
 		arraySchema = @Schema(description = "Basic type mission list, Sort in order"),
 		schema = @Schema(implementation = MissionResponse.class), maxItems = 20
 	)
-	private List<MissionResponse> basicMissionList;
+	List<MissionResponse> basicMissionList,
 
 	@Schema(
 		description = "Notification default settings",
 		implementation = NotificationResponse.class
 	)
-	private NotificationResponse notification;
+	NotificationResponse notification,
 
 	@Schema(
 		description = "Notification details condition that are included only when the notification is active",
@@ -55,6 +47,6 @@ public class ScenarioDetailResponse {
 		requiredMode = Schema.RequiredMode.NOT_REQUIRED,
 		nullable = true
 	)
-	private NotificationConditionResponse notificationCondition;
+	NotificationConditionResponse notificationCondition
 
-}
+) { }

@@ -10,21 +10,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
-@ToString
 @Schema(description = "Time notification detail condition request")
-public class TimeNotificationRequest implements NotificationConditionRequest {
+public record TimeNotificationRequest(
 
 	@Schema(
 		description = "Time notification type",
@@ -34,20 +24,27 @@ public class TimeNotificationRequest implements NotificationConditionRequest {
 		requiredMode = Schema.RequiredMode.REQUIRED
 	)
 	@NotNull
-	@Builder.Default
-	private NotificationType notificationType = NotificationType.TIME;
+	NotificationType notificationType,
 
-	@Schema(description = "hour", example = "12")
+	@Schema(description = "hour, 24-hour format", example = "12")
 	@NotNull(message = "Hour must not be null")
 	@Min(value = 0, message = "Hour must be between 0 and 23")
 	@Max(value = 23, message = "Hour must be between 0 and 23")
-	private Integer startHour;
+	Integer startHour,
 
 	@Schema(description = "minute", example = "58")
 	@NotNull(message = "Minute must not be null")
 	@Min(value = 0, message = "Minute must be between 0 and 59")
 	@Max(value = 59, message = "Minute must be between 0 and 59")
-	private Integer startMinute;
+	Integer startMinute
+
+) implements NotificationConditionRequest {
+
+	public TimeNotificationRequest {
+		if (notificationType == null) {
+			notificationType = NotificationType.TIME;
+		}
+	}
 
 	public TimeNotification toEntity(Notification notification, DayOfWeek dayOfWeek) {
 		return TimeNotification.builder()

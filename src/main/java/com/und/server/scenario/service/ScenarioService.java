@@ -13,6 +13,7 @@ import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.NotificationInfoDto;
+import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
@@ -110,13 +111,13 @@ public class ScenarioService {
 	public void addScenario(Long memberId, ScenarioDetailRequest scenarioDetailRequest) {
 		addScenarioInternal(
 			memberId,
-			scenarioDetailRequest.getScenarioName(),
-			scenarioDetailRequest.getMemo(),
-			scenarioDetailRequest.getBasicMissionList(),
-			scenarioDetailRequest.getNotification().getNotificationType(),
+			scenarioDetailRequest.scenarioName(),
+			scenarioDetailRequest.memo(),
+			scenarioDetailRequest.basicMissionList(),
+			scenarioDetailRequest.notification().notificationType(),
 			() -> notificationService.addNotification(
-				scenarioDetailRequest.getNotification(),
-				scenarioDetailRequest.getNotificationCondition()
+				scenarioDetailRequest.notification(),
+				scenarioDetailRequest.notificationCondition()
 			)
 		);
 	}
@@ -142,13 +143,13 @@ public class ScenarioService {
 		updateScenarioInternal(
 			memberId,
 			scenarioId,
-			scenarioDetailRequest.getScenarioName(),
-			scenarioDetailRequest.getMemo(),
-			scenarioDetailRequest.getBasicMissionList(),
+			scenarioDetailRequest.scenarioName(),
+			scenarioDetailRequest.memo(),
+			scenarioDetailRequest.basicMissionList(),
 			notification -> notificationService.updateNotification(
 				notification,
-				scenarioDetailRequest.getNotification(),
-				scenarioDetailRequest.getNotificationCondition()
+				scenarioDetailRequest.notification(),
+				scenarioDetailRequest.notificationCondition()
 			)
 		);
 	}
@@ -180,8 +181,8 @@ public class ScenarioService {
 
 		try {
 			int toUpdateOrder = orderCalculator.getOrder(
-				scenarioOrderUpdateRequest.getPrevOrder(),
-				scenarioOrderUpdateRequest.getNextOrder()
+				scenarioOrderUpdateRequest.prevOrder(),
+				scenarioOrderUpdateRequest.nextOrder()
 			);
 			scenario.updateScenarioOrder(toUpdateOrder);
 
@@ -278,26 +279,29 @@ public class ScenarioService {
 	) {
 		Notification notification = scenario.getNotification();
 
-		ScenarioDetailResponse scenarioDetailResponse = ScenarioDetailResponse.builder()
-			.scenarioId(scenario.getId())
-			.scenarioName(scenario.getScenarioName())
-			.memo(scenario.getMemo())
-			.basicMissionList(MissionResponse.listFrom(basicMissionList))
-			.build();
-
 		NotificationResponse notificationResponse;
+		NotificationConditionResponse notificationConditionResponse = null;
+
 		if (notificationInfo == null) {
 			notificationResponse = NotificationResponse.from(
 				notification, null, null);
 		} else {
 			notificationResponse = NotificationResponse.from(
-				notification, notificationInfo.isEveryDay(), notificationInfo.dayOfWeekOrdinalList());
-			scenarioDetailResponse.setNotificationCondition(notificationInfo.notificationConditionResponse());
+				notification,
+				notificationInfo.isEveryDay(),
+				notificationInfo.dayOfWeekOrdinalList()
+			);
+			notificationConditionResponse = notificationInfo.notificationConditionResponse();
 		}
 
-		scenarioDetailResponse.setNotification(notificationResponse);
-
-		return scenarioDetailResponse;
+		return ScenarioDetailResponse.builder()
+			.scenarioId(scenario.getId())
+			.scenarioName(scenario.getScenarioName())
+			.memo(scenario.getMemo())
+			.basicMissionList(MissionResponse.listFrom(basicMissionList))
+			.notification(notificationResponse)
+			.notificationCondition(notificationConditionResponse)
+			.build();
 	}
 
 	private void reorderScenarios(Long memberId, NotificationType notificationType) {

@@ -14,29 +14,19 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
-@ToString
 @Schema(description = "Notification request")
-public class NotificationRequest {
+public record NotificationRequest(
 
 	@Schema(description = "Notification type", example = "TIME")
 	@NotNull(message = "notificationType must not be null")
-	private NotificationType notificationType;
+	NotificationType notificationType,
 
 	@Schema(description = "Notification method type", example = "PUSH")
 	@NotNull(message = "notificationMethod must not be null")
-	private NotificationMethodType notificationMethodType;
+	NotificationMethodType notificationMethodType,
 
 	@ArraySchema(
 		uniqueItems = true,
@@ -46,10 +36,12 @@ public class NotificationRequest {
 	@Schema(example = "[0,1,2,3,4,5,6]")
 	@Size(max = 7, message = "DayOfWeek list must contain at most 7 items")
 	@UniqueElements(message = "DayOfWeek must not contain duplicates")
-	private List<
+	List<
 		@NotNull(message = "DayOfWeek must not be null")
 		@Min(value = 0, message = "DayOfWeek must be between 0 and 6")
-		@Max(value = 6, message = "DayOfWeek must be between 0 and 6") Integer> dayOfWeekOrdinalList;
+		@Max(value = 6, message = "DayOfWeek must be between 0 and 6") Integer> dayOfWeekOrdinalList
+
+) {
 
 	public Notification toEntity() {
 		return Notification.builder()

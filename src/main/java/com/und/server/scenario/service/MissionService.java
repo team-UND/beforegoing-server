@@ -101,7 +101,7 @@ public class MissionService {
 			scenario.getMissionList(), MissionType.TODAY);
 		validateMaxTodayMissionCount(todayMissionList);
 
-		Mission newMission = todayMissionRequest.toEntity(scenario);
+		Mission newMission = todayMissionRequest.toEntity(scenario, date);
 
 		missionRepository.save(newMission);
 	}
@@ -128,7 +128,7 @@ public class MissionService {
 
 		int order = OrderCalculator.START_ORDER;
 		for (BasicMissionRequest missionInfo : missionRequestList) {
-			Long missionId = missionInfo.getMissionId();
+			Long missionId = missionInfo.missionId();
 
 			if (missionId == null) {
 				toAddList.add(missionInfo.toEntity(oldSCenario, order));

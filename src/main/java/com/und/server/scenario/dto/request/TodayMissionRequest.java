@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 @Schema(description = "Today type Mission request")
 public record TodayMissionRequest(
 
@@ -18,11 +20,12 @@ public record TodayMissionRequest(
 
 ) {
 
-	public Mission toEntity(Scenario scenario) {
+	public Mission toEntity(Scenario scenario, LocalDate date) {
 		return Mission.builder()
 			.scenario(scenario)
 			.content(content)
 			.isChecked(false)
+			.useDate(date)
 			.missionType(MissionType.TODAY)
 			.build();
 	}

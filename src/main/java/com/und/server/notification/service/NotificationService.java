@@ -34,7 +34,7 @@ public class NotificationService {
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		Notification notification = notificationInfo.toEntity();
-		List<Integer> dayOfWeekOrdinalList = notificationInfo.getDayOfWeekOrdinalList();
+		List<Integer> dayOfWeekOrdinalList = notificationInfo.dayOfWeekOrdinalList();
 
 		notificationRepository.save(notification);
 		notificationConditionSelector.addNotificationCondition(
@@ -62,14 +62,14 @@ public class NotificationService {
 		NotificationRequest notificationInfo,
 		NotificationConditionRequest notificationConditionRequest
 	) {
-		List<Integer> dayOfWeekOrdinalList = notificationInfo.getDayOfWeekOrdinalList();
+		List<Integer> dayOfWeekOrdinalList = notificationInfo.dayOfWeekOrdinalList();
 		boolean isChangeNotificationType =
-			notification.getNotificationType() != notificationInfo.getNotificationType();
+			notification.getNotificationType() != notificationInfo.notificationType();
 		NotificationType oldNotificationType = notification.getNotificationType();
 
 		notification.updateNotification(
-			notificationInfo.getNotificationType(),
-			notificationInfo.getNotificationMethodType()
+			notificationInfo.notificationType(),
+			notificationInfo.notificationMethodType()
 		);
 		notification.updateActiveStatus(true);
 

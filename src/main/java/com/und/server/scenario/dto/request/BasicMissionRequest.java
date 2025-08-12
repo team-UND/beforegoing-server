@@ -7,29 +7,21 @@ import com.und.server.scenario.entity.Scenario;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
-@ToString
 @Schema(description = "Basic type Mission request")
-public class BasicMissionRequest {
+public record BasicMissionRequest(
 
 	@Schema(description = "Mission id for exist mission", example = "1")
-	private Long missionId;
+	Long missionId,
 
 	@Schema(description = "Mission content", example = "Lock door")
 	@NotBlank(message = "Content must not be blank")
 	@Size(max = 10, message = "Content must be at most 10 characters")
-	private String content;
+	String content
+
+) {
 
 	public Mission toEntity(Scenario scenario, Integer order) {
 		return Mission.builder()
