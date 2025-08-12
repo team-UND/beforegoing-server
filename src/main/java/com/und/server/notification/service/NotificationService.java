@@ -24,7 +24,7 @@ public class NotificationService {
 
 	@Transactional(readOnly = true)
 	public NotificationInfoDto findNotificationDetails(Notification notification) {
-		return notificationConditionSelector.findNotificationInfoByType(notification);
+		return notificationConditionSelector.findNotificationCondition(notification);
 	}
 
 
@@ -63,12 +63,13 @@ public class NotificationService {
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		List<Integer> dayOfWeekOrdinalList = notificationInfo.dayOfWeekOrdinalList();
-		boolean isChangeNotificationType =
-			notification.getNotificationType() != notificationInfo.notificationType();
+
 		NotificationType oldNotificationType = notification.getNotificationType();
+		NotificationType newNotificationtype = notificationInfo.notificationType();
+		boolean isChangeNotificationType = oldNotificationType != newNotificationtype;
 
 		notification.updateNotification(
-			notificationInfo.notificationType(),
+			newNotificationtype,
 			notificationInfo.notificationMethodType()
 		);
 		notification.updateActiveStatus(true);

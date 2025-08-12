@@ -20,15 +20,7 @@ public class NotificationConditionSelector {
 	private final List<NotificationConditionService> services;
 
 
-	private NotificationConditionService findServiceByNotificationType(NotificationType notificationType) {
-		return services.stream()
-			.filter(service -> service.supports(notificationType))
-			.findFirst()
-			.orElseThrow(() -> new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIFICATION));
-	}
-
-
-	public NotificationInfoDto findNotificationInfoByType(Notification notification) {
+	public NotificationInfoDto findNotificationCondition(Notification notification) {
 		NotificationConditionService service = findServiceByNotificationType(notification.getNotificationType());
 
 		return service.findNotificationInfoByType(notification);
@@ -58,6 +50,14 @@ public class NotificationConditionSelector {
 	public void deleteNotificationCondition(NotificationType notificationType, Long notificationId) {
 		NotificationConditionService service = findServiceByNotificationType(notificationType);
 		service.deleteNotificationCondition(notificationId);
+	}
+
+
+	private NotificationConditionService findServiceByNotificationType(NotificationType notificationType) {
+		return services.stream()
+			.filter(service -> service.supports(notificationType))
+			.findFirst()
+			.orElseThrow(() -> new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIFICATION));
 	}
 
 }

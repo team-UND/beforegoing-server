@@ -32,9 +32,10 @@ public class HomeController {
 	@GetMapping("/home")
 	public ResponseEntity<HomeResponse> getHomeData(
 		@AuthMember Long memberId,
-		@RequestParam(defaultValue = "TIME") NotificationType notifType
+		@RequestParam(defaultValue = "TIME") NotificationType notificationType
 	) {
-		List<HomeScenarioResponse> scenarios = scenarioService.findHomeScenariosByMemberId(memberId, notifType);
+		List<HomeScenarioResponse> scenarios =
+			scenarioService.findHomeScenariosByMemberId(memberId, notificationType);
 
 		LocalDate today = LocalDate.now();
 		MissionGroupResponse missions = null;
@@ -43,12 +44,12 @@ public class HomeController {
 			missions = missionService.findMissionsByScenarioId(memberId, firstScenarioId, today);
 		}
 
-		HomeResponse result = HomeResponse.builder()
+		HomeResponse homeResponse = HomeResponse.builder()
 			.scenarioList(scenarios)
 			.missionListByType(missions)
 			.build();
 
-		return ResponseEntity.ok().body(result);
+		return ResponseEntity.ok().body(homeResponse);
 	}
 
 }
