@@ -23,24 +23,27 @@ import lombok.ToString;
 @Getter
 @Builder
 @ToString
+@Schema(description = "Time notification detail condition request")
 public class TimeNotificationRequest implements NotificationConditionRequest {
 
 	@Schema(
-		description = "알림 타입",
-		example = "TIME",
-		defaultValue = "TIME",
-		allowableValues = {"TIME"},
+		description = "Time notification type",
+		example = "time",
+		defaultValue = "time",
+		allowableValues = {"time"},
 		requiredMode = Schema.RequiredMode.REQUIRED
 	)
 	@NotNull
 	@Builder.Default
 	private NotificationType notificationType = NotificationType.TIME;
 
+	@Schema(description = "hour", example = "12")
 	@NotNull(message = "Hour must not be null")
 	@Min(value = 0, message = "Hour must be between 0 and 23")
 	@Max(value = 23, message = "Hour must be between 0 and 23")
 	private Integer startHour;
 
+	@Schema(description = "minute", example = "58")
 	@NotNull(message = "Minute must not be null")
 	@Min(value = 0, message = "Minute must be between 0 and 59")
 	@Max(value = 59, message = "Minute must be between 0 and 59")

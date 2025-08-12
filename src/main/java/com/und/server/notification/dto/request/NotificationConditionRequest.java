@@ -9,6 +9,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	property = "notificationType"
 )
 @JsonSubTypes({
-	@JsonSubTypes.Type(value = TimeNotificationRequest.class, name = "TIME")
+	@JsonSubTypes.Type(value = TimeNotificationRequest.class, name = "time")
 })
 public interface NotificationConditionRequest { }
