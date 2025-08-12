@@ -18,7 +18,7 @@ import lombok.Builder;
 @Schema(description = "Scenario detail request for create and update")
 public record ScenarioDetailRequest(
 
-	@Schema(description = "Scenario id", example = "Before house")
+	@Schema(description = "Scenario name", example = "Home out")
 	@NotBlank(message = "Scenario name must not be blank")
 	@Size(max = 10, message = "Scenario name must be at most 10 characters")
 	String scenarioName,

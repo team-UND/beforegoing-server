@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Today type Mission request")
 public record TodayMissionRequest(
 
-	@Schema(description = "Mission content", example = "Lock the door")
+	@Schema(description = "Mission content", example = "Lock door")
 	@NotBlank(message = "Content must not be blank")
 	@Size(max = 10, message = "Content must be at most 10 characters")
 	String content

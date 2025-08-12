@@ -7,7 +7,7 @@ import com.und.server.scenario.entity.Mission;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Home display response")
+@Schema(description = "Home display Mission group by Mission type response")
 public record MissionGroupResponse(
 
 	@ArraySchema(

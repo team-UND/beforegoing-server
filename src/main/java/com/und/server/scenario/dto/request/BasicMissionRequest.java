@@ -13,7 +13,8 @@ import lombok.Builder;
 @Schema(description = "Basic type Mission request")
 public record BasicMissionRequest(
 
-	@Schema(description = "Mission id for exist mission", example = "1")
+	@Schema(description = "Mission id for exist mission. Do not send when creating a new mission",
+		example = "1")
 	Long missionId,
 
 	@Schema(description = "Mission content", example = "Lock door")

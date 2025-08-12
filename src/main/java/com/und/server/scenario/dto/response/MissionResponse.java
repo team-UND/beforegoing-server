@@ -18,7 +18,7 @@ public record MissionResponse(
 	@Schema(description = "Mission content", example = "Lock door")
 	String content,
 
-	@Schema(description = "Check box check display status", example = "Lock door")
+	@Schema(description = "Check box check display status", example = "true")
 	Boolean isChecked,
 
 	@Schema(description = "Mission type", example = "BASIC")

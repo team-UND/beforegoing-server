@@ -11,10 +11,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Scenario no notification request for create and update")
+@Schema(description = "Scenario without notification request for create and update")
 public record ScenarioNoNotificationRequest(
 
-	@Schema(description = "Scenario id", example = "Before house")
+	@Schema(description = "Scenario name", example = "Home out")
 	@NotBlank(message = "Scenario name must not be blank")
 	@Size(max = 10, message = "Scenario name must be at most 10 characters")
 	String scenarioName,
@@ -31,7 +31,7 @@ public record ScenarioNoNotificationRequest(
 	@Valid
 	List<BasicMissionRequest> basicMissionList,
 
-	@Schema(description = "Notification type", example = "TIME")
+	@Schema(description = "Notification type", example = "time")
 	@NotNull(message = "notificationType must not be null")
 	NotificationType notificationType
 

@@ -20,11 +20,11 @@ import lombok.Builder;
 @Schema(description = "Notification request")
 public record NotificationRequest(
 
-	@Schema(description = "Notification type", example = "TIME")
+	@Schema(description = "Notification type", example = "time")
 	@NotNull(message = "notificationType must not be null")
 	NotificationType notificationType,
 
-	@Schema(description = "Notification method type", example = "PUSH")
+	@Schema(description = "Notification method type", example = "push")
 	@NotNull(message = "notificationMethod must not be null")
 	NotificationMethodType notificationMethodType,
 

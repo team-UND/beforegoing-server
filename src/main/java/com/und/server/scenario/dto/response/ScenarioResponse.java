@@ -14,7 +14,7 @@ public record ScenarioResponse(
 	@Schema(description = "Scenario id", example = "1")
 	Long scenarioId,
 
-	@Schema(description = "Scenario name", example = "Bef house")
+	@Schema(description = "Scenario name", example = "Home out")
 	String scenarioName,
 
 	@Schema(description = "Scenario memo", example = "Item to carry")
