@@ -17,7 +17,6 @@ import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
-import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
@@ -25,8 +24,6 @@ import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.HomeScenarioResponse;
-import com.und.server.scenario.dto.response.MissionGroupResponse;
-import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Mission;
@@ -36,6 +33,7 @@ import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
 import com.und.server.scenario.util.OrderCalculator;
+import com.und.server.scenario.util.ScenarioValidator;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -46,12 +44,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ScenarioService {
 
-	private static final int SCENARIO_MAX_COUNT = 20;
 	private final NotificationService notificationService;
 	private final MissionService missionService;
 	private final ScenarioRepository scenarioRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final OrderCalculator orderCalculator;
+	private final ScenarioValidator scenarioValidator;
 	private final EntityManager em;
 
 
@@ -88,16 +86,6 @@ public class ScenarioService {
 	}
 
 
-	@Transactional(readOnly = true)
-	public MissionGroupResponse findMissionsGroupByMissionType(Long memberId, Long scenarioId, LocalDate date) {
-		if (!scenarioRepository.existsById(scenarioId)) {
-			throw new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO);
-		}
-
-		return missionService.findMissionsByScenarioId(memberId, scenarioId, date);
-	}
-
-
 	@Transactional
 	public void addTodayMissionToScenario(
 		Long memberId,
@@ -105,12 +93,6 @@ public class ScenarioService {
 		TodayMissionRequest todayMissionRequest,
 		LocalDate date
 	) {
-		LocalDate today = LocalDate.now();
-		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
-		if (missionSearchType == MissionSearchType.PAST) {
-			throw new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE);
-		}
-
 		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
@@ -226,7 +208,7 @@ public class ScenarioService {
 
 		List<Integer> orderList =
 			scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, notificationType);
-		validateMaxScenarioCount(orderList);
+		scenarioValidator.validateMaxScenarioCount(orderList);
 
 		int order = orderList.isEmpty()
 			? OrderCalculator.START_ORDER
@@ -265,24 +247,6 @@ public class ScenarioService {
 		oldScenario.updateMemo(memo);
 	}
 
-	private int getValidScenarioOrder(
-		int maxScenarioOrder,
-		Long memberId,
-		NotificationType notificationType
-	) {
-		try {
-			return orderCalculator.getOrder(maxScenarioOrder, null);
-		} catch (ReorderRequiredException e) {
-			reorderScenarios(memberId, notificationType);
-			int newMaxOrder =
-				scenarioRepository.findMaxOrderByMemberIdAndNotificationType(
-						memberId, notificationType)
-					.orElse(OrderCalculator.START_ORDER);
-
-			return orderCalculator.getOrder(newMaxOrder, null);
-		}
-	}
-
 	private ScenarioDetailResponse getScenarioDetailResponse(
 		Scenario scenario,
 		List<Mission> basicMissionList,
@@ -305,14 +269,26 @@ public class ScenarioService {
 			notificationConditionResponse = notificationInfo.notificationConditionResponse();
 		}
 
-		return ScenarioDetailResponse.builder()
-			.scenarioId(scenario.getId())
-			.scenarioName(scenario.getScenarioName())
-			.memo(scenario.getMemo())
-			.basicMissionList(MissionResponse.listFrom(basicMissionList))
-			.notification(notificationResponse)
-			.notificationCondition(notificationConditionResponse)
-			.build();
+		return ScenarioDetailResponse.from(
+			scenario, basicMissionList, notificationResponse, notificationConditionResponse);
+	}
+
+	private int getValidScenarioOrder(
+		int maxScenarioOrder,
+		Long memberId,
+		NotificationType notificationType
+	) {
+		try {
+			return orderCalculator.getOrder(maxScenarioOrder, null);
+		} catch (ReorderRequiredException e) {
+			reorderScenarios(memberId, notificationType);
+			int newMaxOrder =
+				scenarioRepository.findMaxOrderByMemberIdAndNotificationType(
+						memberId, notificationType)
+					.orElse(OrderCalculator.START_ORDER);
+
+			return orderCalculator.getOrder(newMaxOrder, null);
+		}
 	}
 
 	private void reorderScenarios(Long memberId, NotificationType notificationType) {
@@ -325,12 +301,6 @@ public class ScenarioService {
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
 		scenarioRepository.saveAll(scenarioList);
-	}
-
-	private void validateMaxScenarioCount(List<Integer> orderList) {
-		if (orderList.size() >= SCENARIO_MAX_COUNT) {
-			throw new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED);
-		}
 	}
 
 }
