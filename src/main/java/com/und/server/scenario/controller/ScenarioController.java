@@ -25,6 +25,7 @@ import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -61,6 +62,7 @@ public class ScenarioController {
 
 
 	@PostMapping("/scenarios")
+	@ApiResponse(responseCode = "204", description = "Create Scenario successful")
 	public ResponseEntity<Void> addScenario(
 		@AuthMember Long memberId,
 		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
@@ -72,6 +74,7 @@ public class ScenarioController {
 
 
 	@PostMapping("/scenarios/without-notification")
+	@ApiResponse(responseCode = "204", description = "Create Scenario without notification successful")
 	public ResponseEntity<Void> addScenarioWithoutNotification(
 		@AuthMember Long memberId,
 		@RequestBody @Valid ScenarioNoNotificationRequest scenarioNoNotificationResponse
@@ -83,6 +86,7 @@ public class ScenarioController {
 
 
 	@PutMapping("/scenarios/{scenarioId}")
+	@ApiResponse(responseCode = "204", description = "Update Scenario successful")
 	public ResponseEntity<Void> updateScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -95,6 +99,7 @@ public class ScenarioController {
 
 
 	@PutMapping("/scenarios/{scenarioId}/without-notification")
+	@ApiResponse(responseCode = "204", description = "Update Scenario without notification successful")
 	public ResponseEntity<Void> updateScenarioWithoutNotification(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -107,6 +112,7 @@ public class ScenarioController {
 
 
 	@PatchMapping("/scenarios/{scenarioId}/order")
+	@ApiResponse(responseCode = "204", description = "Update Scenario order successful")
 	public ResponseEntity<Void> updateScenarioOrder(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -119,6 +125,7 @@ public class ScenarioController {
 
 
 	@DeleteMapping("/scenarios/{scenarioId}")
+	@ApiResponse(responseCode = "204", description = "Delete Scenario successful")
 	public ResponseEntity<Void> deleteScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId

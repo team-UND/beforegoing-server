@@ -22,6 +22,7 @@ import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,7 @@ public class MissionController {
 
 
 	@PostMapping("/scenarios/{scenarioId}/missions/today")
+	@ApiResponse(responseCode = "204", description = "Create Today Mission successful")
 	public ResponseEntity<Void> addTodayMissionToScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -62,6 +64,7 @@ public class MissionController {
 
 
 	@PatchMapping("/missions/{missionId}/check")
+	@ApiResponse(responseCode = "204", description = "Update check status successful")
 	public ResponseEntity<Void> updateMissionCheck(
 		@AuthMember Long memberId,
 		@PathVariable Long missionId,
@@ -74,6 +77,7 @@ public class MissionController {
 
 
 	@DeleteMapping("/missions/{missionId}")
+	@ApiResponse(responseCode = "204", description = "Delete Today Mission successful")
 	public ResponseEntity<Void> deleteTodayMissionById(
 		@AuthMember Long memberId,
 		@PathVariable Long missionId
