@@ -10,7 +10,6 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 
 @Getter
-
 @MappedSuperclass
 public class BaseTimeEntity {
 
