@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.common.exception.ServerException;
-import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
@@ -22,7 +21,9 @@ import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
+import com.und.server.scenario.util.MissionValidator;
 import com.und.server.scenario.util.OrderCalculator;
+import com.und.server.scenario.util.ScenarioValidator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,14 +31,15 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class MissionService {
 
-	private static final int BASIC_MISSION_MAX_COUNT = 20;
-	private static final int TODAY_MISSION_MAX_COUNT = 20;
 	private final MissionRepository missionRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
+	private final ScenarioValidator scenarioValidator;
+	private final MissionValidator missionValidator;
 
 
 	@Transactional(readOnly = true)
 	public MissionGroupResponse findMissionsByScenarioId(Long memberId, Long scenarioId, LocalDate date) {
+		scenarioValidator.validateScenarioExists(scenarioId);
 		if (date == null) {
 			date = LocalDate.now();
 		}
@@ -56,21 +58,6 @@ public class MissionService {
 		return MissionGroupResponse.from(groupedBasicMissionList, groupedTodayMissionList);
 	}
 
-	private List<Mission> getMissionListByDate(Long memberId, Long scenarioId, LocalDate date) {
-		LocalDate today = LocalDate.now();
-		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
-
-		switch (missionSearchType) {
-			case TODAY -> {
-				return missionRepository.findDefaultMissions(memberId, scenarioId, date);
-			}
-			case PAST, FUTURE -> {
-				return missionRepository.findMissionsByDate(memberId, scenarioId, date);
-			}
-		}
-		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
-	}
-
 
 	@Transactional
 	public void addBasicMission(Scenario scenario, List<BasicMissionRequest> missionRequestList) {
@@ -85,7 +72,7 @@ public class MissionService {
 			missionList.add(missionInfo.toEntity(scenario, order));
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
-		validateMaxBasicMissionCount(missionList);
+		missionValidator.validateMaxBasicMissionCount(missionList);
 
 		missionRepository.saveAll(missionList);
 	}
@@ -97,9 +84,12 @@ public class MissionService {
 		TodayMissionRequest todayMissionRequest,
 		LocalDate date
 	) {
+		LocalDate today = LocalDate.now();
+		missionValidator.validateTodayMissionDateRange(today, date);
+
 		List<Mission> todayMissionList = missionTypeGroupSorter.groupAndSortByType(
 			scenario.getMissionList(), MissionType.TODAY);
-		validateMaxTodayMissionCount(todayMissionList);
+		missionValidator.validateMaxTodayMissionCount(todayMissionList);
 
 		Mission newMission = todayMissionRequest.toEntity(scenario, date);
 
@@ -142,7 +132,7 @@ public class MissionService {
 			}
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
-		validateMaxBasicMissionCount(toAddList);
+		missionValidator.validateMaxBasicMissionCount(toAddList);
 
 		List<Long> toDeleteIdList = existingMissionIds.stream()
 			.filter(id -> !requestedMissionIds.contains(id))
@@ -160,7 +150,7 @@ public class MissionService {
 	public void updateMissionCheck(Long memberId, Long missionId, Boolean isChecked) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
-		validateMissionAccessibleMember(mission, memberId);
+		missionValidator.validateMissionAccessibleMember(mission, memberId);
 
 		mission.updateCheckStatus(isChecked);
 	}
@@ -170,29 +160,25 @@ public class MissionService {
 	public void deleteTodayMission(Long memberId, Long missionId) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
-		validateMissionAccessibleMember(mission, memberId);
+		missionValidator.validateMissionAccessibleMember(mission, memberId);
 
 		missionRepository.delete(mission);
 	}
 
 
-	private void validateMissionAccessibleMember(Mission mission, Long memberId) {
-		Member member = mission.getScenario().getMember();
-		if (!memberId.equals(member.getId())) {
-			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
-		}
-	}
+	private List<Mission> getMissionListByDate(Long memberId, Long scenarioId, LocalDate date) {
+		LocalDate today = LocalDate.now();
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 
-	private void validateMaxBasicMissionCount(List<Mission> missionList) {
-		if (missionList.size() >= BASIC_MISSION_MAX_COUNT) {
-			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
+		switch (missionSearchType) {
+			case TODAY -> {
+				return missionRepository.findDefaultMissions(memberId, scenarioId, date);
+			}
+			case PAST, FUTURE -> {
+				return missionRepository.findMissionsByDate(memberId, scenarioId, date);
+			}
 		}
-	}
-
-	private void validateMaxTodayMissionCount(List<Mission> missionList) {
-		if (missionList.size() >= TODAY_MISSION_MAX_COUNT) {
-			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
-		}
+		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
 	}
 
 }
