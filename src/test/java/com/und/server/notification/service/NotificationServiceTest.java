@@ -64,7 +64,6 @@ class NotificationServiceTest {
 		NotificationRequest notificationInfo = NotificationRequest.builder()
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.PUSH)
-			.isActive(true)
 			.dayOfWeekOrdinalList(List.of(0, 1, 2))
 			.build();
 
@@ -110,7 +109,6 @@ class NotificationServiceTest {
 		NotificationRequest notificationInfo = NotificationRequest.builder()
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
-			.isActive(true)
 			.dayOfWeekOrdinalList(List.of(0, 1, 2, 3))
 			.build();
 
@@ -120,13 +118,12 @@ class NotificationServiceTest {
 			.build();
 
 		// when
-		Notification result = notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
+		notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
 
 		// then
-		assertThat(result).isEqualTo(oldNotification);
 		assertThat(oldNotification.getNotificationType()).isEqualTo(NotificationType.TIME);
 		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM);
-		assertThat(oldNotification.getIsActive()).isTrue();
+		assertThat(oldNotification.isActive()).isTrue();
 		verify(notificationConditionSelector)
 			.updateNotificationCondition(oldNotification, List.of(0, 1, 2, 3), conditionInfo);
 	}
@@ -145,7 +142,6 @@ class NotificationServiceTest {
 		NotificationRequest notificationInfo = NotificationRequest.builder()
 			.notificationType(NotificationType.LOCATION)
 			.notificationMethodType(NotificationMethodType.ALARM)
-			.isActive(true)
 			.dayOfWeekOrdinalList(List.of(0, 1, 2))
 			.build();
 
@@ -155,10 +151,9 @@ class NotificationServiceTest {
 			.build();
 
 		// when
-		Notification result = notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
+		notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
 
 		// then
-		assertThat(result).isEqualTo(oldNotification);
 		assertThat(oldNotification.getNotificationType()).isEqualTo(NotificationType.LOCATION);
 		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM);
 		assertThat(oldNotification.getIsActive()).isTrue();
@@ -179,26 +174,52 @@ class NotificationServiceTest {
 			.isActive(true)
 			.build();
 
-		NotificationRequest notificationInfo = NotificationRequest.builder()
-			.notificationType(NotificationType.TIME)
-			.notificationMethodType(NotificationMethodType.PUSH)
+		// when
+		notificationService.updateWithoutNotification(oldNotification);
+
+		// then
+		assertThat(oldNotification.isActive()).isFalse();
+		assertThat(oldNotification.getNotificationMethodType()).isNull();
+		verify(notificationConditionSelector)
+			.deleteNotificationCondition(NotificationType.TIME, oldNotification.getId());
+	}
+
+	@Test
+	void Given_NotificationType_When_AddWithoutNotification_Then_CreateInactiveNotification() {
+		// given
+		NotificationType type = NotificationType.TIME;
+		Notification saved = Notification.builder()
+			.id(10L)
+			.notificationType(type)
 			.isActive(false)
-			.dayOfWeekOrdinalList(List.of(0, 1, 2))
 			.build();
 
-		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
-			.startHour(9)
-			.startMinute(0)
+		when(notificationRepository.save(any(Notification.class))).thenReturn(saved);
+
+		// when
+		Notification result = notificationService.addWithoutNotification(type);
+
+		// then
+		assertThat(result.getNotificationType()).isEqualTo(type);
+		assertThat(result.getIsActive()).isFalse();
+		verify(notificationRepository).save(any(Notification.class));
+	}
+
+	@Test
+	void Given_Notification_When_DeleteNotification_Then_DeletesCondition() {
+		// given
+		Notification notification = Notification.builder()
+			.id(5L)
+			.notificationType(NotificationType.LOCATION)
+			.isActive(true)
 			.build();
 
 		// when
-		Notification result = notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
+		notificationService.deleteNotification(notification);
 
 		// then
-		assertThat(result).isEqualTo(oldNotification);
-		assertThat(oldNotification.getIsActive()).isFalse();
 		verify(notificationConditionSelector)
-			.deleteNotificationCondition(NotificationType.TIME, oldNotification.getId());
+			.deleteNotificationCondition(NotificationType.LOCATION, 5L);
 	}
 
 }

@@ -161,7 +161,7 @@ class TimeNotificationServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.isEveryDay()).isFalse();
 		assertThat(result.dayOfWeekOrdinalList()).hasSize(2);
-		assertThat(result.dayOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 2); // MONDAY=0, WEDNESDAY=2
+		assertThat(result.dayOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 2);
 		assertThat(result.notificationConditionResponse()).isInstanceOf(TimeNotificationResponse.class);
 	}
 
@@ -179,7 +179,7 @@ class TimeNotificationServiceTest {
 			.startHour(8)
 			.startMinute(30)
 			.build();
-		List<Integer> allDays = List.of(0, 1, 2, 3, 4, 5, 6); // MONDAY=0, TUESDAY=1, ..., SUNDAY=6
+		List<Integer> allDays = List.of(0, 1, 2, 3, 4, 5, 6);
 
 		// when
 		timeNotificationService.addNotificationCondition(notification, allDays, request);
@@ -450,7 +450,6 @@ class TimeNotificationServiceTest {
 		// then
 		verify(timeNotifRepository).findByNotificationId(notification.getId());
 		verify(timeNotifRepository).deleteAll(anyList());
-		// saveAll이 2번 호출됨: toAdd(1개) + toUpdate(1개)
 		verify(timeNotifRepository, org.mockito.Mockito.times(2)).saveAll(anyList());
 		assertThat(existingMonday.getStartHour()).isEqualTo(10);
 		assertThat(existingMonday.getStartMinute()).isEqualTo(30);

@@ -218,7 +218,6 @@ class NotificationConditionSelectorTest {
 		assertThat(result).isEqualTo(expectedDto);
 		verify(timeNotificationService).supports(notifType);
 		verify(timeNotificationService).findNotificationInfoByType(notification);
-		// 두 번째 서비스는 호출되지 않아야 함
 		verify(locationNotificationService, org.mockito.Mockito.never()).supports(any());
 	}
 
