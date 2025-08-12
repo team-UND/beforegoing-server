@@ -64,7 +64,7 @@ class NotificationConditionSelectorTest {
 		when(timeNotificationService.findNotificationInfoByType(notification)).thenReturn(expectedDto);
 
 		// when
-		NotificationInfoDto result = selector.findNotificationInfoByType(notification);
+		NotificationInfoDto result = selector.findNotificationCondition(notification);
 
 		// then
 		assertThat(result).isEqualTo(expectedDto);
@@ -83,7 +83,7 @@ class NotificationConditionSelectorTest {
 		when(locationNotificationService.supports(notifType)).thenReturn(false);
 
 		// when & then
-		assertThatThrownBy(() -> selector.findNotificationInfoByType(notification))
+		assertThatThrownBy(() -> selector.findNotificationCondition(notification))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", NotificationErrorResult.UNSUPPORTED_NOTIFICATION);
 	}
@@ -212,7 +212,7 @@ class NotificationConditionSelectorTest {
 		when(timeNotificationService.findNotificationInfoByType(notification)).thenReturn(expectedDto);
 
 		// when
-		NotificationInfoDto result = selector.findNotificationInfoByType(notification);
+		NotificationInfoDto result = selector.findNotificationCondition(notification);
 
 		// then
 		assertThat(result).isEqualTo(expectedDto);
@@ -235,7 +235,7 @@ class NotificationConditionSelectorTest {
 		when(locationNotificationService.findNotificationInfoByType(notification)).thenReturn(expectedDto);
 
 		// when
-		NotificationInfoDto result = selector.findNotificationInfoByType(notification);
+		NotificationInfoDto result = selector.findNotificationCondition(notification);
 
 		// then
 		assertThat(result).isEqualTo(expectedDto);

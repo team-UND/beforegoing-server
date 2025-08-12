@@ -46,7 +46,7 @@ class NotificationServiceTest {
 
 		NotificationInfoDto expectedInfo =
 			new NotificationInfoDto(true, List.of(0, 1, 2), null);
-		when(notificationConditionSelector.findNotificationInfoByType(notification))
+		when(notificationConditionSelector.findNotificationCondition(notification))
 			.thenReturn(expectedInfo);
 
 		// when
@@ -54,7 +54,7 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		verify(notificationConditionSelector).findNotificationInfoByType(notification);
+		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
 
