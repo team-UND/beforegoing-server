@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -34,8 +35,9 @@ import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
-import com.und.server.scenario.dto.request.MissionRequest;
+import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -72,6 +74,9 @@ class ScenarioServiceTest {
 
 	@Mock
 	private EntityManager em;
+
+	@Mock
+	private com.und.server.scenario.util.ScenarioValidator scenarioValidator;
 
 
 	@Test
@@ -123,8 +128,8 @@ class ScenarioServiceTest {
 		//then
 		assertNotNull(result);
 		assertThat(result.size()).isEqualTo(2);
-		assertThat(result.get(0).getScenarioName()).isEqualTo("시나리오A");
-		assertThat(result.get(1).getScenarioName()).isEqualTo("시나리오B");
+		assertThat(result.get(0).scenarioName()).isEqualTo("시나리오A");
+		assertThat(result.get(1).scenarioName()).isEqualTo("시나리오B");
 	}
 
 
@@ -177,11 +182,11 @@ class ScenarioServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertThat(response.getScenarioId()).isEqualTo(scenarioId);
-		assertThat(response.getNotificationCondition()).isInstanceOf(TimeNotificationResponse.class);
-		TimeNotificationResponse detail = (TimeNotificationResponse) response.getNotificationCondition();
-		assertThat(detail.getStartHour()).isEqualTo(8);
-		assertThat(detail.getStartMinute()).isEqualTo(30);
+		assertThat(response.scenarioId()).isEqualTo(scenarioId);
+		assertThat(response.notificationCondition()).isInstanceOf(TimeNotificationResponse.class);
+		TimeNotificationResponse detail = (TimeNotificationResponse) response.notificationCondition();
+		assertThat(detail.startHour()).isEqualTo(8);
+		assertThat(detail.startMinute()).isEqualTo(30);
 	}
 
 
@@ -270,18 +275,17 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		given(em.getReference(Member.class, memberId)).willReturn(member);
 
-		MissionRequest mission1 = new MissionRequest();
-		mission1.setContent("Run");
-		mission1.setMissionType(MissionType.BASIC);
+		BasicMissionRequest mission1 = BasicMissionRequest.builder()
+			.content("Run")
+			.build();
 
-		MissionRequest mission2 = new MissionRequest();
-		mission2.setContent("Read");
-		mission2.setMissionType(MissionType.BASIC);
+		BasicMissionRequest mission2 = BasicMissionRequest.builder()
+			.content("Read")
+			.build();
 
-		List<MissionRequest> missionList = List.of(mission1, mission2);
+		List<BasicMissionRequest> missionList = List.of(mission1, mission2);
 
 		NotificationRequest notifRequest = NotificationRequest.builder()
-			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
 			.dayOfWeekOrdinalList(List.of(1, 2))
@@ -342,7 +346,6 @@ class ScenarioServiceTest {
 		given(em.getReference(Member.class, memberId)).willReturn(member);
 
 		NotificationRequest notifRequest = NotificationRequest.builder()
-			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
 			.build();
@@ -402,7 +405,16 @@ class ScenarioServiceTest {
 		Long scenarioId = 10L;
 		LocalDate pastDate = LocalDate.now().minusDays(1);
 
+		Scenario scenario = Scenario.builder()
+			.id(scenarioId)
+			.build();
+
 		TodayMissionRequest request = new TodayMissionRequest("Past Mission");
+
+		given(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+			.willReturn(Optional.of(scenario));
+		doThrow(new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE))
+			.when(missionService).addTodayMission(scenario, request, pastDate);
 
 		// when & then
 		assertThatThrownBy(() ->
@@ -423,10 +435,7 @@ class ScenarioServiceTest {
 			.id(1L)
 			.notificationType(NotificationType.TIME)
 			.build();
-		Notification newNotification = Notification.builder()
-			.id(2L)
-			.notificationType(NotificationType.TIME)
-			.build();
+		// removed unused newNotification
 
 		Scenario oldScenario = Scenario.builder()
 			.id(scenarioId)
@@ -438,7 +447,6 @@ class ScenarioServiceTest {
 			.build();
 
 		NotificationRequest notifRequest = NotificationRequest.builder()
-			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
 			.dayOfWeekOrdinalList(List.of(1, 2))
@@ -459,8 +467,12 @@ class ScenarioServiceTest {
 
 		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(oldScenario));
-		Mockito.when(notificationService.updateNotification(oldNotification, notifRequest, condition))
-			.thenReturn(newNotification);
+		Mockito.doAnswer(invocation -> {
+			Notification target = invocation.getArgument(0);
+			target.updateNotification(notifRequest.notificationType(), notifRequest.notificationMethodType());
+			target.updateActiveStatus(true);
+			return null;
+		}).when(notificationService).updateNotification(oldNotification, notifRequest, condition);
 
 		// when
 		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
@@ -468,7 +480,10 @@ class ScenarioServiceTest {
 		// then
 		assertThat(oldScenario.getScenarioName()).isEqualTo("수정된 시나리오");
 		assertThat(oldScenario.getMemo()).isEqualTo("수정된 메모");
-		assertThat(oldScenario.getNotification()).isEqualTo(newNotification);
+		assertThat(oldScenario.getNotification().getNotificationType()).isEqualTo(notifRequest.notificationType());
+		assertThat(oldScenario.getNotification().getNotificationMethodType())
+			.isEqualTo(notifRequest.notificationMethodType());
+		assertThat(oldScenario.getNotification().isActive()).isTrue();
 		verify(notificationService).updateNotification(oldNotification, notifRequest, condition);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
 	}
@@ -554,6 +569,31 @@ class ScenarioServiceTest {
 		verify(scenarioRepository).saveAll(anyList());
 		assertThat(scenario1.getScenarioOrder()).isEqualTo(1000);
 		assertThat(scenario2.getScenarioOrder()).isEqualTo(2000);
+	}
+
+	@Test
+	void Given_ValidRequest_When_AddScenarioWithoutNotification_Then_CreateInactiveNotificationAndSave() {
+		// given
+		Long memberId = 1L;
+		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
+			"시나리오",
+			"메모",
+			List.of(),
+			NotificationType.TIME
+		);
+
+		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(List.of());
+		Notification saved = Notification.builder().id(1L).notificationType(NotificationType.TIME).build();
+		given(notificationService.addWithoutNotification(NotificationType.TIME)).willReturn(saved);
+
+		// when
+		scenarioService.addScenarioWithoutNotification(memberId, request);
+
+		// then
+		verify(notificationService).addWithoutNotification(NotificationType.TIME);
+		verify(scenarioRepository).save(any(Scenario.class));
+		verify(missionService).addBasicMission(any(Scenario.class), eq(List.of()));
 	}
 
 
@@ -642,6 +682,406 @@ class ScenarioServiceTest {
 		assertThatThrownBy(() -> scenarioService.deleteScenarioWithAllMissions(memberId, scenarioId))
 			.isInstanceOf(ServerException.class)
 			.hasMessageContaining(ScenarioErrorResult.NOT_FOUND_SCENARIO.getMessage());
+	}
+
+
+	@Test
+	void Given_memberId_When_FindHomeScenariosByMemberId_Then_ReturnHomeScenarioResponses() {
+		//given
+		final Long memberId = 1L;
+
+		final Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		final Notification notification1 = Notification.builder()
+			.id(1L)
+			.isActive(true)
+			.notificationType(NotificationType.TIME)
+			.build();
+		final Notification notification2 = Notification.builder()
+			.id(2L)
+			.isActive(true)
+			.notificationType(NotificationType.TIME)
+			.build();
+
+		final Scenario scenarioA = Scenario.builder()
+			.id(1L)
+			.member(member)
+			.scenarioName("홈 시나리오A")
+			.memo("홈 메모A")
+			.scenarioOrder(1)
+			.notification(notification1)
+			.build();
+		final Scenario scenarioB = Scenario.builder()
+			.id(2L)
+			.member(member)
+			.scenarioName("홈 시나리오B")
+			.memo("홈 메모B")
+			.scenarioOrder(2)
+			.notification(notification2)
+			.build();
+
+		final List<Scenario> scenarioList = List.of(scenarioA, scenarioB);
+
+		//when
+		Mockito
+			.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.thenReturn(scenarioList);
+
+		List<com.und.server.scenario.dto.response.HomeScenarioResponse> result =
+			scenarioService.findHomeScenariosByMemberId(memberId, NotificationType.TIME);
+
+		//then
+		assertNotNull(result);
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result.get(0).scenarioName()).isEqualTo("홈 시나리오A");
+		assertThat(result.get(1).scenarioName()).isEqualTo("홈 시나리오B");
+	}
+
+
+	@Test
+	void Given_ValidRequest_When_UpdateScenarioWithoutNotification_Then_UpdateScenarioAndNotification() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+
+		Member member = Member.builder().id(memberId).build();
+		Notification oldNotification = Notification.builder()
+			.id(1L)
+			.notificationType(NotificationType.TIME)
+			.build();
+
+		Scenario oldScenario = Scenario.builder()
+			.id(scenarioId)
+			.member(member)
+			.scenarioName("기존 시나리오")
+			.memo("기존 메모")
+			.notification(oldNotification)
+			.missionList(new java.util.ArrayList<>())
+			.build();
+
+		ScenarioNoNotificationRequest scenarioRequest = new ScenarioNoNotificationRequest(
+			"수정된 시나리오",
+			"수정된 메모",
+			List.of(),
+			NotificationType.TIME
+		);
+
+		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+			.thenReturn(Optional.of(oldScenario));
+
+		// when
+		scenarioService.updateScenarioWithoutNotification(memberId, scenarioId, scenarioRequest);
+
+		// then
+		assertThat(oldScenario.getScenarioName()).isEqualTo("수정된 시나리오");
+		assertThat(oldScenario.getMemo()).isEqualTo("수정된 메모");
+		verify(notificationService).updateWithoutNotification(oldNotification);
+		verify(missionService).updateBasicMission(oldScenario, List.of());
+	}
+
+
+	@Test
+	void Given_NotExistScenario_When_UpdateScenarioWithoutNotification_Then_ThrowNotFoundException() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 99L;
+
+		ScenarioNoNotificationRequest scenarioRequest = new ScenarioNoNotificationRequest(
+			"수정할 시나리오",
+			"수정할 메모",
+			List.of(),
+			NotificationType.TIME
+		);
+
+		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+			.thenReturn(Optional.empty());
+
+		// when & then
+		assertThatThrownBy(() ->
+			scenarioService.updateScenarioWithoutNotification(memberId, scenarioId, scenarioRequest))
+			.isInstanceOf(ServerException.class)
+			.hasMessageContaining(ScenarioErrorResult.NOT_FOUND_SCENARIO.getMessage());
+	}
+
+
+	@Test
+	void Given_MaxScenarioCountExceeded_When_AddScenario_Then_ThrowMaxCountExceededException() {
+		// given
+		Long memberId = 1L;
+
+		NotificationRequest notifRequest = NotificationRequest.builder()
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.build();
+
+		TimeNotificationRequest condition = TimeNotificationRequest.builder()
+			.startHour(9)
+			.startMinute(0)
+			.build();
+
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("New Scenario")
+			.memo("New Memo")
+			.basicMissionList(List.of())
+			.notification(notifRequest)
+			.notificationCondition(condition)
+			.build();
+
+		// 20개의 시나리오가 이미 존재 (최대 개수)
+		List<Integer> orderList = new java.util.ArrayList<>();
+		for (int i = 0; i < 20; i++) {
+			orderList.add(1000 + i * 1000);
+		}
+
+		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(orderList);
+		doThrow(new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED))
+			.when(scenarioValidator).validateMaxScenarioCount(orderList);
+
+		// when & then
+		assertThatThrownBy(() -> scenarioService.addScenario(memberId, scenarioRequest))
+			.isInstanceOf(ServerException.class)
+			.hasMessageContaining(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED.getMessage());
+	}
+
+
+	@Test
+	void Given_MaxScenarioCountExceeded_When_AddScenarioWithoutNotification_Then_ThrowMaxCountExceededException() {
+		// given
+		Long memberId = 1L;
+
+		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
+			"시나리오",
+			"메모",
+			List.of(),
+			NotificationType.TIME
+		);
+
+		// 20개의 시나리오가 이미 존재 (최대 개수)
+		List<Integer> orderList = new java.util.ArrayList<>();
+		for (int i = 0; i < 20; i++) {
+			orderList.add(1000 + i * 1000);
+		}
+
+		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(orderList);
+		doThrow(new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED))
+			.when(scenarioValidator).validateMaxScenarioCount(orderList);
+
+		// when & then
+		assertThatThrownBy(() -> scenarioService.addScenarioWithoutNotification(memberId, request))
+			.isInstanceOf(ServerException.class)
+			.hasMessageContaining(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED.getMessage());
+	}
+
+
+	@Test
+	void Given_notificationInfoIsNull_When_findScenarioByScenarioId_Then_returnResponseWithNullCondition() {
+		// given
+		final Long memberId = 1L;
+		final Long scenarioId = 10L;
+
+		final Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		final Notification notification = Notification.builder()
+			.id(100L)
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.build();
+
+		final Scenario scenario = Scenario.builder()
+			.id(scenarioId)
+			.member(member)
+			.scenarioName("알림 없는 루틴")
+			.memo("메모")
+			.scenarioOrder(1)
+			.notification(notification)
+			.missionList(List.of())
+			.build();
+
+		// mock - notificationInfo가 null인 경우
+		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+			.thenReturn(Optional.of(scenario));
+		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(null);
+		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC))
+			.thenReturn(List.of());
+
+		// when
+		ScenarioDetailResponse response = scenarioService.findScenarioDetailByScenarioId(memberId, scenarioId);
+
+		// then
+		assertNotNull(response);
+		assertThat(response.scenarioId()).isEqualTo(scenarioId);
+		assertThat(response.notification().isEveryDay()).isNull();
+		assertThat(response.notification().dayOfWeekOrdinalList()).isNull();
+		assertThat(response.notificationCondition()).isNull();
+	}
+
+
+	@Test
+	void Given_EmptyOrderList_When_AddScenario_Then_CreateScenarioWithStartOrder() {
+		// given
+		Long memberId = 1L;
+
+		Member member = Member.builder().id(memberId).build();
+		given(em.getReference(Member.class, memberId)).willReturn(member);
+
+		NotificationRequest notifRequest = NotificationRequest.builder()
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.build();
+
+		TimeNotificationRequest condition = TimeNotificationRequest.builder()
+			.startHour(9)
+			.startMinute(0)
+			.build();
+
+		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
+			.scenarioName("First Scenario")
+			.memo("First Memo")
+			.basicMissionList(List.of())
+			.notification(notifRequest)
+			.notificationCondition(condition)
+			.build();
+
+		Notification savedNotification = Notification.builder()
+			.id(10L)
+			.isActive(true)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.build();
+
+		given(notificationService.addNotification(notifRequest, condition)).willReturn(savedNotification);
+		// 빈 리스트 반환 - 첫 번째 시나리오
+		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(List.of());
+
+		ArgumentCaptor<Scenario> scenarioCaptor = ArgumentCaptor.forClass(Scenario.class);
+
+		// when
+		scenarioService.addScenario(memberId, scenarioRequest);
+
+		// then
+		verify(scenarioRepository).save(scenarioCaptor.capture());
+
+		Scenario saved = scenarioCaptor.getValue();
+		assertThat(saved.getScenarioOrder()).isEqualTo(OrderCalculator.START_ORDER);
+	}
+
+
+	@Test
+	void Given_FutureDate_When_AddTodayMissionToScenario_Then_InvokeMissionService() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 10L;
+		LocalDate futureDate = LocalDate.now().plusDays(1);
+
+		Member member = Member.builder().id(memberId).build();
+
+		Scenario scenario = Scenario.builder()
+			.id(scenarioId)
+			.member(member)
+			.missionList(new java.util.ArrayList<>())
+			.build();
+
+		TodayMissionRequest request = new TodayMissionRequest("Future Mission");
+
+		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+			.thenReturn(Optional.of(scenario));
+
+		// when
+		scenarioService.addTodayMissionToScenario(memberId, scenarioId, request, futureDate);
+
+		// then
+		verify(missionService).addTodayMission(scenario, request, futureDate);
+	}
+
+
+	@Test
+	void Given_OrderCalculatorReturnsReorderRequired_When_UpdateScenarioOrder_Then_HandleReorderWithFixedOrder() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+
+		Member member = Member.builder().id(memberId).build();
+		Notification notification = Notification.builder()
+			.id(1L)
+			.notificationType(NotificationType.TIME)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(scenarioId)
+			.member(member)
+			.notification(notification)
+			.scenarioOrder(1000)
+			.build();
+
+		ScenarioOrderUpdateRequest orderRequest = ScenarioOrderUpdateRequest.builder()
+			.prevOrder(1000)
+			.nextOrder(1001) // 너무 가까워서 ReorderRequiredException 발생
+			.build();
+
+		// 리오더링될 시나리오들
+		Scenario scenario1 = Scenario.builder().id(1L).scenarioOrder(1000).build();
+		Scenario scenario2 = Scenario.builder().id(2L).scenarioOrder(2000).build();
+		Scenario scenario3 = Scenario.builder().id(3L).scenarioOrder(3000).build();
+
+		Mockito.when(scenarioRepository.findByIdAndMemberId(scenarioId, memberId))
+			.thenReturn(Optional.of(scenario));
+		Mockito.when(orderCalculator.getOrder(1000, 1001))
+			.thenThrow(new ReorderRequiredException());
+		Mockito.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.thenReturn(List.of(scenario1, scenario2, scenario3));
+
+		// when
+		scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
+
+		// then
+		verify(scenarioRepository).saveAll(List.of(scenario1, scenario2, scenario3));
+		assertThat(scenario1.getScenarioOrder()).isEqualTo(1000);
+		assertThat(scenario2.getScenarioOrder()).isEqualTo(2000);
+		assertThat(scenario3.getScenarioOrder()).isEqualTo(3000);
+	}
+
+
+	@Test
+	void Given_EmptyScenarioList_When_FindHomeScenariosByMemberId_Then_ReturnEmptyList() {
+		// given
+		final Long memberId = 1L;
+
+		Mockito
+			.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.thenReturn(List.of());
+
+		// when
+		List<com.und.server.scenario.dto.response.HomeScenarioResponse> result =
+			scenarioService.findHomeScenariosByMemberId(memberId, NotificationType.TIME);
+
+		// then
+		assertNotNull(result);
+		assertThat(result).isEmpty();
+	}
+
+
+	@Test
+	void Given_EmptyScenarioList_When_FindScenariosByMemberId_Then_ReturnEmptyList() {
+		// given
+		final Long memberId = 1L;
+
+		Mockito
+			.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.thenReturn(List.of());
+
+		// when
+		List<ScenarioResponse> result = scenarioService.findScenariosByMemberId(memberId, NotificationType.TIME);
+
+		// then
+		assertNotNull(result);
+		assertThat(result).isEmpty();
 	}
 
 }

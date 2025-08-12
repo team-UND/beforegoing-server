@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -104,6 +105,46 @@ class ScenarioControllerTest {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).addScenario(memberId, scenarioRequest);
+	}
+
+	@Test
+	void Given_ValidMemberIdAndScenarioRequest_When_AddScenarioWithoutNotification_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
+			"새 시나리오",
+			"메모",
+			null,
+			NotificationType.TIME
+		);
+
+		// when
+		ResponseEntity<Void> response = scenarioController.addScenarioWithoutNotification(memberId, request);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		verify(scenarioService).addScenarioWithoutNotification(memberId, request);
+	}
+
+	@Test
+	void Given_ValidMemberIdAndScenarioId_When_UpdateScenarioWithoutNotification_Then_ReturnNoContent() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 2L;
+		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
+			"수정 시나리오",
+			"메모",
+			null,
+			NotificationType.LOCATION
+		);
+
+		// when
+		ResponseEntity<Void> response = scenarioController
+			.updateScenarioWithoutNotification(memberId, scenarioId, request);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		verify(scenarioService).updateScenarioWithoutNotification(memberId, scenarioId, request);
 	}
 
 

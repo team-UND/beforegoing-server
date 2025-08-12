@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionType;
-import com.und.server.scenario.dto.request.MissionRequest;
+import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.entity.Mission;
@@ -38,6 +39,12 @@ class MissionServiceTest {
 
 	@Mock
 	private MissionTypeGroupSorter missionTypeGrouper;
+
+	@Mock
+	private com.und.server.scenario.util.ScenarioValidator scenarioValidator;
+
+	@Mock
+	private com.und.server.scenario.util.MissionValidator missionValidator;
 
 	@InjectMocks
 	private MissionService missionService;
@@ -162,17 +169,15 @@ class MissionServiceTest {
 			.id(1L)
 			.build();
 
-		MissionRequest mission1 = MissionRequest.builder()
+		BasicMissionRequest mission1 = BasicMissionRequest.builder()
 			.content("기본 미션 1")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		MissionRequest mission2 = MissionRequest.builder()
+		BasicMissionRequest mission2 = BasicMissionRequest.builder()
 			.content("기본 미션 2")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		List<MissionRequest> missionInfoList = Arrays.asList(mission1, mission2);
+		List<BasicMissionRequest> missionInfoList = Arrays.asList(mission1, mission2);
 
 		// when
 		missionService.addBasicMission(scenario, missionInfoList);
@@ -189,7 +194,7 @@ class MissionServiceTest {
 			.id(1L)
 			.build();
 
-		List<MissionRequest> missionInfoList = List.of();
+		List<BasicMissionRequest> missionInfoList = List.of();
 
 		// when
 		missionService.addBasicMission(scenario, missionInfoList);
@@ -217,17 +222,15 @@ class MissionServiceTest {
 
 		List<Mission> oldMissionList = Arrays.asList(oldMission);
 
-		MissionRequest newMission1 = MissionRequest.builder()
+		BasicMissionRequest newMission1 = BasicMissionRequest.builder()
 			.content("새 미션 1")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		MissionRequest newMission2 = MissionRequest.builder()
+		BasicMissionRequest newMission2 = BasicMissionRequest.builder()
 			.content("새 미션 2")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		List<MissionRequest> missionInfoList = Arrays.asList(newMission1, newMission2);
+		List<BasicMissionRequest> missionInfoList = Arrays.asList(newMission1, newMission2);
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
@@ -257,7 +260,7 @@ class MissionServiceTest {
 			.build();
 
 		List<Mission> oldMissionList = Arrays.asList(oldMission);
-		List<MissionRequest> missionInfoList = List.of();
+		List<BasicMissionRequest> missionInfoList = List.of();
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
@@ -288,18 +291,16 @@ class MissionServiceTest {
 
 		List<Mission> oldMissionList = Arrays.asList(existingMission);
 
-		MissionRequest newMission = MissionRequest.builder()
+		BasicMissionRequest newMission = BasicMissionRequest.builder()
 			.content("새 미션")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		MissionRequest updatedMission = MissionRequest.builder()
+		BasicMissionRequest updatedMission = BasicMissionRequest.builder()
 			.missionId(1L)
 			.content("수정된 미션")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		List<MissionRequest> missionInfoList = Arrays.asList(newMission, updatedMission);
+		List<BasicMissionRequest> missionInfoList = Arrays.asList(newMission, updatedMission);
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
@@ -383,6 +384,8 @@ class MissionServiceTest {
 			.build();
 
 		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+		doThrow(new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS))
+			.when(missionValidator).validateMissionAccessibleMember(mission, unauthorizedMemberId);
 
 		// when & then
 		assertThatThrownBy(() -> missionService.deleteTodayMission(unauthorizedMemberId, missionId))
@@ -468,6 +471,8 @@ class MissionServiceTest {
 			.build();
 
 		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+		doThrow(new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS))
+			.when(missionValidator).validateMissionAccessibleMember(mission, unauthorizedMemberId);
 
 		// when & then
 		assertThatThrownBy(() -> missionService.updateMissionCheck(unauthorizedMemberId, missionId, isChecked))
@@ -624,12 +629,11 @@ class MissionServiceTest {
 			.missionList(new java.util.ArrayList<>())
 			.build();
 
-		MissionRequest newMissionRequest = MissionRequest.builder()
+		BasicMissionRequest newMissionRequest = BasicMissionRequest.builder()
 			.content("새 미션")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		List<MissionRequest> missionInfoList = List.of(newMissionRequest);
+		List<BasicMissionRequest> missionInfoList = List.of(newMissionRequest);
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
 			.thenReturn(List.of());
@@ -656,13 +660,12 @@ class MissionServiceTest {
 			.missionType(MissionType.BASIC)
 			.build();
 
-		MissionRequest nonExistentMissionRequest = MissionRequest.builder()
+		BasicMissionRequest nonExistentMissionRequest = BasicMissionRequest.builder()
 			.missionId(99L) // 존재하지 않는 ID
 			.content("존재하지 않는 미션")
-			.missionType(MissionType.BASIC)
 			.build();
 
-		List<MissionRequest> missionInfoList = List.of(nonExistentMissionRequest);
+		List<BasicMissionRequest> missionInfoList = List.of(nonExistentMissionRequest);
 		List<Mission> oldMissionList = List.of(existingMission);
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))

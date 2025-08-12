@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.response.HomeResponse;
+import com.und.server.scenario.dto.response.HomeScenarioResponse;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.MissionService;
@@ -58,8 +59,11 @@ class HomeControllerTest {
 			List.of(), List.of()
 		);
 
-		when(scenarioService.findScenariosByMemberId(memberId, notifType))
-			.thenReturn(scenarios);
+		when(scenarioService.findHomeScenariosByMemberId(memberId, notifType))
+			.thenReturn(List.of(
+				HomeScenarioResponse.builder().scenarioId(1L).scenarioName("시나리오 1").build(),
+				HomeScenarioResponse.builder().scenarioId(2L).scenarioName("시나리오 2").build()
+			));
 		when(missionService.findMissionsByScenarioId(memberId, 1L, LocalDate.now()))
 			.thenReturn(missions);
 
@@ -69,9 +73,9 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().getScenarios()).isEqualTo(scenarios);
-		assertThat(response.getBody().getMissions()).isEqualTo(missions);
-		verify(scenarioService).findScenariosByMemberId(memberId, notifType);
+		assertThat(response.getBody().scenarioList()).hasSize(2);
+		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
+		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());
 	}
 
@@ -93,8 +97,10 @@ class HomeControllerTest {
 			List.of(), List.of()
 		);
 
-		when(scenarioService.findScenariosByMemberId(memberId, notifType))
-			.thenReturn(scenarios);
+		when(scenarioService.findHomeScenariosByMemberId(memberId, notifType))
+			.thenReturn(List.of(
+				HomeScenarioResponse.builder().scenarioId(1L).scenarioName("시나리오").build()
+			));
 		when(missionService.findMissionsByScenarioId(memberId, 1L, LocalDate.now()))
 			.thenReturn(missions);
 
@@ -104,9 +110,9 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().getScenarios()).isEqualTo(scenarios);
-		assertThat(response.getBody().getMissions()).isEqualTo(missions);
-		verify(scenarioService).findScenariosByMemberId(memberId, notifType);
+		assertThat(response.getBody().scenarioList()).hasSize(1);
+		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
+		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());
 	}
 
@@ -128,8 +134,10 @@ class HomeControllerTest {
 			List.of(), List.of()
 		);
 
-		when(scenarioService.findScenariosByMemberId(memberId, notifType))
-			.thenReturn(scenarios);
+		when(scenarioService.findHomeScenariosByMemberId(memberId, notifType))
+			.thenReturn(List.of(
+				HomeScenarioResponse.builder().scenarioId(1L).scenarioName("위치 시나리오").build()
+			));
 		when(missionService.findMissionsByScenarioId(memberId, 1L, LocalDate.now()))
 			.thenReturn(missions);
 
@@ -139,9 +147,9 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().getScenarios()).isEqualTo(scenarios);
-		assertThat(response.getBody().getMissions()).isEqualTo(missions);
-		verify(scenarioService).findScenariosByMemberId(memberId, notifType);
+		assertThat(response.getBody().scenarioList()).hasSize(1);
+		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
+		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());
 	}
 
@@ -152,10 +160,8 @@ class HomeControllerTest {
 		Long memberId = 1L;
 		NotificationType notifType = NotificationType.TIME;
 
-		List<ScenarioResponse> scenarios = List.of();
-
-		when(scenarioService.findScenariosByMemberId(memberId, notifType))
-			.thenReturn(scenarios);
+		when(scenarioService.findHomeScenariosByMemberId(memberId, notifType))
+			.thenReturn(List.of());
 
 		// when
 		ResponseEntity<HomeResponse> response = homeController.getHomeData(memberId, notifType);
@@ -163,9 +169,9 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().getScenarios()).isEmpty();
-		assertThat(response.getBody().getMissions()).isNull();
-		verify(scenarioService).findScenariosByMemberId(memberId, notifType);
+		assertThat(response.getBody().scenarioList()).isEmpty();
+		assertThat(response.getBody().missionListByType()).isNull();
+		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		// missionService는 호출되지 않아야 함
 	}
 
@@ -192,8 +198,11 @@ class HomeControllerTest {
 			List.of(), List.of()
 		);
 
-		when(scenarioService.findScenariosByMemberId(memberId, notifType))
-			.thenReturn(scenarios);
+		when(scenarioService.findHomeScenariosByMemberId(memberId, notifType))
+			.thenReturn(List.of(
+				HomeScenarioResponse.builder().scenarioId(1L).scenarioName("첫 번째 시나리오").build(),
+				HomeScenarioResponse.builder().scenarioId(2L).scenarioName("두 번째 시나리오").build()
+			));
 		when(missionService.findMissionsByScenarioId(memberId, 1L, LocalDate.now()))
 			.thenReturn(missions);
 
@@ -203,10 +212,9 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().getScenarios()).isEqualTo(scenarios);
-		assertThat(response.getBody().getMissions()).isEqualTo(missions);
-		verify(scenarioService).findScenariosByMemberId(memberId, notifType);
-		// 첫 번째 시나리오의 ID로 미션 조회
+		assertThat(response.getBody().scenarioList()).hasSize(2);
+		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
+		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());
 	}
 
