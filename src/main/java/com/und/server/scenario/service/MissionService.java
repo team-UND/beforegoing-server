@@ -14,7 +14,7 @@ import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
-import com.und.server.scenario.dto.request.MissionRequest;
+import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.entity.Mission;
@@ -45,7 +45,7 @@ public class MissionService {
 		List<Mission> missionList = getMissionListByDate(memberId, scenarioId, date);
 
 		if (missionList == null || missionList.isEmpty()) {
-			return MissionGroupResponse.of(List.of(), List.of());
+			return MissionGroupResponse.from(List.of(), List.of());
 		}
 
 		List<Mission> groupedBasicMissionList =
@@ -53,7 +53,7 @@ public class MissionService {
 		List<Mission> groupedTodayMissionList =
 			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.TODAY);
 
-		return MissionGroupResponse.of(groupedBasicMissionList, groupedTodayMissionList);
+		return MissionGroupResponse.from(groupedBasicMissionList, groupedTodayMissionList);
 	}
 
 	private List<Mission> getMissionListByDate(Long memberId, Long scenarioId, LocalDate date) {
@@ -73,7 +73,7 @@ public class MissionService {
 
 
 	@Transactional
-	public void addBasicMission(Scenario scenario, List<MissionRequest> missionRequestList) {
+	public void addBasicMission(Scenario scenario, List<BasicMissionRequest> missionRequestList) {
 		if (missionRequestList.isEmpty()) {
 			return;
 		}
@@ -81,14 +81,11 @@ public class MissionService {
 		List<Mission> missionList = new ArrayList<>();
 
 		int order = OrderCalculator.START_ORDER;
-		for (MissionRequest missionInfo : missionRequestList) {
+		for (BasicMissionRequest missionInfo : missionRequestList) {
 			missionList.add(missionInfo.toEntity(scenario, order));
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
-
-		List<Mission> basicMissionList =
-			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.BASIC);
-		validateMaxBasicMissionCount(basicMissionList);
+		validateMaxBasicMissionCount(missionList);
 
 		missionRepository.saveAll(missionList);
 	}
@@ -118,7 +115,7 @@ public class MissionService {
 
 
 	@Transactional
-	public void updateBasicMission(Scenario oldSCenario, List<MissionRequest> missionRequestList) {
+	public void updateBasicMission(Scenario oldSCenario, List<BasicMissionRequest> missionRequestList) {
 		List<Mission> oldMissionList =
 			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissionList(), MissionType.BASIC);
 
@@ -137,7 +134,7 @@ public class MissionService {
 		List<Mission> toAddList = new ArrayList<>();
 
 		int order = OrderCalculator.START_ORDER;
-		for (MissionRequest missionInfo : missionRequestList) {
+		for (BasicMissionRequest missionInfo : missionRequestList) {
 			Long missionId = missionInfo.getMissionId();
 
 			if (missionId == null) {

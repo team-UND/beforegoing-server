@@ -17,10 +17,11 @@ import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
-import com.und.server.scenario.dto.request.MissionRequest;
+import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
+import com.und.server.scenario.dto.response.HomeScenarioResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -51,11 +52,20 @@ public class ScenarioService {
 
 
 	@Transactional(readOnly = true)
+	public List<HomeScenarioResponse> findHomeScenariosByMemberId(Long memberId, NotificationType notificationType) {
+		List<Scenario> scenarioList =
+			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
+
+		return HomeScenarioResponse.listFrom(scenarioList);
+	}
+
+
+	@Transactional(readOnly = true)
 	public List<ScenarioResponse> findScenariosByMemberId(Long memberId, NotificationType notificationType) {
 		List<Scenario> scenarioList =
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
 
-		return ScenarioResponse.listOf(scenarioList);
+		return ScenarioResponse.listFrom(scenarioList);
 	}
 
 
@@ -159,7 +169,7 @@ public class ScenarioService {
 			scenarioDetailRequest.getNotificationCondition()
 		);
 
-		List<MissionRequest> newBasicMissionList = scenarioDetailRequest.getBasicMissionList();
+		List<BasicMissionRequest> newBasicMissionList = scenarioDetailRequest.getBasicMissionList();
 		missionService.updateBasicMission(oldSCenario, newBasicMissionList);
 
 		oldSCenario.updateScenarioName(scenarioDetailRequest.getScenarioName());
@@ -212,19 +222,28 @@ public class ScenarioService {
 			.scenarioId(scenario.getId())
 			.scenarioName(scenario.getScenarioName())
 			.memo(scenario.getMemo())
-			.basicMissionList(MissionResponse.listOf(basicMissionList))
+			.basicMissionList(MissionResponse.listFrom(basicMissionList))
 			.build();
-		NotificationResponse notificationResponse = NotificationResponse.of(notification);
 
-		if (notificationInfo != null) {
-			notificationResponse.setIsEveryDay(notificationInfo.isEveryDay());
-			notificationResponse.setDayOfWeekOrdinalList(
-				notificationInfo.dayOfWeekOrdinalList().isEmpty()
-					? null
-					: notificationInfo.dayOfWeekOrdinalList()
-			);
+		NotificationResponse notificationResponse;
+		if (notificationInfo == null) {
+			notificationResponse = NotificationResponse.from(
+				notification, null, null);
+		} else {
+			notificationResponse = NotificationResponse.from(
+				notification, notificationInfo.isEveryDay(), notificationInfo.dayOfWeekOrdinalList());
 			scenarioDetailResponse.setNotificationCondition(notificationInfo.notificationConditionResponse());
 		}
+
+//		if (notificationInfo != null) {
+//			notificationResponse.setIsEveryDay(notificationInfo.isEveryDay());
+//			notificationResponse.setDayOfWeekOrdinalList(
+//				notificationInfo.dayOfWeekOrdinalList().isEmpty()
+//					? null
+//					: notificationInfo.dayOfWeekOrdinalList()
+//			);
+//			scenarioDetailResponse.setNotificationCondition(notificationInfo.notificationConditionResponse());
+//		}
 		scenarioDetailResponse.setNotification(notificationResponse);
 
 		return scenarioDetailResponse;
