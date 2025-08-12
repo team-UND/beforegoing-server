@@ -26,10 +26,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
+@RestController
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/v1")
-@RestController
 public class MissionController {
 
 	private final ScenarioService scenarioService;
@@ -42,8 +42,7 @@ public class MissionController {
 		@PathVariable Long scenarioId,
 		@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
-		MissionGroupResponse missionList =
-			scenarioService.findMissionsGroupByMissionType(memberId, scenarioId, date);
+		MissionGroupResponse missionList = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		return ResponseEntity.ok().body(missionList);
 	}

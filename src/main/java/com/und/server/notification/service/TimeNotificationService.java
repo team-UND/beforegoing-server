@@ -20,8 +20,8 @@ import com.und.server.notification.repository.TimeNotificationRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class TimeNotificationService implements NotificationConditionService {
 
 	public static final int EVERYDAY = 7;

@@ -27,8 +27,8 @@ import com.und.server.scenario.util.ScenarioValidator;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class MissionService {
 
 	private final MissionRepository missionRepository;

@@ -1,5 +1,7 @@
 package com.und.server.scenario.dto.request;
 
+import java.time.LocalDate;
+
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
@@ -7,8 +9,6 @@ import com.und.server.scenario.entity.Scenario;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
-import java.time.LocalDate;
 
 @Schema(description = "Today type Mission request")
 public record TodayMissionRequest(

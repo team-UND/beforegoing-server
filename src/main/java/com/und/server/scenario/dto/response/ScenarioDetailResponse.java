@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
+import com.und.server.scenario.entity.Mission;
+import com.und.server.scenario.entity.Scenario;
 
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
@@ -49,4 +51,22 @@ public record ScenarioDetailResponse(
 	)
 	NotificationConditionResponse notificationCondition
 
-) { }
+) {
+
+	public static ScenarioDetailResponse from(
+		Scenario scenario,
+		List<Mission> basicMissionList,
+		NotificationResponse notificationResponse,
+		NotificationConditionResponse notificationConditionResponse
+	) {
+		return ScenarioDetailResponse.builder()
+			.scenarioId(scenario.getId())
+			.scenarioName(scenario.getScenarioName())
+			.memo(scenario.getMemo())
+			.basicMissionList(MissionResponse.listFrom(basicMissionList))
+			.notification(notificationResponse)
+			.notificationCondition(notificationConditionResponse)
+			.build();
+	}
+
+}

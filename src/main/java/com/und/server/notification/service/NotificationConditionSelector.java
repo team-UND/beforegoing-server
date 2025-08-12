@@ -13,8 +13,8 @@ import com.und.server.notification.exception.NotificationErrorResult;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class NotificationConditionSelector {
 
 	private final List<NotificationConditionService> services;

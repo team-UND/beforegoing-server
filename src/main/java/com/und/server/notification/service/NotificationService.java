@@ -14,8 +14,8 @@ import com.und.server.notification.repository.NotificationRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
 
 	private final NotificationRepository notificationRepository;

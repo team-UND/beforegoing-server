@@ -20,10 +20,10 @@ import com.und.server.scenario.service.ScenarioService;
 
 import lombok.RequiredArgsConstructor;
 
+@RestController
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/v1")
-@RestController
 public class HomeController {
 
 	private final ScenarioService scenarioService;

@@ -16,5 +16,4 @@ public record ScenarioOrderUpdateRequest(
 	@Min(value = 0, message = "nextOrder must be greater than or equal to 1")
 	Integer nextOrder
 
-) {
-}
+) { }

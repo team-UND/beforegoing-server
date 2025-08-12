@@ -28,10 +28,10 @@ import com.und.server.scenario.service.ScenarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@RestController
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/v1")
-@RestController
 public class ScenarioController {
 
 	private final ScenarioService scenarioService;

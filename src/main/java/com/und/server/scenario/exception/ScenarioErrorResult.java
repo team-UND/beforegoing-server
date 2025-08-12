@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ScenarioErrorResult implements ErrorResult {
+
 	NOT_FOUND_SCENARIO(
 		HttpStatus.NOT_FOUND, "Scenario not found"),
 	NOT_FOUND_MISSION(
