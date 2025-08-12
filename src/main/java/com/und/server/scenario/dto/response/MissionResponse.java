@@ -5,27 +5,28 @@ import java.util.List;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.entity.Mission;
 
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
-@ToString
-public class MissionResponse {
+@Schema(description = "All Type Mission response")
+public record MissionResponse(
 
-	private Long missionId;
-	private String content;
-	private Boolean isChecked;
-	private MissionType missionType;
+	@Schema(description = "Mission id", example = "1")
+	Long missionId,
 
-	public static MissionResponse of(Mission mission) {
+	@Schema(description = "Mission content", example = "Lock door")
+	String content,
+
+	@Schema(description = "Check box check display status", example = "Lock door")
+	Boolean isChecked,
+
+	@Schema(description = "Mission type", example = "BASIC")
+	MissionType missionType
+
+) {
+
+	public static MissionResponse from(Mission mission) {
 		return MissionResponse.builder()
 			.missionId(mission.getId())
 			.content(mission.getContent())
@@ -34,9 +35,9 @@ public class MissionResponse {
 			.build();
 	}
 
-	public static List<MissionResponse> listOf(List<Mission> missionList) {
+	public static List<MissionResponse> listFrom(List<Mission> missionList) {
 		return missionList.stream()
-			.map(MissionResponse::of)
+			.map(MissionResponse::from)
 			.toList();
 	}
 

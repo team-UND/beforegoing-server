@@ -1,42 +1,26 @@
 package com.und.server.notification.dto.response;
 
-import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.entity.TimeNotification;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
-@ToString
-public class TimeNotificationResponse implements NotificationConditionResponse {
+@Schema(description = "Time notification detail condition response")
+public record TimeNotificationResponse(
 
-	@Schema(
-		description = "알림 타입",
-		example = "TIME",
-		defaultValue = "TIME",
-		allowableValues = {"TIME"},
-		requiredMode = Schema.RequiredMode.REQUIRED
-	)
-	@NotNull
-	@Builder.Default
-	private NotificationType notificationType = NotificationType.TIME;
-	private Integer startHour;
-	private Integer startMinute;
+	@Schema(description = "hour", example = "12")
+	Integer startHour,
 
-	public static NotificationConditionResponse of(TimeNotification timeNotif) {
+	@Schema(description = "minute", example = "58")
+	Integer startMinute
+
+) implements NotificationConditionResponse {
+
+	public static NotificationConditionResponse from(TimeNotification timeNotification) {
 		return TimeNotificationResponse.builder()
-			.startHour(timeNotif.getStartHour())
-			.startMinute(timeNotif.getStartMinute())
+			.startHour(timeNotification.getStartHour())
+			.startMinute(timeNotification.getStartMinute())
 			.build();
 	}
 

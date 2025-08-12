@@ -2,31 +2,30 @@ package com.und.server.scenario.dto.response;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.und.server.scenario.entity.Scenario;
 
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ScenarioResponse {
+@Schema(description = "Scenario response")
+public record ScenarioResponse(
 
-	private Long scenarioId;
-	private String scenarioName;
-	private String memo;
-	private Integer scenarioOrder;
+	@Schema(description = "Scenario id", example = "1")
+	Long scenarioId,
 
-	public static ScenarioResponse of(Scenario scenario) {
+	@Schema(description = "Scenario name", example = "Bef house")
+	String scenarioName,
+
+	@Schema(description = "Scenario memo", example = "Item to carry")
+	String memo,
+
+	@Schema(description = "Scenario order", example = "3000")
+	Integer scenarioOrder
+
+) {
+
+	public static ScenarioResponse from(Scenario scenario) {
 		return ScenarioResponse.builder()
 			.scenarioId(scenario.getId())
 			.scenarioName(scenario.getScenarioName())
@@ -35,9 +34,9 @@ public class ScenarioResponse {
 			.build();
 	}
 
-	public static List<ScenarioResponse> listOf(List<Scenario> scenarioList) {
+	public static List<ScenarioResponse> listFrom(List<Scenario> scenarioList) {
 		return scenarioList.stream()
-			.map(ScenarioResponse::of)
+			.map(ScenarioResponse::from)
 			.toList();
 	}
 

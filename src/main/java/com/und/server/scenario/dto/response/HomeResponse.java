@@ -2,25 +2,26 @@ package com.und.server.scenario.dto.response;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.und.server.notification.dto.response.NotificationResponse;
 
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
 @Builder
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class HomeResponse {
+@Schema(description = "Home display response")
+public record HomeResponse(
 
-	private List<ScenarioResponse> scenarios;
-	private MissionGroupResponse missions;
+	@ArraySchema(
+		arraySchema = @Schema(description = "Scenario list, Sort in order"),
+		schema = @Schema(implementation = HomeScenarioResponse.class), maxItems = 20
+	)
+	List<HomeScenarioResponse> scenarioList,
 
-}
+	@Schema(
+		description = "Mission list by mission type",
+		implementation = NotificationResponse.class
+	)
+	MissionGroupResponse missionListByType
+
+) { }
