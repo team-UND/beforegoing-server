@@ -45,39 +45,53 @@ public class NotificationService {
 
 
 	@Transactional
-	public Notification updateNotification(
-		Notification oldNotification,
+	public Notification addWithoutNotification(NotificationType notificationType) {
+		Notification notification = Notification.builder()
+			.isActive(false)
+			.notificationType(notificationType)
+			.build();
+		notificationRepository.save(notification);
+
+		return notification;
+	}
+
+
+	@Transactional
+	public void updateNotification(
+		Notification notification,
 		NotificationRequest notificationInfo,
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		List<Integer> dayOfWeekOrdinalList = notificationInfo.getDayOfWeekOrdinalList();
 		boolean isChangeNotificationType =
-			oldNotification.getNotificationType() != notificationInfo.getNotificationType();
-		NotificationType oldNotificationType = oldNotification.getNotificationType();
+			notification.getNotificationType() != notificationInfo.getNotificationType();
+		NotificationType oldNotificationType = notification.getNotificationType();
 
-		oldNotification.updateNotification(
+		notification.updateNotification(
 			notificationInfo.getNotificationType(),
 			notificationInfo.getNotificationMethodType()
 		);
-		oldNotification.updateActiveStatus(notificationInfo.getIsActive());
-
-		if (!notificationInfo.getIsActive()) {
-			notificationConditionSelector.deleteNotificationCondition(
-				notificationInfo.getNotificationType(), oldNotification.getId());
-			return oldNotification;
-		}
+		notification.updateActiveStatus(true);
 
 		if (isChangeNotificationType) {
-			notificationConditionSelector.deleteNotificationCondition(oldNotificationType, oldNotification.getId());
+			notificationConditionSelector.deleteNotificationCondition(oldNotificationType, notification.getId());
 			notificationConditionSelector.addNotificationCondition(
-				oldNotification, dayOfWeekOrdinalList, notificationConditionRequest);
-			return oldNotification;
+				notification, dayOfWeekOrdinalList, notificationConditionRequest);
+			return;
 		}
 
 		notificationConditionSelector.updateNotificationCondition(
-			oldNotification, dayOfWeekOrdinalList, notificationConditionRequest);
+			notification, dayOfWeekOrdinalList, notificationConditionRequest);
+	}
 
-		return oldNotification;
+
+	@Transactional
+	public void updateWithoutNotification(Notification oldNotification) {
+		notificationConditionSelector.deleteNotificationCondition(
+			oldNotification.getNotificationType(), oldNotification.getId());
+
+		oldNotification.updateActiveStatus(false);
+		oldNotification.deleteNotificationMethodType();
 	}
 
 

@@ -53,7 +53,7 @@ public class TimeNotificationService implements NotificationConditionService {
 			.toList();
 
 		boolean isEveryDay = dayOfWeekOrdinalList.size() == EVERYDAY;
-		NotificationConditionResponse timeNotificationResponse = TimeNotificationResponse.of(baseTimeNotification);
+		NotificationConditionResponse timeNotificationResponse = TimeNotificationResponse.from(baseTimeNotification);
 
 		return new NotificationInfoDto(isEveryDay, dayOfWeekOrdinalList, timeNotificationResponse);
 	}

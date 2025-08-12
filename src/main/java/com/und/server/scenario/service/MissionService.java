@@ -99,16 +99,9 @@ public class MissionService {
 	) {
 		List<Mission> todayMissionList = missionTypeGroupSorter.groupAndSortByType(
 			scenario.getMissionList(), MissionType.TODAY);
-
 		validateMaxTodayMissionCount(todayMissionList);
 
-		Mission newMission = Mission.builder()
-			.scenario(scenario)
-			.content(todayMissionRequest.content())
-			.isChecked(false)
-			.useDate(date)
-			.missionType(MissionType.TODAY)
-			.build();
+		Mission newMission = todayMissionRequest.toEntity(scenario);
 
 		missionRepository.save(newMission);
 	}

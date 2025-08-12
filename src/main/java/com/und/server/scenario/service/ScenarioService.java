@@ -3,6 +3,8 @@ package com.und.server.scenario.service;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +13,6 @@ import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.NotificationInfoDto;
-import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
@@ -19,6 +20,7 @@ import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.HomeScenarioResponse;
@@ -85,56 +87,6 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void addScenario(Long memberId, ScenarioDetailRequest scenarioDetailRequest) {
-		NotificationRequest notificationInfo = scenarioDetailRequest.getNotification();
-		Member member = em.getReference(Member.class, memberId);
-
-		Notification notification =
-			notificationService.addNotification(
-				notificationInfo, scenarioDetailRequest.getNotificationCondition());
-
-		List<Integer> orderList =
-			scenarioRepository.findOrdersByMemberIdAndNotificationType(
-				memberId, notificationInfo.getNotificationType());
-
-		validateMaxScenarioCount(orderList);
-
-		int order = orderList.isEmpty()
-			? OrderCalculator.START_ORDER
-			: getValidScenarioOrder(Collections.max(orderList), memberId, notificationInfo);
-
-		Scenario scenario = Scenario.builder()
-			.member(member)
-			.scenarioName(scenarioDetailRequest.getScenarioName())
-			.memo(scenarioDetailRequest.getMemo())
-			.scenarioOrder(order)
-			.notification(notification)
-			.build();
-
-		scenarioRepository.save(scenario);
-		missionService.addBasicMission(scenario, scenarioDetailRequest.getBasicMissionList());
-	}
-
-	private int getValidScenarioOrder(
-		int maxScenarioOrder,
-		Long memberId,
-		NotificationRequest notificationRequest
-	) {
-		try {
-			return orderCalculator.getOrder(maxScenarioOrder, null);
-		} catch (ReorderRequiredException e) {
-			reorderScenarios(memberId, notificationRequest.getNotificationType());
-			int newMaxOrder =
-				scenarioRepository.findMaxOrderByMemberIdAndNotificationType(
-						memberId, notificationRequest.getNotificationType())
-					.orElse(OrderCalculator.START_ORDER);
-
-			return orderCalculator.getOrder(newMaxOrder, null);
-		}
-	}
-
-
-	@Transactional
 	public void addTodayMissionToScenario(
 		Long memberId,
 		Long scenarioId,
@@ -155,26 +107,65 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void updateScenario(
-		Long memberId,
-		Long scenarioId,
-		ScenarioDetailRequest scenarioDetailRequest
-	) {
-		Scenario oldSCenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-
-		Notification newNotification = notificationService.updateNotification(
-			oldSCenario.getNotification(),
-			scenarioDetailRequest.getNotification(),
-			scenarioDetailRequest.getNotificationCondition()
+	public void addScenario(Long memberId, ScenarioDetailRequest scenarioDetailRequest) {
+		addScenarioInternal(
+			memberId,
+			scenarioDetailRequest.getScenarioName(),
+			scenarioDetailRequest.getMemo(),
+			scenarioDetailRequest.getBasicMissionList(),
+			scenarioDetailRequest.getNotification().getNotificationType(),
+			() -> notificationService.addNotification(
+				scenarioDetailRequest.getNotification(),
+				scenarioDetailRequest.getNotificationCondition()
+			)
 		);
+	}
 
-		List<BasicMissionRequest> newBasicMissionList = scenarioDetailRequest.getBasicMissionList();
-		missionService.updateBasicMission(oldSCenario, newBasicMissionList);
 
-		oldSCenario.updateScenarioName(scenarioDetailRequest.getScenarioName());
-		oldSCenario.updateMemo(scenarioDetailRequest.getMemo());
-		oldSCenario.updateNotification(newNotification);
+	@Transactional
+	public void addScenarioWithoutNotification(
+		Long memberId, ScenarioNoNotificationRequest scenarioNoNotificationRequest
+	) {
+		addScenarioInternal(
+			memberId,
+			scenarioNoNotificationRequest.scenarioName(),
+			scenarioNoNotificationRequest.memo(),
+			scenarioNoNotificationRequest.basicMissionList(),
+			scenarioNoNotificationRequest.notificationType(),
+			() -> notificationService.addWithoutNotification(scenarioNoNotificationRequest.notificationType())
+		);
+	}
+
+
+	@Transactional
+	public void updateScenario(Long memberId, Long scenarioId, ScenarioDetailRequest scenarioDetailRequest) {
+		updateScenarioInternal(
+			memberId,
+			scenarioId,
+			scenarioDetailRequest.getScenarioName(),
+			scenarioDetailRequest.getMemo(),
+			scenarioDetailRequest.getBasicMissionList(),
+			notification -> notificationService.updateNotification(
+				notification,
+				scenarioDetailRequest.getNotification(),
+				scenarioDetailRequest.getNotificationCondition()
+			)
+		);
+	}
+
+
+	@Transactional
+	public void updateScenarioWithoutNotification(
+		Long memberId, Long scenarioId, ScenarioNoNotificationRequest scenarioNoNotificationRequest
+	) {
+		updateScenarioInternal(
+			memberId,
+			scenarioId,
+			scenarioNoNotificationRequest.scenarioName(),
+			scenarioNoNotificationRequest.memo(),
+			scenarioNoNotificationRequest.basicMissionList(),
+			notificationService::updateWithoutNotification
+		);
 	}
 
 
@@ -211,6 +202,75 @@ public class ScenarioService {
 	}
 
 
+	private void addScenarioInternal(
+		Long memberId,
+		String scenarioName,
+		String memo,
+		List<BasicMissionRequest> missions,
+		NotificationType notificationType,
+		Supplier<Notification> notificationSupplier
+	) {
+		Member member = em.getReference(Member.class, memberId);
+
+		List<Integer> orderList =
+			scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, notificationType);
+		validateMaxScenarioCount(orderList);
+
+		int order = orderList.isEmpty()
+			? OrderCalculator.START_ORDER
+			: getValidScenarioOrder(Collections.max(orderList), memberId, notificationType);
+
+		Notification notification = notificationSupplier.get();
+
+		Scenario scenario = Scenario.builder()
+			.member(member)
+			.scenarioName(scenarioName)
+			.memo(memo)
+			.scenarioOrder(order)
+			.notification(notification)
+			.build();
+
+		scenarioRepository.save(scenario);
+		missionService.addBasicMission(scenario, missions);
+	}
+
+	private void updateScenarioInternal(
+		Long memberId,
+		Long scenarioId,
+		String scenarioName,
+		String memo,
+		List<BasicMissionRequest> newBasicMissionList,
+		Consumer<Notification> notificationUpdater
+	) {
+		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+
+		notificationUpdater.accept(oldScenario.getNotification());
+
+		missionService.updateBasicMission(oldScenario, newBasicMissionList);
+
+		oldScenario.updateScenarioName(scenarioName);
+		oldScenario.updateMemo(memo);
+	}
+
+	private int getValidScenarioOrder(
+		int maxScenarioOrder,
+		Long memberId,
+		NotificationType notificationType
+	) {
+		try {
+			return orderCalculator.getOrder(maxScenarioOrder, null);
+		} catch (ReorderRequiredException e) {
+			reorderScenarios(memberId, notificationType);
+			int newMaxOrder =
+				scenarioRepository.findMaxOrderByMemberIdAndNotificationType(
+						memberId, notificationType)
+					.orElse(OrderCalculator.START_ORDER);
+
+			return orderCalculator.getOrder(newMaxOrder, null);
+		}
+	}
+
 	private ScenarioDetailResponse getScenarioDetailResponse(
 		Scenario scenario,
 		List<Mission> basicMissionList,
@@ -235,15 +295,6 @@ public class ScenarioService {
 			scenarioDetailResponse.setNotificationCondition(notificationInfo.notificationConditionResponse());
 		}
 
-//		if (notificationInfo != null) {
-//			notificationResponse.setIsEveryDay(notificationInfo.isEveryDay());
-//			notificationResponse.setDayOfWeekOrdinalList(
-//				notificationInfo.dayOfWeekOrdinalList().isEmpty()
-//					? null
-//					: notificationInfo.dayOfWeekOrdinalList()
-//			);
-//			scenarioDetailResponse.setNotificationCondition(notificationInfo.notificationConditionResponse());
-//		}
 		scenarioDetailResponse.setNotification(notificationResponse);
 
 		return scenarioDetailResponse;

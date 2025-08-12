@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
+import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -70,6 +71,17 @@ public class ScenarioController {
 	}
 
 
+	@PostMapping("/scenarios/without-notification")
+	public ResponseEntity<Void> addScenarioWithoutNotification(
+		@AuthMember Long memberId,
+		@RequestBody @Valid ScenarioNoNotificationRequest scenarioNoNotificationResponse
+	) {
+		scenarioService.addScenarioWithoutNotification(memberId, scenarioNoNotificationResponse);
+
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+
 	@PutMapping("/scenarios/{scenarioId}")
 	public ResponseEntity<Void> updateScenario(
 		@AuthMember Long memberId,
@@ -77,6 +89,18 @@ public class ScenarioController {
 		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
 	) {
 		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+
+	@PutMapping("/scenarios/{scenarioId}/without-notification")
+	public ResponseEntity<Void> updateScenarioWithoutNotification(
+		@AuthMember Long memberId,
+		@PathVariable Long scenarioId,
+		@RequestBody @Valid ScenarioNoNotificationRequest scenarioNoNotificationRequest
+	) {
+		scenarioService.updateScenarioWithoutNotification(memberId, scenarioId, scenarioNoNotificationRequest);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
