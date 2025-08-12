@@ -1,7 +1,17 @@
 package com.und.server.notification.constants;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum NotificationMethodType {
 
-	PUSH, ALARM
+	PUSH, ALARM;
+
+	@JsonCreator
+	public static NotificationMethodType fromValue(String value) {
+		if (value == null) {
+			return null;
+		}
+		return NotificationMethodType.valueOf(value.toUpperCase());
+	}
 
 }
