@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.response.HomeResponse;
+import com.und.server.scenario.dto.response.HomeScenarioResponse;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
-import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
@@ -34,18 +34,18 @@ public class HomeController {
 		@AuthMember Long memberId,
 		@RequestParam(defaultValue = "TIME") NotificationType notifType
 	) {
-		List<ScenarioResponse> scenarios = scenarioService.findScenariosByMemberId(memberId, notifType);
+		List<HomeScenarioResponse> scenarios = scenarioService.findHomeScenariosByMemberId(memberId, notifType);
 
 		LocalDate today = LocalDate.now();
 		MissionGroupResponse missions = null;
 		if (!scenarios.isEmpty()) {
-			Long firstScenarioId = scenarios.get(0).getScenarioId();
+			Long firstScenarioId = scenarios.get(0).scenarioId();
 			missions = missionService.findMissionsByScenarioId(memberId, firstScenarioId, today);
 		}
 
 		HomeResponse result = HomeResponse.builder()
-			.scenarios(scenarios)
-			.missions(missions)
+			.scenarioList(scenarios)
+			.missionListByType(missions)
 			.build();
 
 		return ResponseEntity.ok().body(result);
