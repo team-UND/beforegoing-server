@@ -72,8 +72,4 @@ public class Scenario extends BaseTimeEntity {
 		this.scenarioOrder = scenarioOrder;
 	}
 
-	public void updateNotification(Notification notification) {
-		this.notification = notification;
-	}
-
 }
