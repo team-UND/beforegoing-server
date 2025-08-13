@@ -58,7 +58,7 @@ public class Scenario extends BaseTimeEntity {
 	private Notification notification;
 
 	@OneToMany(mappedBy = "scenario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Mission> missionList;
+	private List<Mission> missions;
 
 	public void updateScenarioName(String scenarioName) {
 		this.scenarioName = scenarioName;

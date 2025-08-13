@@ -40,29 +40,29 @@ public class TimeNotificationService implements NotificationConditionService {
 			return null;
 		}
 
-		List<TimeNotification> timeNotificationList =
+		List<TimeNotification> timeNotifications =
 			timeNotificationRepository.findByNotificationId(notification.getId());
-		if (timeNotificationList.isEmpty()) {
+		if (timeNotifications.isEmpty()) {
 			return null;
 		}
 
-		TimeNotification baseTimeNotification = timeNotificationList.get(0);
+		TimeNotification baseTimeNotification = timeNotifications.get(0);
 
-		List<Integer> dayOfWeekOrdinalList = timeNotificationList.stream()
+		List<Integer> daysOfWeekOrdinal = timeNotifications.stream()
 			.map(tn -> tn.getDayOfWeek().ordinal())
 			.toList();
 
-		boolean isEveryDay = dayOfWeekOrdinalList.size() == EVERYDAY;
+		boolean isEveryDay = daysOfWeekOrdinal.size() == EVERYDAY;
 		NotificationConditionResponse timeNotificationResponse = TimeNotificationResponse.from(baseTimeNotification);
 
-		return new NotificationInfoDto(isEveryDay, dayOfWeekOrdinalList, timeNotificationResponse);
+		return new NotificationInfoDto(isEveryDay, daysOfWeekOrdinal, timeNotificationResponse);
 	}
 
 
 	@Override
 	public void addNotificationCondition(
 		Notification notification,
-		List<Integer> dayOfWeekOrdinalList,
+		List<Integer> daysOfWeekOrdinal,
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		if (!notification.isActive()) {
@@ -71,29 +71,29 @@ public class TimeNotificationService implements NotificationConditionService {
 
 		TimeNotificationRequest timeNotificationRequest = (TimeNotificationRequest) notificationConditionRequest;
 
-		List<TimeNotification> timeNotificationList = dayOfWeekOrdinalList.stream()
+		List<TimeNotification> timeNotifications = daysOfWeekOrdinal.stream()
 			.map(ordinal -> DayOfWeek.values()[ordinal])
 			.map(dayOfWeek -> timeNotificationRequest.toEntity(notification, dayOfWeek))
 			.toList();
-		timeNotificationRepository.saveAll(timeNotificationList);
+		timeNotificationRepository.saveAll(timeNotifications);
 	}
 
 
 	@Override
 	public void updateNotificationCondition(
 		Notification oldNotification,
-		List<Integer> newDayOfWeekOrdinalList,
+		List<Integer> daysOfWeekOrdinal,
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		TimeNotificationRequest timeNotificationInfo = (TimeNotificationRequest) notificationConditionRequest;
-		List<TimeNotification> oldTimeNotificationList =
+		List<TimeNotification> oldTimeNotifications =
 			timeNotificationRepository.findByNotificationId(oldNotification.getId());
 
-		Set<Integer> oldOrdinals = oldTimeNotificationList.stream()
+		Set<Integer> oldOrdinals = oldTimeNotifications.stream()
 			.map(tn -> tn.getDayOfWeek().ordinal())
 			.collect(Collectors.toSet());
 
-		Set<Integer> newOrdinals = new HashSet<>(newDayOfWeekOrdinalList);
+		Set<Integer> newOrdinals = new HashSet<>(daysOfWeekOrdinal);
 
 		Set<Integer> toDeleteOrdinals = oldOrdinals.stream()
 			.filter(ordinal -> !newOrdinals.contains(ordinal))
@@ -108,7 +108,7 @@ public class TimeNotificationService implements NotificationConditionService {
 			.collect(Collectors.toSet());
 
 		if (!toDeleteOrdinals.isEmpty()) {
-			List<TimeNotification> toDelete = oldTimeNotificationList.stream()
+			List<TimeNotification> toDelete = oldTimeNotifications.stream()
 				.filter(tn -> toDeleteOrdinals.contains(tn.getDayOfWeek().ordinal()))
 				.toList();
 			timeNotificationRepository.deleteAll(toDelete);
@@ -123,7 +123,7 @@ public class TimeNotificationService implements NotificationConditionService {
 		}
 
 		if (!toUpdateOrdinals.isEmpty()) {
-			List<TimeNotification> toUpdate = oldTimeNotificationList.stream()
+			List<TimeNotification> toUpdate = oldTimeNotifications.stream()
 				.filter(tn -> toUpdateOrdinals.contains(tn.getDayOfWeek().ordinal()))
 				.peek(tn -> {
 					tn.updateTimeCondition(
@@ -137,9 +137,9 @@ public class TimeNotificationService implements NotificationConditionService {
 
 	@Override
 	public void deleteNotificationCondition(Long notificationId) {
-		List<TimeNotification> timeNotificationList =
+		List<TimeNotification> timeNotifications =
 			timeNotificationRepository.findByNotificationId(notificationId);
-		timeNotificationRepository.deleteAll(timeNotificationList);
+		timeNotificationRepository.deleteAll(timeNotifications);
 	}
 
 }

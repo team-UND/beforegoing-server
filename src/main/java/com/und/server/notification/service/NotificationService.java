@@ -34,11 +34,11 @@ public class NotificationService {
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		Notification notification = notificationInfo.toEntity();
-		List<Integer> dayOfWeekOrdinalList = notificationInfo.dayOfWeekOrdinalList();
+		List<Integer> daysOfWeekOrdinal = notificationInfo.daysOfWeekOrdinal();
 
 		notificationRepository.save(notification);
 		notificationConditionSelector.addNotificationCondition(
-			notification, dayOfWeekOrdinalList, notificationConditionRequest);
+			notification, daysOfWeekOrdinal, notificationConditionRequest);
 
 		return notification;
 	}
@@ -62,7 +62,7 @@ public class NotificationService {
 		NotificationRequest notificationInfo,
 		NotificationConditionRequest notificationConditionRequest
 	) {
-		List<Integer> dayOfWeekOrdinalList = notificationInfo.dayOfWeekOrdinalList();
+		List<Integer> daysOfWeekOrdinal = notificationInfo.daysOfWeekOrdinal();
 
 		NotificationType oldNotificationType = notification.getNotificationType();
 		NotificationType newNotificationtype = notificationInfo.notificationType();
@@ -77,12 +77,12 @@ public class NotificationService {
 		if (isChangeNotificationType) {
 			notificationConditionSelector.deleteNotificationCondition(oldNotificationType, notification.getId());
 			notificationConditionSelector.addNotificationCondition(
-				notification, dayOfWeekOrdinalList, notificationConditionRequest);
+				notification, daysOfWeekOrdinal, notificationConditionRequest);
 			return;
 		}
 
 		notificationConditionSelector.updateNotificationCondition(
-			notification, dayOfWeekOrdinalList, notificationConditionRequest);
+			notification, daysOfWeekOrdinal, notificationConditionRequest);
 	}
 
 

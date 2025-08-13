@@ -39,7 +39,7 @@ public record NotificationRequest(
 	List<
 		@NotNull(message = "DayOfWeek must not be null")
 		@Min(value = 0, message = "DayOfWeek must be between 0 and 6")
-		@Max(value = 6, message = "DayOfWeek must be between 0 and 6") Integer> dayOfWeekOrdinalList
+		@Max(value = 6, message = "DayOfWeek must be between 0 and 6") Integer> daysOfWeekOrdinal
 
 ) {
 

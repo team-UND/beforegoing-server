@@ -32,7 +32,7 @@ public record ScenarioDetailResponse(
 		arraySchema = @Schema(description = "Basic type mission list, Sort in order"),
 		schema = @Schema(implementation = MissionResponse.class), maxItems = 20
 	)
-	List<MissionResponse> basicMissionList,
+	List<MissionResponse> basicMissions,
 
 	@Schema(
 		description = "Notification default settings",
@@ -63,7 +63,7 @@ public record ScenarioDetailResponse(
 			.scenarioId(scenario.getId())
 			.scenarioName(scenario.getScenarioName())
 			.memo(scenario.getMemo())
-			.basicMissionList(MissionResponse.listFrom(basicMissionList))
+			.basicMissions(MissionResponse.listFrom(basicMissionList))
 			.notification(notificationResponse)
 			.notificationCondition(notificationConditionResponse)
 			.build();

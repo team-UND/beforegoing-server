@@ -27,7 +27,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 	@Query("""
 		SELECT s FROM Scenario s
 		LEFT JOIN FETCH s.notification
-		LEFT JOIN FETCH s.missionList
+		LEFT JOIN FETCH s.missions
 		WHERE s.id = :id
 			AND s.member.id = :memberId
 		""")
@@ -37,7 +37,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 		SELECT s FROM Scenario s
 		LEFT JOIN FETCH s.notification
 		LEFT JOIN s.member m
-		LEFT JOIN FETCH s.missionList mission
+		LEFT JOIN FETCH s.missions mission
 		WHERE s.id = :scenarioId
 			AND m.id = :memberId
 			AND mission.missionType = :missionType

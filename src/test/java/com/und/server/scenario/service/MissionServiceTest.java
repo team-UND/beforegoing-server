@@ -96,8 +96,8 @@ class MissionServiceTest {
 
 		// then
 		assertThat(result).isNotNull();
-		assertThat(result.basicMissionList()).isNotEmpty();
-		assertThat(result.todayMissionList()).isNotEmpty();
+		assertThat(result.basicMissions()).isNotEmpty();
+		assertThat(result.todayMissions()).isNotEmpty();
 		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.BASIC);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.TODAY);
@@ -119,8 +119,8 @@ class MissionServiceTest {
 
 		// then
 		assertThat(result).isNotNull();
-		assertThat(result.basicMissionList()).isEmpty();
-		assertThat(result.todayMissionList()).isEmpty();
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isEmpty();
 		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
 	}
 
@@ -139,8 +139,8 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		assertThat(result).isNotNull();
-		assertThat(result.basicMissionList()).isEmpty();
-		assertThat(result.todayMissionList()).isEmpty();
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isEmpty();
 	}
 
 
@@ -209,7 +209,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		Mission oldMission = Mission.builder()
@@ -232,7 +232,7 @@ class MissionServiceTest {
 
 		List<BasicMissionRequest> missionInfoList = Arrays.asList(newMission1, newMission2);
 
-		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
 
 		// when
@@ -248,7 +248,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		Mission oldMission = Mission.builder()
@@ -262,7 +262,7 @@ class MissionServiceTest {
 		List<Mission> oldMissionList = Arrays.asList(oldMission);
 		List<BasicMissionRequest> missionInfoList = List.of();
 
-		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
 
 		// when
@@ -278,7 +278,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		Mission existingMission = Mission.builder()
@@ -302,7 +302,7 @@ class MissionServiceTest {
 
 		List<BasicMissionRequest> missionInfoList = Arrays.asList(newMission, updatedMission);
 
-		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
 
 		// when
@@ -545,8 +545,8 @@ class MissionServiceTest {
 
 		// then
 		assertThat(result).isNotNull();
-		assertThat(result.basicMissionList()).isNotEmpty();
-		assertThat(result.todayMissionList()).isEmpty();
+		assertThat(result.basicMissions()).isNotEmpty();
+		assertThat(result.todayMissions()).isEmpty();
 		verify(missionRepository).findDefaultMissions(memberId, scenarioId, LocalDate.now());
 	}
 
@@ -580,8 +580,8 @@ class MissionServiceTest {
 
 		// then
 		assertThat(result).isNotNull();
-		assertThat(result.basicMissionList()).isEmpty();
-		assertThat(result.todayMissionList()).isNotEmpty();
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isNotEmpty();
 		verify(missionRepository).findMissionsByDate(memberId, scenarioId, pastDate);
 	}
 
@@ -615,8 +615,8 @@ class MissionServiceTest {
 
 		// then
 		assertThat(result).isNotNull();
-		assertThat(result.basicMissionList()).isEmpty();
-		assertThat(result.todayMissionList()).isNotEmpty();
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isNotEmpty();
 		verify(missionRepository).findMissionsByDate(memberId, scenarioId, futureDate);
 	}
 
@@ -626,7 +626,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		BasicMissionRequest newMissionRequest = BasicMissionRequest.builder()
@@ -635,7 +635,7 @@ class MissionServiceTest {
 
 		List<BasicMissionRequest> missionInfoList = List.of(newMissionRequest);
 
-		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
 			.thenReturn(List.of());
 
 		// when
@@ -651,7 +651,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		Mission existingMission = Mission.builder()
@@ -668,7 +668,7 @@ class MissionServiceTest {
 		List<BasicMissionRequest> missionInfoList = List.of(nonExistentMissionRequest);
 		List<Mission> oldMissionList = List.of(existingMission);
 
-		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissionList(), MissionType.BASIC))
+		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
 
 		// when

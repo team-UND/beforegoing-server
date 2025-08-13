@@ -38,14 +38,14 @@ public record NotificationResponse(
 		schema = @Schema(type = "integer", minimum = "0", maximum = "6")
 	)
 	@Schema(example = "[0,1,2,3,4,5,6]")
-	List<Integer> dayOfWeekOrdinalList
+	List<Integer> daysOfWeekOrdinal
 
 ) {
 
 	public static NotificationResponse from(
 		Notification notification,
 		Boolean isEveryDay,
-		List<Integer> dayOfWeekOrdinalList
+		List<Integer> daysOfWeekOrdinal
 	) {
 		return NotificationResponse.builder()
 			.notificationId(notification.getId())
@@ -53,7 +53,7 @@ public record NotificationResponse(
 			.notificationType(notification.getNotificationType())
 			.notificationMethodType(notification.getNotificationMethodType())
 			.isEveryDay(isEveryDay)
-			.dayOfWeekOrdinalList(dayOfWeekOrdinalList)
+			.daysOfWeekOrdinal(daysOfWeekOrdinal)
 			.build();
 	}
 

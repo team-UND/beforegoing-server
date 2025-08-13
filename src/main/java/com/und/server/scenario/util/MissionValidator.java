@@ -27,14 +27,14 @@ public class MissionValidator {
 		}
 	}
 
-	public void validateMaxBasicMissionCount(List<Mission> missionList) {
-		if (missionList.size() >= BASIC_MISSION_MAX_COUNT) {
+	public void validateMaxBasicMissionCount(List<Mission> missions) {
+		if (missions.size() >= BASIC_MISSION_MAX_COUNT) {
 			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
 		}
 	}
 
-	public void validateMaxTodayMissionCount(List<Mission> missionList) {
-		if (missionList.size() >= TODAY_MISSION_MAX_COUNT) {
+	public void validateMaxTodayMissionCount(List<Mission> missions) {
+		if (missions.size() >= TODAY_MISSION_MAX_COUNT) {
 			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
 		}
 	}

@@ -29,21 +29,21 @@ public class NotificationConditionSelector {
 
 	public void addNotificationCondition(
 		Notification notification,
-		List<Integer> dayOfWeekOrdinalList,
+		List<Integer> daysOfWeekOrdinal,
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		NotificationConditionService service = findServiceByNotificationType(notification.getNotificationType());
-		service.addNotificationCondition(notification, dayOfWeekOrdinalList, notificationConditionRequest);
+		service.addNotificationCondition(notification, daysOfWeekOrdinal, notificationConditionRequest);
 	}
 
 
 	public void updateNotificationCondition(
 		Notification notification,
-		List<Integer> dayOfWeekOrdinalList,
+		List<Integer> daysOfWeekOrdinal,
 		NotificationConditionRequest notificationConditionRequest
 	) {
 		NotificationConditionService service = findServiceByNotificationType(notification.getNotificationType());
-		service.updateNotificationCondition(notification, dayOfWeekOrdinalList, notificationConditionRequest);
+		service.updateNotificationCondition(notification, daysOfWeekOrdinal, notificationConditionRequest);
 	}
 
 

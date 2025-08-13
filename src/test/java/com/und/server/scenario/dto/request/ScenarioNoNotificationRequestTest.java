@@ -21,7 +21,7 @@ class ScenarioNoNotificationRequestTest {
 
 		assertThat(req.scenarioName()).isEqualTo("name");
 		assertThat(req.memo()).isEqualTo("memo");
-		assertThat(req.basicMissionList()).hasSize(1);
+		assertThat(req.basicMissions()).hasSize(1);
 		assertThat(req.notificationType()).isEqualTo(NotificationType.TIME);
 	}
 

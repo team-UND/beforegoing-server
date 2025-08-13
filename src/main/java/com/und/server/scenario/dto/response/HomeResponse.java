@@ -16,7 +16,7 @@ public record HomeResponse(
 		arraySchema = @Schema(description = "Scenario list, Sort in order"),
 		schema = @Schema(implementation = HomeScenarioResponse.class), maxItems = 20
 	)
-	List<HomeScenarioResponse> scenarioList,
+	List<HomeScenarioResponse> scenarios,
 
 	@Schema(
 		description = "Mission list by mission type",

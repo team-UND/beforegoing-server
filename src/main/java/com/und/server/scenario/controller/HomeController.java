@@ -34,7 +34,7 @@ public class HomeController {
 	@GetMapping("/home")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Get home data successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter or invalid mission found date")
+		@ApiResponse(responseCode = "400", description = "Invalid parameter")
 	})
 	public ResponseEntity<HomeResponse> getHomeData(
 		@AuthMember Long memberId,
@@ -51,7 +51,7 @@ public class HomeController {
 		}
 
 		HomeResponse homeResponse = HomeResponse.builder()
-			.scenarioList(scenarios)
+			.scenarios(scenarios)
 			.missionListByType(missions)
 			.build();
 

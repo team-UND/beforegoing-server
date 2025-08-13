@@ -44,37 +44,37 @@ public class MissionService {
 			date = LocalDate.now();
 		}
 
-		List<Mission> missionList = getMissionListByDate(memberId, scenarioId, date);
+		List<Mission> missions = getMissionsByDate(memberId, scenarioId, date);
 
-		if (missionList == null || missionList.isEmpty()) {
+		if (missions == null || missions.isEmpty()) {
 			return MissionGroupResponse.from(List.of(), List.of());
 		}
 
-		List<Mission> groupedBasicMissionList =
-			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.BASIC);
-		List<Mission> groupedTodayMissionList =
-			missionTypeGroupSorter.groupAndSortByType(missionList, MissionType.TODAY);
+		List<Mission> groupedBasicMissions =
+			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
+		List<Mission> groupedTodayMissions =
+			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.TODAY);
 
-		return MissionGroupResponse.from(groupedBasicMissionList, groupedTodayMissionList);
+		return MissionGroupResponse.from(groupedBasicMissions, groupedTodayMissions);
 	}
 
 
 	@Transactional
-	public void addBasicMission(Scenario scenario, List<BasicMissionRequest> missionRequestList) {
-		if (missionRequestList.isEmpty()) {
+	public void addBasicMission(Scenario scenario, List<BasicMissionRequest> missionRequests) {
+		if (missionRequests.isEmpty()) {
 			return;
 		}
 
-		List<Mission> missionList = new ArrayList<>();
+		List<Mission> missions = new ArrayList<>();
 
 		int order = OrderCalculator.START_ORDER;
-		for (BasicMissionRequest missionInfo : missionRequestList) {
-			missionList.add(missionInfo.toEntity(scenario, order));
+		for (BasicMissionRequest missionInfo : missionRequests) {
+			missions.add(missionInfo.toEntity(scenario, order));
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
-		missionValidator.validateMaxBasicMissionCount(missionList);
+		missionValidator.validateMaxBasicMissionCount(missions);
 
-		missionRepository.saveAll(missionList);
+		missionRepository.saveAll(missions);
 	}
 
 
@@ -87,9 +87,9 @@ public class MissionService {
 		LocalDate today = LocalDate.now();
 		missionValidator.validateTodayMissionDateRange(today, date);
 
-		List<Mission> todayMissionList = missionTypeGroupSorter.groupAndSortByType(
-			scenario.getMissionList(), MissionType.TODAY);
-		missionValidator.validateMaxTodayMissionCount(todayMissionList);
+		List<Mission> todayMissions = missionTypeGroupSorter.groupAndSortByType(
+			scenario.getMissions(), MissionType.TODAY);
+		missionValidator.validateMaxTodayMissionCount(todayMissions);
 
 		Mission newMission = todayMissionRequest.toEntity(scenario, date);
 
@@ -98,51 +98,51 @@ public class MissionService {
 
 
 	@Transactional
-	public void updateBasicMission(Scenario oldSCenario, List<BasicMissionRequest> missionRequestList) {
-		List<Mission> oldMissionList =
-			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissionList(), MissionType.BASIC);
+	public void updateBasicMission(Scenario oldSCenario, List<BasicMissionRequest> missionRequests) {
+		List<Mission> oldMissions =
+			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissions(), MissionType.BASIC);
 
-		if (missionRequestList.isEmpty()) {
-			oldSCenario.getMissionList().removeIf(mission ->
+		if (missionRequests.isEmpty()) {
+			oldSCenario.getMissions().removeIf(mission ->
 				mission.getMissionType() == MissionType.BASIC
 			);
 			return;
 		}
 
-		Map<Long, Mission> existingMissions = oldMissionList.stream()
+		Map<Long, Mission> existingMissions = oldMissions.stream()
 			.collect(Collectors.toMap(Mission::getId, mission -> mission));
 		Set<Long> existingMissionIds = existingMissions.keySet();
 		List<Long> requestedMissionIds = new ArrayList<>();
 
-		List<Mission> toAddList = new ArrayList<>();
+		List<Mission> toAdd = new ArrayList<>();
 
 		int order = OrderCalculator.START_ORDER;
-		for (BasicMissionRequest missionInfo : missionRequestList) {
+		for (BasicMissionRequest missionInfo : missionRequests) {
 			Long missionId = missionInfo.missionId();
 
 			if (missionId == null) {
-				toAddList.add(missionInfo.toEntity(oldSCenario, order));
+				toAdd.add(missionInfo.toEntity(oldSCenario, order));
 			} else {
 				Mission existingMission = existingMissions.get(missionId);
 				if (existingMission != null) {
 					existingMission.updateMissionOrder(order);
-					toAddList.add(existingMission);
+					toAdd.add(existingMission);
 					requestedMissionIds.add(missionId);
 				}
 			}
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
-		missionValidator.validateMaxBasicMissionCount(toAddList);
+		missionValidator.validateMaxBasicMissionCount(toAdd);
 
-		List<Long> toDeleteIdList = existingMissionIds.stream()
+		List<Long> toDeleteId = existingMissionIds.stream()
 			.filter(id -> !requestedMissionIds.contains(id))
 			.toList();
 
-		oldSCenario.getMissionList().removeIf(mission ->
+		oldSCenario.getMissions().removeIf(mission ->
 			mission.getMissionType() == MissionType.BASIC
-				&& toDeleteIdList.contains(mission.getId())
+				&& toDeleteId.contains(mission.getId())
 		);
-		missionRepository.saveAll(toAddList);
+		missionRepository.saveAll(toAdd);
 	}
 
 
@@ -166,7 +166,7 @@ public class MissionService {
 	}
 
 
-	private List<Mission> getMissionListByDate(Long memberId, Long scenarioId, LocalDate date) {
+	private List<Mission> getMissionsByDate(Long memberId, Long scenarioId, LocalDate date) {
 		LocalDate today = LocalDate.now();
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 

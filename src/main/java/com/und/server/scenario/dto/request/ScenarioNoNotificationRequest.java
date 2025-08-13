@@ -29,7 +29,7 @@ public record ScenarioNoNotificationRequest(
 	)
 	@Size(max = 20, message = "Maximum mission count exceeded")
 	@Valid
-	List<BasicMissionRequest> basicMissionList,
+	List<BasicMissionRequest> basicMissions,
 
 	@Schema(description = "Notification type", example = "time")
 	@NotNull(message = "notificationType must not be null")

@@ -15,12 +15,12 @@ public interface NotificationConditionService {
 
 	void addNotificationCondition(
 		Notification notification,
-		List<Integer> dayOfWeekOrdinalList,
+		List<Integer> daysOfWeekOrdinal,
 		NotificationConditionRequest notificationConditionRequest);
 
 	void updateNotificationCondition(
 		Notification oldNotification,
-		List<Integer> dayOfWeekOrdinalList,
+		List<Integer> daysOfWeekOrdinal,
 		NotificationConditionRequest notificationConditionRequest);
 
 	void deleteNotificationCondition(Long notificationId);

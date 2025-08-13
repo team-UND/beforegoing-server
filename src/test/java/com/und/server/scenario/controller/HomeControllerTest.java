@@ -73,7 +73,7 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().scenarioList()).hasSize(2);
+		assertThat(response.getBody().scenarios()).hasSize(2);
 		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
 		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());
@@ -110,7 +110,7 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().scenarioList()).hasSize(1);
+		assertThat(response.getBody().scenarios()).hasSize(1);
 		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
 		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());
@@ -147,7 +147,7 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().scenarioList()).hasSize(1);
+		assertThat(response.getBody().scenarios()).hasSize(1);
 		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
 		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());
@@ -169,7 +169,7 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().scenarioList()).isEmpty();
+		assertThat(response.getBody().scenarios()).isEmpty();
 		assertThat(response.getBody().missionListByType()).isNull();
 		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		// missionService는 호출되지 않아야 함
@@ -212,7 +212,7 @@ class HomeControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getBody().scenarioList()).hasSize(2);
+		assertThat(response.getBody().scenarios()).hasSize(2);
 		assertThat(response.getBody().missionListByType()).isEqualTo(missions);
 		verify(scenarioService).findHomeScenariosByMemberId(memberId, notifType);
 		verify(missionService).findMissionsByScenarioId(memberId, 1L, LocalDate.now());

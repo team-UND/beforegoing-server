@@ -64,7 +64,7 @@ class NotificationServiceTest {
 		NotificationRequest notificationInfo = NotificationRequest.builder()
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.PUSH)
-			.dayOfWeekOrdinalList(List.of(0, 1, 2))
+			.daysOfWeekOrdinal(List.of(0, 1, 2))
 			.build();
 
 		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
@@ -109,7 +109,7 @@ class NotificationServiceTest {
 		NotificationRequest notificationInfo = NotificationRequest.builder()
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
-			.dayOfWeekOrdinalList(List.of(0, 1, 2, 3))
+			.daysOfWeekOrdinal(List.of(0, 1, 2, 3))
 			.build();
 
 		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()
@@ -142,7 +142,7 @@ class NotificationServiceTest {
 		NotificationRequest notificationInfo = NotificationRequest.builder()
 			.notificationType(NotificationType.LOCATION)
 			.notificationMethodType(NotificationMethodType.ALARM)
-			.dayOfWeekOrdinalList(List.of(0, 1, 2))
+			.daysOfWeekOrdinal(List.of(0, 1, 2))
 			.build();
 
 		TimeNotificationRequest conditionInfo = TimeNotificationRequest.builder()

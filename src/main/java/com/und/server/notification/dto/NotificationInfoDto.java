@@ -7,7 +7,7 @@ import com.und.server.notification.dto.response.NotificationConditionResponse;
 public record NotificationInfoDto(
 
 	Boolean isEveryDay,
-	List<Integer> dayOfWeekOrdinalList,
+	List<Integer> daysOfWeekOrdinal,
 	NotificationConditionResponse notificationConditionResponse
 
 ) { }

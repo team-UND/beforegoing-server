@@ -13,15 +13,15 @@ import com.und.server.scenario.exception.ScenarioErrorResult;
 @Component
 public class MissionTypeGroupSorter {
 
-	public List<Mission> groupAndSortByType(List<Mission> missionList, MissionType missionType) {
+	public List<Mission> groupAndSortByType(List<Mission> missions, MissionType missionType) {
 		if (missionType == null) {
 			throw new ServerException(ScenarioErrorResult.UNSUPPORTED_MISSION_TYPE);
 		}
-		if (missionList == null || missionList.isEmpty()) {
-			return missionList;
+		if (missions == null || missions.isEmpty()) {
+			return missions;
 		}
 
-		return missionList.stream()
+		return missions.stream()
 			.filter(m -> m.getMissionType() == missionType)
 			.sorted(getComparatorByType(missionType))
 			.toList();

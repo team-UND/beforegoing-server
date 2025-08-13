@@ -122,8 +122,8 @@ class TimeNotificationServiceTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.isEveryDay()).isTrue();
-		assertThat(result.dayOfWeekOrdinalList()).hasSize(7);
-		assertThat(result.dayOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6);
+		assertThat(result.daysOfWeekOrdinal()).hasSize(7);
+		assertThat(result.daysOfWeekOrdinal()).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6);
 		assertThat(result.notificationConditionResponse()).isInstanceOf(TimeNotificationResponse.class);
 	}
 
@@ -160,8 +160,8 @@ class TimeNotificationServiceTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.isEveryDay()).isFalse();
-		assertThat(result.dayOfWeekOrdinalList()).hasSize(2);
-		assertThat(result.dayOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 2);
+		assertThat(result.daysOfWeekOrdinal()).hasSize(2);
+		assertThat(result.daysOfWeekOrdinal()).containsExactlyInAnyOrder(0, 2);
 		assertThat(result.notificationConditionResponse()).isInstanceOf(TimeNotificationResponse.class);
 	}
 

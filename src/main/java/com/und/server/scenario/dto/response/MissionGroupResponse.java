@@ -14,13 +14,13 @@ public record MissionGroupResponse(
 		arraySchema = @Schema(description = "Basic type mission list, Sort in order"),
 		schema = @Schema(implementation = MissionResponse.class), maxItems = 20
 	)
-	List<MissionResponse> basicMissionList,
+	List<MissionResponse> basicMissions,
 
 	@ArraySchema(
 		arraySchema = @Schema(description = "Today type mission list, Sort in order of created date"),
 		schema = @Schema(implementation = MissionResponse.class), maxItems = 20
 	)
-	List<MissionResponse> todayMissionList
+	List<MissionResponse> todayMissions
 
 ) {
 

@@ -53,19 +53,19 @@ public class ScenarioService {
 
 	@Transactional(readOnly = true)
 	public List<HomeScenarioResponse> findHomeScenariosByMemberId(Long memberId, NotificationType notificationType) {
-		List<Scenario> scenarioList =
+		List<Scenario> scenarios =
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
 
-		return HomeScenarioResponse.listFrom(scenarioList);
+		return HomeScenarioResponse.listFrom(scenarios);
 	}
 
 
 	@Transactional(readOnly = true)
 	public List<ScenarioResponse> findScenariosByMemberId(Long memberId, NotificationType notificationType) {
-		List<Scenario> scenarioList =
+		List<Scenario> scenarios =
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
 
-		return ScenarioResponse.listFrom(scenarioList);
+		return ScenarioResponse.listFrom(scenarios);
 	}
 
 
@@ -74,13 +74,13 @@ public class ScenarioService {
 		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
-		List<Mission> groupdBasicMissionList =
-			missionTypeGroupSorter.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC);
+		List<Mission> groupdBasicMissions =
+			missionTypeGroupSorter.groupAndSortByType(scenario.getMissions(), MissionType.BASIC);
 
 		Notification notification = scenario.getNotification();
 		NotificationInfoDto notificationInfo = notificationService.findNotificationDetails(notification);
 
-		return getScenarioDetailResponse(scenario, groupdBasicMissionList, notificationInfo);
+		return getScenarioDetailResponse(scenario, groupdBasicMissions, notificationInfo);
 	}
 
 
@@ -104,7 +104,7 @@ public class ScenarioService {
 			memberId,
 			scenarioDetailRequest.scenarioName(),
 			scenarioDetailRequest.memo(),
-			scenarioDetailRequest.basicMissionList(),
+			scenarioDetailRequest.basicMissions(),
 			scenarioDetailRequest.notification().notificationType(),
 			() -> notificationService.addNotification(
 				scenarioDetailRequest.notification(),
@@ -122,7 +122,7 @@ public class ScenarioService {
 			memberId,
 			scenarioNoNotificationRequest.scenarioName(),
 			scenarioNoNotificationRequest.memo(),
-			scenarioNoNotificationRequest.basicMissionList(),
+			scenarioNoNotificationRequest.basicMissions(),
 			scenarioNoNotificationRequest.notificationType(),
 			() -> notificationService.addWithoutNotification(scenarioNoNotificationRequest.notificationType())
 		);
@@ -136,7 +136,7 @@ public class ScenarioService {
 			scenarioId,
 			scenarioDetailRequest.scenarioName(),
 			scenarioDetailRequest.memo(),
-			scenarioDetailRequest.basicMissionList(),
+			scenarioDetailRequest.basicMissions(),
 			notification -> notificationService.updateNotification(
 				notification,
 				scenarioDetailRequest.notification(),
@@ -155,7 +155,7 @@ public class ScenarioService {
 			scenarioId,
 			scenarioNoNotificationRequest.scenarioName(),
 			scenarioNoNotificationRequest.memo(),
-			scenarioNoNotificationRequest.basicMissionList(),
+			scenarioNoNotificationRequest.basicMissions(),
 			notificationService::updateWithoutNotification
 		);
 	}
@@ -204,13 +204,13 @@ public class ScenarioService {
 	) {
 		Member member = em.getReference(Member.class, memberId);
 
-		List<Integer> orderList =
+		List<Integer> orders =
 			scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, notificationType);
-		scenarioValidator.validateMaxScenarioCount(orderList);
+		scenarioValidator.validateMaxScenarioCount(orders);
 
-		int order = orderList.isEmpty()
+		int order = orders.isEmpty()
 			? OrderCalculator.START_ORDER
-			: getValidScenarioOrder(Collections.max(orderList), memberId, notificationType);
+			: getValidScenarioOrder(Collections.max(orders), memberId, notificationType);
 
 		Notification notification = notificationSupplier.get();
 
@@ -231,7 +231,7 @@ public class ScenarioService {
 		Long scenarioId,
 		String scenarioName,
 		String memo,
-		List<BasicMissionRequest> newBasicMissionList,
+		List<BasicMissionRequest> newBasicMissions,
 		Consumer<Notification> notificationUpdater
 	) {
 		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
@@ -239,7 +239,7 @@ public class ScenarioService {
 
 		notificationUpdater.accept(oldScenario.getNotification());
 
-		missionService.updateBasicMission(oldScenario, newBasicMissionList);
+		missionService.updateBasicMission(oldScenario, newBasicMissions);
 
 		oldScenario.updateScenarioName(scenarioName);
 		oldScenario.updateMemo(memo);
@@ -247,7 +247,7 @@ public class ScenarioService {
 
 	private ScenarioDetailResponse getScenarioDetailResponse(
 		Scenario scenario,
-		List<Mission> basicMissionList,
+		List<Mission> basicMissions,
 		NotificationInfoDto notificationInfo
 	) {
 		Notification notification = scenario.getNotification();
@@ -262,13 +262,13 @@ public class ScenarioService {
 			notificationResponse = NotificationResponse.from(
 				notification,
 				notificationInfo.isEveryDay(),
-				notificationInfo.dayOfWeekOrdinalList()
+				notificationInfo.daysOfWeekOrdinal()
 			);
 			notificationConditionResponse = notificationInfo.notificationConditionResponse();
 		}
 
 		return ScenarioDetailResponse.from(
-			scenario, basicMissionList, notificationResponse, notificationConditionResponse);
+			scenario, basicMissions, notificationResponse, notificationConditionResponse);
 	}
 
 	private int getValidScenarioOrder(
@@ -290,15 +290,15 @@ public class ScenarioService {
 	}
 
 	private void reorderScenarios(Long memberId, NotificationType notificationType) {
-		List<Scenario> scenarioList =
+		List<Scenario> scenarios =
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
 
 		int order = OrderCalculator.START_ORDER;
-		for (Scenario scenario : scenarioList) {
+		for (Scenario scenario : scenarios) {
 			scenario.updateScenarioOrder(order);
 			order += OrderCalculator.DEFAULT_ORDER;
 		}
-		scenarioRepository.saveAll(scenarioList);
+		scenarioRepository.saveAll(scenarios);
 	}
 
 }

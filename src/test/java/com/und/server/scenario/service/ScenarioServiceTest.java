@@ -156,7 +156,7 @@ class ScenarioServiceTest {
 			.memo("메모")
 			.scenarioOrder(1)
 			.notification(notification)
-			.missionList(List.of())
+			.missions(List.of())
 			.build();
 
 		final TimeNotificationResponse notifDetail = TimeNotificationResponse.builder()
@@ -174,7 +174,7 @@ class ScenarioServiceTest {
 		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(notifInfoDto);
-		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC))
+		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
 			.thenReturn(List.of());
 
 		// when
@@ -234,7 +234,7 @@ class ScenarioServiceTest {
 		Scenario scenario = Scenario.builder()
 			.id(scenarioId)
 			.member(member)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		TodayMissionRequest request = new TodayMissionRequest("Stretch");
@@ -288,7 +288,7 @@ class ScenarioServiceTest {
 		NotificationRequest notifRequest = NotificationRequest.builder()
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
-			.dayOfWeekOrdinalList(List.of(1, 2))
+			.daysOfWeekOrdinal(List.of(1, 2))
 			.build();
 
 		TimeNotificationRequest condition = TimeNotificationRequest.builder()
@@ -299,7 +299,7 @@ class ScenarioServiceTest {
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("Morning")
 			.memo("Routine")
-			.basicMissionList(missionList)
+			.basicMissions(missionList)
 			.notification(notifRequest)
 			.notificationCondition(condition)
 			.build();
@@ -358,7 +358,7 @@ class ScenarioServiceTest {
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("Evening")
 			.memo("Routine")
-			.basicMissionList(List.of())
+			.basicMissions(List.of())
 			.notification(notifRequest)
 			.notificationCondition(condition)
 			.build();
@@ -443,13 +443,13 @@ class ScenarioServiceTest {
 			.scenarioName("기존 시나리오")
 			.memo("기존 메모")
 			.notification(oldNotification)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		NotificationRequest notifRequest = NotificationRequest.builder()
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
-			.dayOfWeekOrdinalList(List.of(1, 2))
+			.daysOfWeekOrdinal(List.of(1, 2))
 			.build();
 
 		TimeNotificationRequest condition = TimeNotificationRequest.builder()
@@ -460,7 +460,7 @@ class ScenarioServiceTest {
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("수정된 시나리오")
 			.memo("수정된 메모")
-			.basicMissionList(List.of())
+			.basicMissions(List.of())
 			.notification(notifRequest)
 			.notificationCondition(condition)
 			.build();
@@ -758,7 +758,7 @@ class ScenarioServiceTest {
 			.scenarioName("기존 시나리오")
 			.memo("기존 메모")
 			.notification(oldNotification)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		ScenarioNoNotificationRequest scenarioRequest = new ScenarioNoNotificationRequest(
@@ -824,7 +824,7 @@ class ScenarioServiceTest {
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("New Scenario")
 			.memo("New Memo")
-			.basicMissionList(List.of())
+			.basicMissions(List.of())
 			.notification(notifRequest)
 			.notificationCondition(condition)
 			.build();
@@ -900,14 +900,14 @@ class ScenarioServiceTest {
 			.memo("메모")
 			.scenarioOrder(1)
 			.notification(notification)
-			.missionList(List.of())
+			.missions(List.of())
 			.build();
 
 		// mock - notificationInfo가 null인 경우
 		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(null);
-		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissionList(), MissionType.BASIC))
+		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
 			.thenReturn(List.of());
 
 		// when
@@ -917,7 +917,7 @@ class ScenarioServiceTest {
 		assertNotNull(response);
 		assertThat(response.scenarioId()).isEqualTo(scenarioId);
 		assertThat(response.notification().isEveryDay()).isNull();
-		assertThat(response.notification().dayOfWeekOrdinalList()).isNull();
+		assertThat(response.notification().daysOfWeekOrdinal()).isNull();
 		assertThat(response.notificationCondition()).isNull();
 	}
 
@@ -943,7 +943,7 @@ class ScenarioServiceTest {
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("First Scenario")
 			.memo("First Memo")
-			.basicMissionList(List.of())
+			.basicMissions(List.of())
 			.notification(notifRequest)
 			.notificationCondition(condition)
 			.build();
@@ -985,7 +985,7 @@ class ScenarioServiceTest {
 		Scenario scenario = Scenario.builder()
 			.id(scenarioId)
 			.member(member)
-			.missionList(new java.util.ArrayList<>())
+			.missions(new java.util.ArrayList<>())
 			.build();
 
 		TodayMissionRequest request = new TodayMissionRequest("Future Mission");

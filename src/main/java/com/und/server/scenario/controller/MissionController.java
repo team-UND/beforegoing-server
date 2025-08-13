@@ -41,7 +41,7 @@ public class MissionController {
 	@GetMapping("/scenarios/{scenarioId}/missions")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Get missions successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter or invalid mission found date"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
 	public ResponseEntity<MissionGroupResponse> getMissionsByScenarioId(
@@ -49,17 +49,16 @@ public class MissionController {
 		@PathVariable Long scenarioId,
 		@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
-		MissionGroupResponse missionList = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
+		MissionGroupResponse missions = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
-		return ResponseEntity.ok().body(missionList);
+		return ResponseEntity.ok().body(missions);
 	}
 
 
 	@PostMapping("/scenarios/{scenarioId}/missions/today")
 	@ApiResponses({
 		@ApiResponse(responseCode = "204", description = "Create Today Mission successful"),
-		@ApiResponse(responseCode = "400",
-			description = "Invalid parameter, max mission count exceeded, or invalid today mission date"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
 	public ResponseEntity<Void> addTodayMissionToScenario(
