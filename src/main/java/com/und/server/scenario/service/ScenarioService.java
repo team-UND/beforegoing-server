@@ -24,6 +24,7 @@ import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.HomeScenarioResponse;
+import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Mission;
@@ -85,7 +86,7 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void addTodayMissionToScenario(
+	public MissionResponse addTodayMissionToScenario(
 		Long memberId,
 		Long scenarioId,
 		TodayMissionRequest todayMissionRequest,
@@ -94,7 +95,7 @@ public class ScenarioService {
 		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
-		missionService.addTodayMission(scenario, todayMissionRequest, date);
+		return missionService.addTodayMission(scenario, todayMissionRequest, date);
 	}
 
 

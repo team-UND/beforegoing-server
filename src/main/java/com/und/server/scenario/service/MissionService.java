@@ -16,6 +16,7 @@ import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
+import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
@@ -79,7 +80,7 @@ public class MissionService {
 
 
 	@Transactional
-	public void addTodayMission(
+	public MissionResponse addTodayMission(
 		Scenario scenario,
 		TodayMissionRequest todayMissionRequest,
 		LocalDate date
@@ -92,8 +93,9 @@ public class MissionService {
 		missionValidator.validateMaxTodayMissionCount(todayMissions);
 
 		Mission newMission = todayMissionRequest.toEntity(scenario, date);
-
 		missionRepository.save(newMission);
+
+		return MissionResponse.from(newMission);
 	}
 
 

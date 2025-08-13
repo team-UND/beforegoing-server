@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
+import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
@@ -67,11 +68,11 @@ class MissionControllerTest {
 		TodayMissionRequest missionAddRequest = new TodayMissionRequest("오늘 미션");
 
 		// when
-		ResponseEntity<Void> response =
+		ResponseEntity<MissionResponse> response =
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
@@ -86,11 +87,11 @@ class MissionControllerTest {
 		TodayMissionRequest missionAddRequest = new TodayMissionRequest("");
 
 		// when
-		ResponseEntity<Void> response =
+		ResponseEntity<MissionResponse> response =
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
@@ -105,11 +106,11 @@ class MissionControllerTest {
 		TodayMissionRequest missionAddRequest = new TodayMissionRequest("매우 긴 미션 내용입니다");
 
 		// when
-		ResponseEntity<Void> response =
+		ResponseEntity<MissionResponse> response =
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
+import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
@@ -57,19 +58,20 @@ public class MissionController {
 
 	@PostMapping("/scenarios/{scenarioId}/missions/today")
 	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Create Today Mission successful"),
+		@ApiResponse(responseCode = "200", description = "Create Today Mission successful"),
 		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
-	public ResponseEntity<Void> addTodayMissionToScenario(
+	public ResponseEntity<MissionResponse> addTodayMissionToScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
 		@RequestBody @Valid TodayMissionRequest missionAddRequest,
 		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
-		scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+		MissionResponse missionResponse =
+			scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		return ResponseEntity.ok().body(missionResponse);
 	}
 
 
