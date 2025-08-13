@@ -74,31 +74,31 @@ public class ScenarioController {
 
 	@PostMapping("/scenarios")
 	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Create Scenario successful"),
+		@ApiResponse(responseCode = "201", description = "Create Scenario successful"),
 		@ApiResponse(responseCode = "400", description = "Invalid parameter")
 	})
-	public ResponseEntity<Void> addScenario(
+	public ResponseEntity<Long> addScenario(
 		@AuthMember Long memberId,
 		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
 	) {
-		scenarioService.addScenario(memberId, scenarioRequest);
+		Long scenarioId = scenarioService.addScenario(memberId, scenarioRequest);
 
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		return ResponseEntity.status(HttpStatus.CREATED).body(scenarioId);
 	}
 
 
 	@PostMapping("/scenarios/without-notification")
 	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Create Scenario without notification successful"),
+		@ApiResponse(responseCode = "201", description = "Create Scenario without notification successful"),
 		@ApiResponse(responseCode = "400", description = "Invalid parameter")
 	})
-	public ResponseEntity<Void> addScenarioWithoutNotification(
+	public ResponseEntity<Long> addScenarioWithoutNotification(
 		@AuthMember Long memberId,
 		@RequestBody @Valid ScenarioNoNotificationRequest scenarioNoNotificationResponse
 	) {
-		scenarioService.addScenarioWithoutNotification(memberId, scenarioNoNotificationResponse);
+		Long scenarioId = scenarioService.addScenarioWithoutNotification(memberId, scenarioNoNotificationResponse);
 
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		return ResponseEntity.status(HttpStatus.CREATED).body(scenarioId);
 	}
 
 
