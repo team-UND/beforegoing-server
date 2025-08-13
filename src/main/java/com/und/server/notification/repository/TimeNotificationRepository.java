@@ -6,8 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.und.server.notification.entity.TimeNotification;
 
+import jakarta.validation.constraints.NotNull;
+
 public interface TimeNotificationRepository extends JpaRepository<TimeNotification, Long> {
 
-	List<TimeNotification> findByNotificationId(Long notificationId);
+	@NotNull
+	List<TimeNotification> findByNotificationId(@NotNull Long notificationId);
 
 }

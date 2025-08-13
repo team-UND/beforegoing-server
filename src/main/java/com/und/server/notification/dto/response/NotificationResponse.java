@@ -43,9 +43,9 @@ public record NotificationResponse(
 ) {
 
 	public static NotificationResponse from(
-		Notification notification,
-		Boolean isEveryDay,
-		List<Integer> daysOfWeekOrdinal
+		final Notification notification,
+		final Boolean isEveryDay,
+		final List<Integer> daysOfWeekOrdinal
 	) {
 		return NotificationResponse.builder()
 			.notificationId(notification.getId())

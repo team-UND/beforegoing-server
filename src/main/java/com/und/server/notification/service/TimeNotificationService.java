@@ -29,22 +29,19 @@ public class TimeNotificationService implements NotificationConditionService {
 
 
 	@Override
-	public boolean supports(NotificationType notificationType) {
+	public boolean supports(final NotificationType notificationType) {
 		return notificationType == NotificationType.TIME;
 	}
 
 
 	@Override
-	public NotificationInfoDto findNotificationInfoByType(Notification notification) {
+	public NotificationInfoDto findNotificationInfoByType(final Notification notification) {
 		if (!notification.isActive()) {
 			return null;
 		}
 
 		List<TimeNotification> timeNotifications =
 			timeNotificationRepository.findByNotificationId(notification.getId());
-		if (timeNotifications.isEmpty()) {
-			return null;
-		}
 
 		TimeNotification baseTimeNotification = timeNotifications.get(0);
 
@@ -61,9 +58,9 @@ public class TimeNotificationService implements NotificationConditionService {
 
 	@Override
 	public void addNotificationCondition(
-		Notification notification,
-		List<Integer> daysOfWeekOrdinal,
-		NotificationConditionRequest notificationConditionRequest
+		final Notification notification,
+		final List<Integer> daysOfWeekOrdinal,
+		final NotificationConditionRequest notificationConditionRequest
 	) {
 		if (!notification.isActive()) {
 			return;
@@ -81,9 +78,9 @@ public class TimeNotificationService implements NotificationConditionService {
 
 	@Override
 	public void updateNotificationCondition(
-		Notification oldNotification,
-		List<Integer> daysOfWeekOrdinal,
-		NotificationConditionRequest notificationConditionRequest
+		final Notification oldNotification,
+		final List<Integer> daysOfWeekOrdinal,
+		final NotificationConditionRequest notificationConditionRequest
 	) {
 		TimeNotificationRequest timeNotificationInfo = (TimeNotificationRequest) notificationConditionRequest;
 		List<TimeNotification> oldTimeNotifications =
@@ -136,7 +133,7 @@ public class TimeNotificationService implements NotificationConditionService {
 
 
 	@Override
-	public void deleteNotificationCondition(Long notificationId) {
+	public void deleteNotificationCondition(final Long notificationId) {
 		List<TimeNotification> timeNotifications =
 			timeNotificationRepository.findByNotificationId(notificationId);
 		timeNotificationRepository.deleteAll(timeNotifications);

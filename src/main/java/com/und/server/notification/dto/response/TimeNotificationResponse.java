@@ -29,7 +29,7 @@ public record TimeNotificationResponse(
 
 ) implements NotificationConditionResponse {
 
-	public static NotificationConditionResponse from(TimeNotification timeNotification) {
+	public static NotificationConditionResponse from(final TimeNotification timeNotification) {
 		return TimeNotificationResponse.builder()
 			.notificationType(NotificationType.TIME)
 			.startHour(timeNotification.getStartHour())

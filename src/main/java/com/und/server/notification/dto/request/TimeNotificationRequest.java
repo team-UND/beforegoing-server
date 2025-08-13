@@ -46,7 +46,7 @@ public record TimeNotificationRequest(
 		}
 	}
 
-	public TimeNotification toEntity(Notification notification, DayOfWeek dayOfWeek) {
+	public TimeNotification toEntity(final Notification notification, final DayOfWeek dayOfWeek) {
 		return TimeNotification.builder()
 			.notification(notification)
 			.dayOfWeek(dayOfWeek)

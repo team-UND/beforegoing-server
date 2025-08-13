@@ -23,15 +23,15 @@ public class NotificationService {
 
 
 	@Transactional(readOnly = true)
-	public NotificationInfoDto findNotificationDetails(Notification notification) {
+	public NotificationInfoDto findNotificationDetails(final Notification notification) {
 		return notificationConditionSelector.findNotificationCondition(notification);
 	}
 
 
 	@Transactional
 	public Notification addNotification(
-		NotificationRequest notificationInfo,
-		NotificationConditionRequest notificationConditionRequest
+		final NotificationRequest notificationInfo,
+		final NotificationConditionRequest notificationConditionRequest
 	) {
 		Notification notification = notificationInfo.toEntity();
 		List<Integer> daysOfWeekOrdinal = notificationInfo.daysOfWeekOrdinal();
@@ -45,7 +45,7 @@ public class NotificationService {
 
 
 	@Transactional
-	public Notification addWithoutNotification(NotificationType notificationType) {
+	public Notification addWithoutNotification(final NotificationType notificationType) {
 		Notification notification = Notification.builder()
 			.isActive(false)
 			.notificationType(notificationType)
@@ -58,9 +58,9 @@ public class NotificationService {
 
 	@Transactional
 	public void updateNotification(
-		Notification notification,
-		NotificationRequest notificationInfo,
-		NotificationConditionRequest notificationConditionRequest
+		final Notification notification,
+		final NotificationRequest notificationInfo,
+		final NotificationConditionRequest notificationConditionRequest
 	) {
 		List<Integer> daysOfWeekOrdinal = notificationInfo.daysOfWeekOrdinal();
 
@@ -87,7 +87,7 @@ public class NotificationService {
 
 
 	@Transactional
-	public void updateWithoutNotification(Notification oldNotification) {
+	public void updateWithoutNotification(final Notification oldNotification) {
 		notificationConditionSelector.deleteNotificationCondition(
 			oldNotification.getNotificationType(), oldNotification.getId());
 
@@ -97,7 +97,7 @@ public class NotificationService {
 
 
 	@Transactional
-	public void deleteNotification(Notification notification) {
+	public void deleteNotification(final Notification notification) {
 		notificationConditionSelector.deleteNotificationCondition(
 			notification.getNotificationType(),
 			notification.getId()

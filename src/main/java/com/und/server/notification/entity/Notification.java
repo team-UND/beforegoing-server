@@ -44,13 +44,13 @@ public class Notification extends BaseTimeEntity {
 		return isActive;
 	}
 
-	public void updateActiveStatus(Boolean isActive) {
+	public void updateActiveStatus(final Boolean isActive) {
 		this.isActive = isActive;
 	}
 
 	public void updateNotification(
-		NotificationType notificationType,
-		NotificationMethodType notificationMethodType
+		final NotificationType notificationType,
+		final NotificationMethodType notificationMethodType
 	) {
 		this.notificationType = notificationType;
 		this.notificationMethodType = notificationMethodType;

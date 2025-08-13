@@ -59,7 +59,7 @@ public class TimeNotification extends BaseTimeEntity {
 	@Max(59)
 	private Integer startMinute;
 
-	public void updateTimeCondition(Integer hour, Integer minute) {
+	public void updateTimeCondition(final Integer hour, final Integer minute) {
 		this.startHour = hour;
 		this.startMinute = minute;
 	}
