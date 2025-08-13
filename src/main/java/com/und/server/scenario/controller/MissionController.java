@@ -58,7 +58,7 @@ public class MissionController {
 
 	@PostMapping("/scenarios/{scenarioId}/missions/today")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Create Today Mission successful"),
+		@ApiResponse(responseCode = "201", description = "Create Today Mission successful"),
 		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
@@ -71,7 +71,7 @@ public class MissionController {
 		MissionResponse missionResponse =
 			scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
-		return ResponseEntity.ok().body(missionResponse);
+		return ResponseEntity.status(HttpStatus.CREATED).body(missionResponse);
 	}
 
 

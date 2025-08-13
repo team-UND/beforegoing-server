@@ -91,8 +91,8 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void addScenario(Long memberId, ScenarioDetailRequest scenarioDetailRequest) {
-		addScenarioInternal(
+	public Long addScenario(Long memberId, ScenarioDetailRequest scenarioDetailRequest) {
+		return addScenarioInternal(
 			memberId,
 			scenarioDetailRequest.scenarioName(),
 			scenarioDetailRequest.memo(),
@@ -107,10 +107,10 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void addScenarioWithoutNotification(
+	public Long addScenarioWithoutNotification(
 		Long memberId, ScenarioNoNotificationRequest scenarioNoNotificationRequest
 	) {
-		addScenarioInternal(
+		return addScenarioInternal(
 			memberId,
 			scenarioNoNotificationRequest.scenarioName(),
 			scenarioNoNotificationRequest.memo(),
@@ -198,7 +198,7 @@ public class ScenarioService {
 	}
 
 
-	private void addScenarioInternal(
+	private Long addScenarioInternal(
 		Long memberId,
 		String scenarioName,
 		String memo,
@@ -228,6 +228,8 @@ public class ScenarioService {
 
 		scenarioRepository.save(scenario);
 		missionService.addBasicMission(scenario, missions);
+
+		return scenario.getId();
 	}
 
 	private void updateScenarioInternal(
