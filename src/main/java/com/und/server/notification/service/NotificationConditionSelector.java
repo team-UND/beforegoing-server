@@ -56,7 +56,7 @@ public class NotificationConditionSelector {
 	private NotificationConditionService findServiceByNotificationType(NotificationType notificationType) {
 		return services.stream()
 			.filter(service -> service.supports(notificationType))
-			.findFirst()
+			.findAny()
 			.orElseThrow(() -> new ServerException(NotificationErrorResult.UNSUPPORTED_NOTIFICATION));
 	}
 
