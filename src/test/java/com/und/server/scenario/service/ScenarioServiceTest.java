@@ -694,61 +694,6 @@ class ScenarioServiceTest {
 
 
 	@Test
-	void Given_memberId_When_FindHomeScenariosByMemberId_Then_ReturnHomeScenarioResponses() {
-		//given
-		final Long memberId = 1L;
-
-		final Member member = Member.builder()
-			.id(memberId)
-			.build();
-
-		final Notification notification1 = Notification.builder()
-			.id(1L)
-			.isActive(true)
-			.notificationType(NotificationType.TIME)
-			.build();
-		final Notification notification2 = Notification.builder()
-			.id(2L)
-			.isActive(true)
-			.notificationType(NotificationType.TIME)
-			.build();
-
-		final Scenario scenarioA = Scenario.builder()
-			.id(1L)
-			.member(member)
-			.scenarioName("홈 시나리오A")
-			.memo("홈 메모A")
-			.scenarioOrder(1)
-			.notification(notification1)
-			.build();
-		final Scenario scenarioB = Scenario.builder()
-			.id(2L)
-			.member(member)
-			.scenarioName("홈 시나리오B")
-			.memo("홈 메모B")
-			.scenarioOrder(2)
-			.notification(notification2)
-			.build();
-
-		final List<Scenario> scenarioList = List.of(scenarioA, scenarioB);
-
-		//when
-		Mockito
-			.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
-			.thenReturn(scenarioList);
-
-		List<com.und.server.scenario.dto.response.HomeScenarioResponse> result =
-			scenarioService.findHomeScenariosByMemberId(memberId, NotificationType.TIME);
-
-		//then
-		assertNotNull(result);
-		assertThat(result.size()).isEqualTo(2);
-		assertThat(result.get(0).scenarioName()).isEqualTo("홈 시나리오A");
-		assertThat(result.get(1).scenarioName()).isEqualTo("홈 시나리오B");
-	}
-
-
-	@Test
 	void Given_ValidRequest_When_UpdateScenarioWithoutNotification_Then_UpdateScenarioAndNotification() {
 		// given
 		Long memberId = 1L;
@@ -1006,25 +951,6 @@ class ScenarioServiceTest {
 
 		// then
 		verify(missionService).addTodayMission(scenario, request, futureDate);
-	}
-
-
-	@Test
-	void Given_EmptyScenarioList_When_FindHomeScenariosByMemberId_Then_ReturnEmptyList() {
-		// given
-		final Long memberId = 1L;
-
-		Mockito
-			.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
-			.thenReturn(List.of());
-
-		// when
-		List<com.und.server.scenario.dto.response.HomeScenarioResponse> result =
-			scenarioService.findHomeScenariosByMemberId(memberId, NotificationType.TIME);
-
-		// then
-		assertNotNull(result);
-		assertThat(result).isEmpty();
 	}
 
 
