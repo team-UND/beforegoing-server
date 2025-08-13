@@ -48,7 +48,7 @@ public class MissionController {
 	public ResponseEntity<MissionGroupResponse> getMissionsByScenarioId(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
-		@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
+		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
 	) {
 		MissionGroupResponse missions = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
