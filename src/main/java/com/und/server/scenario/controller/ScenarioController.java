@@ -47,9 +47,9 @@ public class ScenarioController {
 	})
 	public ResponseEntity<List<ScenarioResponse>> getScenarios(
 		@AuthMember Long memberId,
-		@RequestParam NotificationType notifType
+		@RequestParam(defaultValue = "TIME") NotificationType notificationType
 	) {
-		List<ScenarioResponse> scenarios = scenarioService.findScenariosByMemberId(memberId, notifType);
+		List<ScenarioResponse> scenarios = scenarioService.findScenariosByMemberId(memberId, notificationType);
 
 		return ResponseEntity.ok().body(scenarios);
 	}

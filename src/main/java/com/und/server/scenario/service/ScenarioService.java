@@ -23,7 +23,6 @@ import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
-import com.und.server.scenario.dto.response.HomeScenarioResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -51,15 +50,6 @@ public class ScenarioService {
 	private final OrderCalculator orderCalculator;
 	private final ScenarioValidator scenarioValidator;
 	private final EntityManager em;
-
-
-	@Transactional(readOnly = true)
-	public List<HomeScenarioResponse> findHomeScenariosByMemberId(Long memberId, NotificationType notificationType) {
-		List<Scenario> scenarios =
-			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
-
-		return HomeScenarioResponse.listFrom(scenarios);
-	}
 
 
 	@Transactional(readOnly = true)
