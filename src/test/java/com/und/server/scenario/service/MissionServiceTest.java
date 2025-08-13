@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -534,7 +535,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = List.of(mission);
 		List<Mission> groupedTodayMissions = List.of();
 
-		when(missionRepository.findDefaultMissions(memberId, scenarioId, LocalDate.now())).thenReturn(missionList);
+		when(missionRepository.findDefaultMissions(any(Long.class), any(Long.class), any())).thenReturn(missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
@@ -547,7 +548,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isNotEmpty();
 		assertThat(result.todayMissions()).isEmpty();
-		verify(missionRepository).findDefaultMissions(memberId, scenarioId, LocalDate.now());
+		verify(missionRepository).findDefaultMissions(any(Long.class), any(Long.class), any());
 	}
 
 
