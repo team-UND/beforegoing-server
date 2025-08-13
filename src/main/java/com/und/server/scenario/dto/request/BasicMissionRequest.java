@@ -24,7 +24,7 @@ public record BasicMissionRequest(
 
 ) {
 
-	public Mission toEntity(Scenario scenario, Integer order) {
+	public Mission toEntity(final Scenario scenario, final Integer order) {
 		return Mission.builder()
 			.scenario(scenario)
 			.content(content)

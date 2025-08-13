@@ -21,18 +21,20 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 		SELECT m FROM Mission m
 		LEFT JOIN m.scenario s
 		WHERE s.id = :scenarioId
-		AND s.member.id = :memberId
-		AND (m.useDate IS NULL OR m.useDate = :date)
+			AND s.member.id = :memberId
+			AND (m.useDate IS NULL OR m.useDate = :date)
 		""")
-	List<Mission> findDefaultMissions(Long memberId, Long scenarioId, LocalDate date);
+	@NotNull
+	List<Mission> findDefaultMissions(@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
 
 	@Query("""
 		SELECT m FROM Mission m
 		LEFT JOIN m.scenario s
 		WHERE s.id = :scenarioId
-		AND s.member.id = :memberId
-		AND m.useDate = :date
+			AND s.member.id = :memberId
+			AND m.useDate = :date
 		""")
-	List<Mission> findMissionsByDate(Long memberId, Long scenarioId, LocalDate date);
+	@NotNull
+	List<Mission> findMissionsByDate(@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
 
 }

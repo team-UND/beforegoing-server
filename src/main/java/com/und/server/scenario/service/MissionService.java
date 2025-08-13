@@ -39,11 +39,10 @@ public class MissionService {
 
 
 	@Transactional(readOnly = true)
-	public MissionGroupResponse findMissionsByScenarioId(Long memberId, Long scenarioId, LocalDate date) {
+	public MissionGroupResponse findMissionsByScenarioId(
+		final Long memberId, final Long scenarioId, final LocalDate date
+	) {
 		scenarioValidator.validateScenarioExists(scenarioId);
-		if (date == null) {
-			date = LocalDate.now();
-		}
 
 		List<Mission> missions = getMissionsByDate(memberId, scenarioId, date);
 
@@ -61,7 +60,7 @@ public class MissionService {
 
 
 	@Transactional
-	public void addBasicMission(Scenario scenario, List<BasicMissionRequest> missionRequests) {
+	public void addBasicMission(final Scenario scenario, final List<BasicMissionRequest> missionRequests) {
 		if (missionRequests.isEmpty()) {
 			return;
 		}
@@ -81,9 +80,9 @@ public class MissionService {
 
 	@Transactional
 	public MissionResponse addTodayMission(
-		Scenario scenario,
-		TodayMissionRequest todayMissionRequest,
-		LocalDate date
+		final Scenario scenario,
+		final TodayMissionRequest todayMissionRequest,
+		final LocalDate date
 	) {
 		LocalDate today = LocalDate.now();
 		missionValidator.validateTodayMissionDateRange(today, date);
@@ -100,7 +99,7 @@ public class MissionService {
 
 
 	@Transactional
-	public void updateBasicMission(Scenario oldSCenario, List<BasicMissionRequest> missionRequests) {
+	public void updateBasicMission(final Scenario oldSCenario, final List<BasicMissionRequest> missionRequests) {
 		List<Mission> oldMissions =
 			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissions(), MissionType.BASIC);
 
@@ -149,7 +148,9 @@ public class MissionService {
 
 
 	@Transactional
-	public void updateMissionCheck(Long memberId, Long missionId, Boolean isChecked) {
+	public void updateMissionCheck(
+		final Long memberId, final Long missionId, final Boolean isChecked
+	) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 		missionValidator.validateMissionAccessibleMember(mission, memberId);
@@ -159,7 +160,7 @@ public class MissionService {
 
 
 	@Transactional
-	public void deleteTodayMission(Long memberId, Long missionId) {
+	public void deleteTodayMission(final Long memberId, final Long missionId) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 		missionValidator.validateMissionAccessibleMember(mission, memberId);
@@ -168,7 +169,9 @@ public class MissionService {
 	}
 
 
-	private List<Mission> getMissionsByDate(Long memberId, Long scenarioId, LocalDate date) {
+	private List<Mission> getMissionsByDate(
+		final Long memberId, final Long scenarioId, final LocalDate date
+	) {
 		LocalDate today = LocalDate.now();
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 

@@ -18,7 +18,7 @@ public class OrderCalculator {
 	private static final int MIN_GAP = 100;
 
 
-	public int getOrder(Integer prevOrder, Integer nextOrder) {
+	public int getOrder(final Integer prevOrder, final Integer nextOrder) {
 		int resultOrder = 0;
 
 		if (prevOrder == null && nextOrder == null) {
@@ -38,7 +38,11 @@ public class OrderCalculator {
 	}
 
 
-	public List<Scenario> reorder(List<Scenario> scenarios, Long targetScenarioId, int errorOrder) {
+	public List<Scenario> reorder(
+		final List<Scenario> scenarios,
+		final Long targetScenarioId,
+		final int errorOrder
+	) {
 		scenarios.sort(
 			Comparator
 				.comparingInt((Scenario s) ->
@@ -53,7 +57,7 @@ public class OrderCalculator {
 	}
 
 
-	public Integer getMaxOrderAfterReorder(List<Scenario> scenarios) {
+	public Integer getMaxOrderAfterReorder(final List<Scenario> scenarios) {
 		if (scenarios.isEmpty()) {
 			return START_ORDER;
 		}
@@ -66,7 +70,7 @@ public class OrderCalculator {
 	}
 
 
-	private void assignSequentialOrders(List<Scenario> scenarios) {
+	private void assignSequentialOrders(final List<Scenario> scenarios) {
 		int order = OrderCalculator.START_ORDER;
 		for (Scenario scenario : scenarios) {
 			scenario.updateScenarioOrder(order);
@@ -74,26 +78,26 @@ public class OrderCalculator {
 		}
 	}
 
-	private Integer calculateMiddleOrder(Integer prevOrder, Integer nextOrder) {
+	private Integer calculateMiddleOrder(final Integer prevOrder, final Integer nextOrder) {
 		return (prevOrder + nextOrder) / 2;
 	}
 
-	private Integer calculateStartOrder(int minOrder) {
+	private Integer calculateStartOrder(final int minOrder) {
 		return minOrder - DEFAULT_ORDER;
 	}
 
-	private Integer calculateLastOrder(int maxOrder) {
+	private Integer calculateLastOrder(final int maxOrder) {
 		return maxOrder + DEFAULT_ORDER;
 	}
 
-	private void validateOrderGap(Integer prevOrder, Integer nextOrder, int resultOrder) {
+	private void validateOrderGap(final Integer prevOrder, final Integer nextOrder, final int resultOrder) {
 		int gap = nextOrder - prevOrder;
 		if (gap <= MIN_GAP) {
 			throw new ReorderRequiredException(resultOrder);
 		}
 	}
 
-	private void validateOrderRange(int order) {
+	private void validateOrderRange(final int order) {
 		if (order < MIN_ORDER || order > MAX_ORDER) {
 			throw new ReorderRequiredException(order);
 		}

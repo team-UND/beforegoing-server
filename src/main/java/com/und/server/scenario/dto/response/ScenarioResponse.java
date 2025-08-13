@@ -25,7 +25,7 @@ public record ScenarioResponse(
 
 ) {
 
-	public static ScenarioResponse from(Scenario scenario) {
+	public static ScenarioResponse from(final Scenario scenario) {
 		return ScenarioResponse.builder()
 			.scenarioId(scenario.getId())
 			.scenarioName(scenario.getScenarioName())
@@ -34,7 +34,7 @@ public record ScenarioResponse(
 			.build();
 	}
 
-	public static List<ScenarioResponse> listFrom(List<Scenario> scenarioList) {
+	public static List<ScenarioResponse> listFrom(final List<Scenario> scenarioList) {
 		return scenarioList.stream()
 			.map(ScenarioResponse::from)
 			.toList();

@@ -26,7 +26,7 @@ public record MissionResponse(
 
 ) {
 
-	public static MissionResponse from(Mission mission) {
+	public static MissionResponse from(final Mission mission) {
 		return MissionResponse.builder()
 			.missionId(mission.getId())
 			.content(mission.getContent())
@@ -35,7 +35,7 @@ public record MissionResponse(
 			.build();
 	}
 
-	public static List<MissionResponse> listFrom(List<Mission> missionList) {
+	public static List<MissionResponse> listFrom(final List<Mission> missionList) {
 		return missionList.stream()
 			.map(MissionResponse::from)
 			.toList();

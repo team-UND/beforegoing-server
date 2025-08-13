@@ -17,7 +17,7 @@ public record OrderResponse(
 
 ) {
 
-	public static OrderResponse from(Scenario scenario) {
+	public static OrderResponse from(final Scenario scenario) {
 		return OrderResponse.builder()
 			.id(scenario.getId())
 			.newOrder(scenario.getScenarioOrder())

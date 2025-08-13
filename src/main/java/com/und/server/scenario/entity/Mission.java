@@ -58,11 +58,11 @@ public class Mission extends BaseTimeEntity {
 	@Column(nullable = false)
 	private MissionType missionType;
 
-	public void updateCheckStatus(Boolean checked) {
+	public void updateCheckStatus(final Boolean checked) {
 		this.isChecked = checked;
 	}
 
-	public void updateMissionOrder(Integer missionOrder) {
+	public void updateMissionOrder(final Integer missionOrder) {
 		this.missionOrder = missionOrder;
 	}
 

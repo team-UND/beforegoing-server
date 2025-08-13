@@ -60,15 +60,15 @@ public class Scenario extends BaseTimeEntity {
 	@OneToMany(mappedBy = "scenario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Mission> missions;
 
-	public void updateScenarioName(String scenarioName) {
+	public void updateScenarioName(final String scenarioName) {
 		this.scenarioName = scenarioName;
 	}
 
-	public void updateMemo(String memo) {
+	public void updateMemo(final String memo) {
 		this.memo = memo;
 	}
 
-	public void updateScenarioOrder(Integer scenarioOrder) {
+	public void updateScenarioOrder(final Integer scenarioOrder) {
 		this.scenarioOrder = scenarioOrder;
 	}
 

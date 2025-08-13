@@ -12,7 +12,7 @@ public record ScenarioOrderUpdateRequest(
 	@Min(value = 0, message = "prevOrder must be greater than or equal to 1")
 	Integer prevOrder,
 
-	@Schema(description = "Next Scenario order", example = "3000")
+	@Schema(description = "Next Scenario order", example = "2000")
 	@Min(value = 0, message = "nextOrder must be greater than or equal to 1")
 	Integer nextOrder
 

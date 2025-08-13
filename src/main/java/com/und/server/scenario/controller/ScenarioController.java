@@ -46,10 +46,11 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "400", description = "Invalid parameter")
 	})
 	public ResponseEntity<List<ScenarioResponse>> getScenarios(
-		@AuthMember Long memberId,
-		@RequestParam(defaultValue = "TIME") NotificationType notificationType
+		@AuthMember final Long memberId,
+		@RequestParam(defaultValue = "TIME") final NotificationType notificationType
 	) {
-		List<ScenarioResponse> scenarios = scenarioService.findScenariosByMemberId(memberId, notificationType);
+		final List<ScenarioResponse> scenarios =
+			scenarioService.findScenariosByMemberId(memberId, notificationType);
 
 		return ResponseEntity.ok().body(scenarios);
 	}
@@ -62,10 +63,10 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
 	public ResponseEntity<ScenarioDetailResponse> getScenarioDetail(
-		@AuthMember Long memberId,
-		@PathVariable Long scenarioId
+		@AuthMember final Long memberId,
+		@PathVariable final Long scenarioId
 	) {
-		ScenarioDetailResponse scenarioDetail =
+		final ScenarioDetailResponse scenarioDetail =
 			scenarioService.findScenarioDetailByScenarioId(memberId, scenarioId);
 
 		return ResponseEntity.ok().body(scenarioDetail);
@@ -78,10 +79,10 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "400", description = "Invalid parameter")
 	})
 	public ResponseEntity<Long> addScenario(
-		@AuthMember Long memberId,
-		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
+		@AuthMember final Long memberId,
+		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
 	) {
-		Long scenarioId = scenarioService.addScenario(memberId, scenarioRequest);
+		final Long scenarioId = scenarioService.addScenario(memberId, scenarioRequest);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(scenarioId);
 	}
@@ -93,10 +94,11 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "400", description = "Invalid parameter")
 	})
 	public ResponseEntity<Long> addScenarioWithoutNotification(
-		@AuthMember Long memberId,
-		@RequestBody @Valid ScenarioNoNotificationRequest scenarioNoNotificationResponse
+		@AuthMember final Long memberId,
+		@RequestBody @Valid final ScenarioNoNotificationRequest scenarioNoNotificationResponse
 	) {
-		Long scenarioId = scenarioService.addScenarioWithoutNotification(memberId, scenarioNoNotificationResponse);
+		final Long scenarioId =
+			scenarioService.addScenarioWithoutNotification(memberId, scenarioNoNotificationResponse);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(scenarioId);
 	}
@@ -109,9 +111,9 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
 	public ResponseEntity<Void> updateScenario(
-		@AuthMember Long memberId,
-		@PathVariable Long scenarioId,
-		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
+		@AuthMember final Long memberId,
+		@PathVariable final Long scenarioId,
+		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
 	) {
 		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
 
@@ -126,9 +128,9 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
 	public ResponseEntity<Void> updateScenarioWithoutNotification(
-		@AuthMember Long memberId,
-		@PathVariable Long scenarioId,
-		@RequestBody @Valid ScenarioNoNotificationRequest scenarioNoNotificationRequest
+		@AuthMember final Long memberId,
+		@PathVariable final Long scenarioId,
+		@RequestBody @Valid final ScenarioNoNotificationRequest scenarioNoNotificationRequest
 	) {
 		scenarioService.updateScenarioWithoutNotification(memberId, scenarioId, scenarioNoNotificationRequest);
 
@@ -143,11 +145,11 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
 	public ResponseEntity<OrderUpdateResponse> updateScenarioOrder(
-		@AuthMember Long memberId,
-		@PathVariable Long scenarioId,
-		@RequestBody @Valid ScenarioOrderUpdateRequest scenarioOrderUpdateRequest
+		@AuthMember final Long memberId,
+		@PathVariable final Long scenarioId,
+		@RequestBody @Valid final ScenarioOrderUpdateRequest scenarioOrderUpdateRequest
 	) {
-		OrderUpdateResponse orderUpdateResponse =
+		final OrderUpdateResponse orderUpdateResponse =
 			scenarioService.updateScenarioOrder(memberId, scenarioId, scenarioOrderUpdateRequest);
 
 		return ResponseEntity.ok().body(orderUpdateResponse);
@@ -160,8 +162,8 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
 	public ResponseEntity<Void> deleteScenario(
-		@AuthMember Long memberId,
-		@PathVariable Long scenarioId
+		@AuthMember final Long memberId,
+		@PathVariable final Long scenarioId
 	) {
 		scenarioService.deleteScenarioWithAllMissions(memberId, scenarioId);
 

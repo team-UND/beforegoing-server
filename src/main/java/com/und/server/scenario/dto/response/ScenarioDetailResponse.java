@@ -54,10 +54,10 @@ public record ScenarioDetailResponse(
 ) {
 
 	public static ScenarioDetailResponse from(
-		Scenario scenario,
-		List<Mission> basicMissionList,
-		NotificationResponse notificationResponse,
-		NotificationConditionResponse notificationConditionResponse
+		final Scenario scenario,
+		final List<Mission> basicMissionList,
+		final NotificationResponse notificationResponse,
+		final NotificationConditionResponse notificationConditionResponse
 	) {
 		return ScenarioDetailResponse.builder()
 			.scenarioId(scenario.getId())

@@ -20,7 +20,7 @@ public record TodayMissionRequest(
 
 ) {
 
-	public Mission toEntity(Scenario scenario, LocalDate date) {
+	public Mission toEntity(final Scenario scenario, final LocalDate date) {
 		return Mission.builder()
 			.scenario(scenario)
 			.content(content)

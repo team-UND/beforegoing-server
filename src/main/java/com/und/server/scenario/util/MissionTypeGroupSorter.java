@@ -13,7 +13,7 @@ import com.und.server.scenario.exception.ScenarioErrorResult;
 @Component
 public class MissionTypeGroupSorter {
 
-	public List<Mission> groupAndSortByType(List<Mission> missions, MissionType missionType) {
+	public List<Mission> groupAndSortByType(final List<Mission> missions, final MissionType missionType) {
 		if (missionType == null) {
 			throw new ServerException(ScenarioErrorResult.UNSUPPORTED_MISSION_TYPE);
 		}
@@ -27,7 +27,7 @@ public class MissionTypeGroupSorter {
 			.toList();
 	}
 
-	private Comparator<Mission> getComparatorByType(MissionType type) {
+	private Comparator<Mission> getComparatorByType(final MissionType type) {
 		return switch (type) {
 
 			case BASIC -> Comparator.comparing(Mission::getMissionOrder);

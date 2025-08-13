@@ -28,7 +28,7 @@ public record OrderUpdateResponse(
 
 ) {
 
-	public static OrderUpdateResponse from(List<Scenario> scenarios, Boolean isReorder) {
+	public static OrderUpdateResponse from(final List<Scenario> scenarios, final Boolean isReorder) {
 		List<OrderResponse> orderResponses = scenarios.stream()
 			.map(OrderResponse::from)
 			.toList();

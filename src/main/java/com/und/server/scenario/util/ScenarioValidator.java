@@ -17,13 +17,13 @@ public class ScenarioValidator {
 	private static final int SCENARIO_MAX_COUNT = 20;
 	private final ScenarioRepository scenarioRepository;
 
-	public void validateScenarioExists(Long scenarioId) {
+	public void validateScenarioExists(final Long scenarioId) {
 		if (!scenarioRepository.existsById(scenarioId)) {
 			throw new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO);
 		}
 	}
 
-	public void validateMaxScenarioCount(List<Integer> orderList) {
+	public void validateMaxScenarioCount(final List<Integer> orderList) {
 		if (orderList.size() >= SCENARIO_MAX_COUNT) {
 			throw new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED);
 		}

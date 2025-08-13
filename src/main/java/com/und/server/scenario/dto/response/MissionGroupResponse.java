@@ -24,7 +24,7 @@ public record MissionGroupResponse(
 
 ) {
 
-	public static MissionGroupResponse from(List<Mission> basic, List<Mission> today) {
+	public static MissionGroupResponse from(final List<Mission> basic, final List<Mission> today) {
 		return new MissionGroupResponse(
 			MissionResponse.listFrom(basic),
 			MissionResponse.listFrom(today)
