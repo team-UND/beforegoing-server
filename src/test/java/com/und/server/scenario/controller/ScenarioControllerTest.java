@@ -91,27 +91,32 @@ class ScenarioControllerTest {
 
 
 	@Test
-	void Given_ValidMemberIdAndScenarioRequest_When_AddScenario_Then_ReturnNoContent() {
+	void Given_ValidMemberIdAndScenarioRequest_When_AddScenario_Then_ReturnCreated() {
 		// given
 		Long memberId = 1L;
+		Long expectedScenarioId = 123L;
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("새 시나리오")
 			.memo("새 시나리오 설명")
 			.build();
 
+		when(scenarioService.addScenario(memberId, scenarioRequest))
+			.thenReturn(expectedScenarioId);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<Long> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
 		verify(scenarioService).addScenario(memberId, scenarioRequest);
 	}
 
 	@Test
-	void Given_ValidMemberIdAndScenarioRequest_When_AddScenarioWithoutNotification_Then_ReturnNoContent() {
+	void Given_ValidMemberIdAndScenarioRequest_When_AddScenarioWithoutNotification_Then_ReturnCreated() {
 		// given
 		Long memberId = 1L;
+		Long expectedScenarioId = 456L;
 		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
 			"새 시나리오",
 			"메모",
@@ -119,11 +124,15 @@ class ScenarioControllerTest {
 			NotificationType.TIME
 		);
 
+		when(scenarioService.addScenarioWithoutNotification(memberId, request))
+			.thenReturn(expectedScenarioId);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.addScenarioWithoutNotification(memberId, request);
+		ResponseEntity<Long> response = scenarioController.addScenarioWithoutNotification(memberId, request);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
 		verify(scenarioService).addScenarioWithoutNotification(memberId, request);
 	}
 
@@ -150,20 +159,24 @@ class ScenarioControllerTest {
 
 
 	@Test
-	void Given_EmptyTitleRequest_When_AddScenario_Then_ReturnNoContent() {
+	void Given_EmptyTitleRequest_When_AddScenario_Then_ReturnCreated() {
 		// given
 		Long memberId = 1L;
+		Long expectedScenarioId = 789L;
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("")
 			.memo("빈 제목 시나리오")
 			.build();
 
+		when(scenarioService.addScenario(memberId, scenarioRequest))
+			.thenReturn(expectedScenarioId);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<Long> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
 		verify(scenarioService).addScenario(memberId, scenarioRequest);
 	}
 
@@ -209,20 +222,24 @@ class ScenarioControllerTest {
 
 
 	@Test
-	void Given_LongTitleRequest_When_AddScenario_Then_ReturnNoContent() {
+	void Given_LongTitleRequest_When_AddScenario_Then_ReturnCreated() {
 		// given
 		Long memberId = 1L;
+		Long expectedScenarioId = 999L;
 		ScenarioDetailRequest scenarioRequest = ScenarioDetailRequest.builder()
 			.scenarioName("매우 긴 시나리오 제목입니다")
 			.memo("긴 제목 시나리오")
 			.build();
 
+		when(scenarioService.addScenario(memberId, scenarioRequest))
+			.thenReturn(expectedScenarioId);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<Long> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
 		verify(scenarioService).addScenario(memberId, scenarioRequest);
 	}
 

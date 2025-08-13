@@ -72,7 +72,7 @@ class MissionControllerTest {
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
@@ -91,7 +91,7 @@ class MissionControllerTest {
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
@@ -110,7 +110,7 @@ class MissionControllerTest {
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isNull();
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
