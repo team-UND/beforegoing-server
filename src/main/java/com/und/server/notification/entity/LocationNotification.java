@@ -29,6 +29,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
@@ -39,7 +40,6 @@ import lombok.NoArgsConstructor;
 		@Index(name = "idx_day_location_notification", columnList = "day_of_week, start_hour, start_minute")
 	}
 )
-@Entity
 public class LocationNotification extends BaseTimeEntity {
 
 	@Id

@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
@@ -34,7 +35,6 @@ import lombok.NoArgsConstructor;
 		@Index(name = "idx_day_time_notification", columnList = "day_of_week, startHour, startMinute")
 	}
 )
-@Entity
 public class TimeNotification extends BaseTimeEntity {
 
 	@Id
