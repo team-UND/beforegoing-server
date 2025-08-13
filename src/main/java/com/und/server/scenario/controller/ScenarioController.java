@@ -26,6 +26,7 @@ import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +40,10 @@ public class ScenarioController {
 
 
 	@GetMapping("/scenarios")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Get scenarios successful"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter")
+	})
 	public ResponseEntity<List<ScenarioResponse>> getScenarios(
 		@AuthMember Long memberId,
 		@RequestParam NotificationType notifType
@@ -50,6 +55,11 @@ public class ScenarioController {
 
 
 	@GetMapping("/scenarios/{scenarioId}")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Get scenario detail successful"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter or unsupported notification type"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found")
+	})
 	public ResponseEntity<ScenarioDetailResponse> getScenarioDetail(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId
@@ -62,7 +72,12 @@ public class ScenarioController {
 
 
 	@PostMapping("/scenarios")
-	@ApiResponse(responseCode = "204", description = "Create Scenario successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Create Scenario successful"),
+		@ApiResponse(responseCode = "400",
+			description = "Invalid parameter, max scenario count exceeded, " +
+				"max mission count exceeded, or unsupported notification type")
+	})
 	public ResponseEntity<Void> addScenario(
 		@AuthMember Long memberId,
 		@RequestBody @Valid ScenarioDetailRequest scenarioRequest
@@ -74,7 +89,11 @@ public class ScenarioController {
 
 
 	@PostMapping("/scenarios/without-notification")
-	@ApiResponse(responseCode = "204", description = "Create Scenario without notification successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Create Scenario without notification successful"),
+		@ApiResponse(responseCode = "400",
+			description = "Invalid parameter, max scenario count exceeded, or max mission count exceeded")
+	})
 	public ResponseEntity<Void> addScenarioWithoutNotification(
 		@AuthMember Long memberId,
 		@RequestBody @Valid ScenarioNoNotificationRequest scenarioNoNotificationResponse
@@ -86,7 +105,12 @@ public class ScenarioController {
 
 
 	@PutMapping("/scenarios/{scenarioId}")
-	@ApiResponse(responseCode = "204", description = "Update Scenario successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Update Scenario successful"),
+		@ApiResponse(responseCode = "400",
+			description = "Invalid parameter, max mission count exceeded, or unsupported notification type"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found")
+	})
 	public ResponseEntity<Void> updateScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -99,7 +123,11 @@ public class ScenarioController {
 
 
 	@PutMapping("/scenarios/{scenarioId}/without-notification")
-	@ApiResponse(responseCode = "204", description = "Update Scenario without notification successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Update Scenario without notification successful"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter or max mission count exceeded"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found")
+	})
 	public ResponseEntity<Void> updateScenarioWithoutNotification(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -112,7 +140,11 @@ public class ScenarioController {
 
 
 	@PatchMapping("/scenarios/{scenarioId}/order")
-	@ApiResponse(responseCode = "204", description = "Update Scenario order successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Update Scenario order successful"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter or reorder required"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found")
+	})
 	public ResponseEntity<Void> updateScenarioOrder(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -125,7 +157,10 @@ public class ScenarioController {
 
 
 	@DeleteMapping("/scenarios/{scenarioId}")
-	@ApiResponse(responseCode = "204", description = "Delete Scenario successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Delete Scenario successful"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found")
+	})
 	public ResponseEntity<Void> deleteScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId

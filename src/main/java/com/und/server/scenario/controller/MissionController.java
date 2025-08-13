@@ -23,6 +23,7 @@ import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,11 @@ public class MissionController {
 
 
 	@GetMapping("/scenarios/{scenarioId}/missions")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Get missions successful"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter or invalid mission found date"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found")
+	})
 	public ResponseEntity<MissionGroupResponse> getMissionsByScenarioId(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -50,7 +56,12 @@ public class MissionController {
 
 
 	@PostMapping("/scenarios/{scenarioId}/missions/today")
-	@ApiResponse(responseCode = "204", description = "Create Today Mission successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Create Today Mission successful"),
+		@ApiResponse(responseCode = "400",
+			description = "Invalid parameter, max mission count exceeded, or invalid today mission date"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found")
+	})
 	public ResponseEntity<Void> addTodayMissionToScenario(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
@@ -64,7 +75,12 @@ public class MissionController {
 
 
 	@PatchMapping("/missions/{missionId}/check")
-	@ApiResponse(responseCode = "204", description = "Update check status successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Update check status successful"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
+		@ApiResponse(responseCode = "401", description = "Unauthorized access"),
+		@ApiResponse(responseCode = "404", description = "Mission not found")
+	})
 	public ResponseEntity<Void> updateMissionCheck(
 		@AuthMember Long memberId,
 		@PathVariable Long missionId,
@@ -77,7 +93,11 @@ public class MissionController {
 
 
 	@DeleteMapping("/missions/{missionId}")
-	@ApiResponse(responseCode = "204", description = "Delete Today Mission successful")
+	@ApiResponses({
+		@ApiResponse(responseCode = "204", description = "Delete Today Mission successful"),
+		@ApiResponse(responseCode = "401", description = "Unauthorized access"),
+		@ApiResponse(responseCode = "404", description = "Mission not found")
+	})
 	public ResponseEntity<Void> deleteTodayMissionById(
 		@AuthMember Long memberId,
 		@PathVariable Long missionId

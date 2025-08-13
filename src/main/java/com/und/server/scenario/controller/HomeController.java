@@ -18,6 +18,8 @@ import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,6 +32,10 @@ public class HomeController {
 	private final MissionService missionService;
 
 	@GetMapping("/home")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Get home data successful"),
+		@ApiResponse(responseCode = "400", description = "Invalid parameter or invalid mission found date")
+	})
 	public ResponseEntity<HomeResponse> getHomeData(
 		@AuthMember Long memberId,
 		@RequestParam(defaultValue = "TIME") NotificationType notificationType
