@@ -40,6 +40,7 @@ import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
+import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Scenario;
@@ -376,14 +377,14 @@ class ScenarioServiceTest {
 		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotificationType.TIME))
 			.willReturn(List.of(10_000_000));
 		given(orderCalculator.getOrder(anyInt(), isNull()))
-			.willThrow(new ReorderRequiredException())
+			.willThrow(new ReorderRequiredException(10_000_000))
 			.willReturn(reorderedOrder);
-		given(scenarioRepository.findMaxOrderByMemberIdAndNotificationType(memberId, NotificationType.TIME))
-			.willReturn(Optional.of(10_000_000));
 
 		Scenario s1 = Scenario.builder().id(1L).scenarioOrder(10_000_000).build();
 		given(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
 			.willReturn(List.of(s1));
+		given(orderCalculator.getMaxOrderAfterReorder(List.of(s1)))
+			.willReturn(reorderedOrder);
 
 		ArgumentCaptor<Scenario> captor = ArgumentCaptor.forClass(Scenario.class);
 
@@ -391,7 +392,6 @@ class ScenarioServiceTest {
 		scenarioService.addScenario(memberId, scenarioRequest);
 
 		// then
-		verify(scenarioRepository).saveAll(any());
 		verify(scenarioRepository).save(captor.capture());
 
 		Scenario saved = captor.getValue();
@@ -520,10 +520,14 @@ class ScenarioServiceTest {
 			.thenReturn(newOrder);
 
 		// when
-		scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
+		OrderUpdateResponse response = scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
 
 		// then
 		assertThat(scenario.getScenarioOrder()).isEqualTo(newOrder);
+		assertThat(response.isReorder()).isFalse();
+		assertThat(response.orderUpdates()).hasSize(1);
+		assertThat(response.orderUpdates().get(0).id()).isEqualTo(scenarioId);
+		assertThat(response.orderUpdates().get(0).newOrder()).isEqualTo(newOrder);
 		verify(orderCalculator).getOrder(1000, 2000);
 	}
 
@@ -533,6 +537,7 @@ class ScenarioServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
+		int errorOrder = 1500;
 
 		Member member = Member.builder().id(memberId).build();
 		Notification notification = Notification.builder()
@@ -554,21 +559,24 @@ class ScenarioServiceTest {
 
 		Scenario scenario1 = Scenario.builder().id(1L).scenarioOrder(1000).build();
 		Scenario scenario2 = Scenario.builder().id(2L).scenarioOrder(2000).build();
+		List<Scenario> reorderedScenarios = List.of(scenario1, scenario2);
 
 		Mockito.when(scenarioRepository.findByIdAndMemberId(scenarioId, memberId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(orderCalculator.getOrder(1000, 1001))
-			.thenThrow(new ReorderRequiredException());
+			.thenThrow(new ReorderRequiredException(errorOrder));
 		Mockito.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
 			.thenReturn(List.of(scenario1, scenario2));
+		Mockito.when(orderCalculator.reorder(anyList(), eq(scenarioId), eq(errorOrder)))
+			.thenReturn(reorderedScenarios);
 
 		// when
-		scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
+		OrderUpdateResponse response = scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
 
 		// then
-		verify(scenarioRepository).saveAll(anyList());
-		assertThat(scenario1.getScenarioOrder()).isEqualTo(1000);
-		assertThat(scenario2.getScenarioOrder()).isEqualTo(2000);
+		assertThat(response.isReorder()).isTrue();
+		assertThat(response.orderUpdates()).hasSize(2);
+		verify(orderCalculator).reorder(anyList(), eq(scenarioId), eq(errorOrder));
 	}
 
 	@Test
@@ -998,53 +1006,6 @@ class ScenarioServiceTest {
 
 		// then
 		verify(missionService).addTodayMission(scenario, request, futureDate);
-	}
-
-
-	@Test
-	void Given_OrderCalculatorReturnsReorderRequired_When_UpdateScenarioOrder_Then_HandleReorderWithFixedOrder() {
-		// given
-		Long memberId = 1L;
-		Long scenarioId = 1L;
-
-		Member member = Member.builder().id(memberId).build();
-		Notification notification = Notification.builder()
-			.id(1L)
-			.notificationType(NotificationType.TIME)
-			.build();
-
-		Scenario scenario = Scenario.builder()
-			.id(scenarioId)
-			.member(member)
-			.notification(notification)
-			.scenarioOrder(1000)
-			.build();
-
-		ScenarioOrderUpdateRequest orderRequest = ScenarioOrderUpdateRequest.builder()
-			.prevOrder(1000)
-			.nextOrder(1001) // 너무 가까워서 ReorderRequiredException 발생
-			.build();
-
-		// 리오더링될 시나리오들
-		Scenario scenario1 = Scenario.builder().id(1L).scenarioOrder(1000).build();
-		Scenario scenario2 = Scenario.builder().id(2L).scenarioOrder(2000).build();
-		Scenario scenario3 = Scenario.builder().id(3L).scenarioOrder(3000).build();
-
-		Mockito.when(scenarioRepository.findByIdAndMemberId(scenarioId, memberId))
-			.thenReturn(Optional.of(scenario));
-		Mockito.when(orderCalculator.getOrder(1000, 1001))
-			.thenThrow(new ReorderRequiredException());
-		Mockito.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
-			.thenReturn(List.of(scenario1, scenario2, scenario3));
-
-		// when
-		scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
-
-		// then
-		verify(scenarioRepository).saveAll(List.of(scenario1, scenario2, scenario3));
-		assertThat(scenario1.getScenarioOrder()).isEqualTo(1000);
-		assertThat(scenario2.getScenarioOrder()).isEqualTo(2000);
-		assertThat(scenario3.getScenarioOrder()).isEqualTo(3000);
 	}
 
 

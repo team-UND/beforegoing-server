@@ -19,6 +19,7 @@ import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
+import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
@@ -247,7 +248,7 @@ class ScenarioControllerTest {
 
 
 	@Test
-	void Given_ValidMemberIdAndScenarioIdAndOrderRequest_When_UpdateScenarioOrder_Then_ReturnNoContent() {
+	void Given_ValidMemberIdAndScenarioIdAndOrderRequest_When_UpdateScenarioOrder_Then_ReturnOrderUpdateResponse() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
@@ -256,12 +257,21 @@ class ScenarioControllerTest {
 			.nextOrder(2000)
 			.build();
 
+		OrderUpdateResponse expectedResponse = OrderUpdateResponse.builder()
+			.isReorder(false)
+			.orderUpdates(List.of())
+			.build();
+
+		when(scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest))
+			.thenReturn(expectedResponse);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.updateScenarioOrder(memberId, scenarioId, orderRequest);
+		ResponseEntity<OrderUpdateResponse> response =
+			scenarioController.updateScenarioOrder(memberId, scenarioId, orderRequest);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).updateScenarioOrder(memberId, scenarioId, orderRequest);
 	}
 
