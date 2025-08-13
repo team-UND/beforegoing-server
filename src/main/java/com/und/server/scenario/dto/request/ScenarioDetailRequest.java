@@ -39,6 +39,7 @@ public record ScenarioDetailRequest(
 		description = "Notification default settings",
 		implementation = NotificationRequest.class
 	)
+	@Valid
 	NotificationRequest notification,
 
 	@Schema(
@@ -48,6 +49,7 @@ public record ScenarioDetailRequest(
 			@DiscriminatorMapping(value = "time", schema = TimeNotificationRequest.class)
 		}
 	)
+	@Valid
 	NotificationConditionRequest notificationCondition
 
 ) { }
