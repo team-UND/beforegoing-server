@@ -25,6 +25,7 @@ import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.HomeScenarioResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
+import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Mission;
@@ -75,13 +76,13 @@ public class ScenarioService {
 		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
-		List<Mission> groupdBasicMissions =
+		List<Mission> basicMissions =
 			missionTypeGroupSorter.groupAndSortByType(scenario.getMissions(), MissionType.BASIC);
 
 		Notification notification = scenario.getNotification();
 		NotificationInfoDto notificationInfo = notificationService.findNotificationDetails(notification);
 
-		return getScenarioDetailResponse(scenario, groupdBasicMissions, notificationInfo);
+		return getScenarioDetailResponse(scenario, basicMissions, notificationInfo);
 	}
 
 
@@ -131,7 +132,11 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void updateScenario(Long memberId, Long scenarioId, ScenarioDetailRequest scenarioDetailRequest) {
+	public void updateScenario(
+		Long memberId,
+		Long scenarioId,
+		ScenarioDetailRequest scenarioDetailRequest
+	) {
 		updateScenarioInternal(
 			memberId,
 			scenarioId,
@@ -149,7 +154,9 @@ public class ScenarioService {
 
 	@Transactional
 	public void updateScenarioWithoutNotification(
-		Long memberId, Long scenarioId, ScenarioNoNotificationRequest scenarioNoNotificationRequest
+		Long memberId,
+		Long scenarioId,
+		ScenarioNoNotificationRequest scenarioNoNotificationRequest
 	) {
 		updateScenarioInternal(
 			memberId,
@@ -163,7 +170,7 @@ public class ScenarioService {
 
 
 	@Transactional
-	public void updateScenarioOrder(
+	public OrderUpdateResponse updateScenarioOrder(
 		Long memberId,
 		Long scenarioId,
 		ScenarioOrderUpdateRequest scenarioOrderUpdateRequest
@@ -177,10 +184,16 @@ public class ScenarioService {
 				scenarioOrderUpdateRequest.nextOrder()
 			);
 			scenario.updateScenarioOrder(toUpdateOrder);
+			return OrderUpdateResponse.from(List.of(scenario), false);
 
 		} catch (ReorderRequiredException e) {
+			int errorOrder = e.getErrorOrder();
 			Notification notification = scenario.getNotification();
-			reorderScenarios(memberId, notification.getNotificationType());
+			List<Scenario> scenarios =
+				scenarioRepository.findByMemberIdAndNotificationType(memberId, notification.getNotificationType());
+			scenarios = orderCalculator.reorder(scenarios, scenarioId, errorOrder);
+
+			return OrderUpdateResponse.from(scenarios, true);
 		}
 	}
 
@@ -280,26 +293,11 @@ public class ScenarioService {
 		try {
 			return orderCalculator.getOrder(maxScenarioOrder, null);
 		} catch (ReorderRequiredException e) {
-			reorderScenarios(memberId, notificationType);
-			int newMaxOrder =
-				scenarioRepository.findMaxOrderByMemberIdAndNotificationType(
-						memberId, notificationType)
-					.orElse(OrderCalculator.START_ORDER);
+			List<Scenario> scenarios =
+				scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
 
-			return orderCalculator.getOrder(newMaxOrder, null);
+			return orderCalculator.getMaxOrderAfterReorder(scenarios);
 		}
-	}
-
-	private void reorderScenarios(Long memberId, NotificationType notificationType) {
-		List<Scenario> scenarios =
-			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
-
-		int order = OrderCalculator.START_ORDER;
-		for (Scenario scenario : scenarios) {
-			scenario.updateScenarioOrder(order);
-			order += OrderCalculator.DEFAULT_ORDER;
-		}
-		scenarioRepository.saveAll(scenarios);
 	}
 
 }

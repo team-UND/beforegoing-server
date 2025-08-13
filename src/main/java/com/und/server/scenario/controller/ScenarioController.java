@@ -21,6 +21,7 @@ import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
+import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.service.ScenarioService;
@@ -141,14 +142,15 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
-	public ResponseEntity<Void> updateScenarioOrder(
+	public ResponseEntity<OrderUpdateResponse> updateScenarioOrder(
 		@AuthMember Long memberId,
 		@PathVariable Long scenarioId,
 		@RequestBody @Valid ScenarioOrderUpdateRequest scenarioOrderUpdateRequest
 	) {
-		scenarioService.updateScenarioOrder(memberId, scenarioId, scenarioOrderUpdateRequest);
+		OrderUpdateResponse orderUpdateResponse =
+			scenarioService.updateScenarioOrder(memberId, scenarioId, scenarioOrderUpdateRequest);
 
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		return ResponseEntity.ok().body(orderUpdateResponse);
 	}
 
 

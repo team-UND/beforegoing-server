@@ -1,7 +1,11 @@
 package com.und.server.scenario.util;
 
+import java.util.Comparator;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
+import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ReorderRequiredException;
 
 @Component
@@ -25,14 +29,50 @@ public class OrderCalculator {
 		} else if (nextOrder == null) {
 			resultOrder = calculateLastOrder(prevOrder);
 		} else {
-			validateOrderGap(prevOrder, nextOrder);
 			resultOrder = calculateMiddleOrder(prevOrder, nextOrder);
+			validateOrderGap(prevOrder, nextOrder, resultOrder);
 		}
 		validateOrderRange(resultOrder);
 
 		return resultOrder;
 	}
 
+
+	public List<Scenario> reorder(List<Scenario> scenarios, Long targetScenarioId, int errorOrder) {
+		scenarios.sort(
+			Comparator
+				.comparingInt((Scenario s) ->
+					s.getId().equals(targetScenarioId) ? errorOrder : s.getScenarioOrder())
+				.thenComparingLong(Scenario::getId)
+		);
+
+		assignSequentialOrders(scenarios);
+		scenarios.sort(Comparator.comparing(Scenario::getScenarioOrder));
+
+		return scenarios;
+	}
+
+
+	public Integer getMaxOrderAfterReorder(List<Scenario> scenarios) {
+		if (scenarios.isEmpty()) {
+			return START_ORDER;
+		}
+		scenarios.sort(Comparator.comparing(Scenario::getScenarioOrder));
+
+		assignSequentialOrders(scenarios);
+		Scenario lastScenario = scenarios.get(scenarios.size() - 1);
+
+		return calculateLastOrder(lastScenario.getScenarioOrder());
+	}
+
+
+	private void assignSequentialOrders(List<Scenario> scenarios) {
+		int order = OrderCalculator.START_ORDER;
+		for (Scenario scenario : scenarios) {
+			scenario.updateScenarioOrder(order);
+			order += OrderCalculator.DEFAULT_ORDER;
+		}
+	}
 
 	private Integer calculateMiddleOrder(Integer prevOrder, Integer nextOrder) {
 		return (prevOrder + nextOrder) / 2;
@@ -46,16 +86,16 @@ public class OrderCalculator {
 		return maxOrder + DEFAULT_ORDER;
 	}
 
-	private void validateOrderGap(Integer prevOrder, Integer nextOrder) {
+	private void validateOrderGap(Integer prevOrder, Integer nextOrder, int resultOrder) {
 		int gap = nextOrder - prevOrder;
 		if (gap <= MIN_GAP) {
-			throw new ReorderRequiredException();
+			throw new ReorderRequiredException(resultOrder);
 		}
 	}
 
 	private void validateOrderRange(int order) {
 		if (order < MIN_ORDER || order > MAX_ORDER) {
-			throw new ReorderRequiredException();
+			throw new ReorderRequiredException(order);
 		}
 	}
 
