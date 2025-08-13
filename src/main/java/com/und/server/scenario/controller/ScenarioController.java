@@ -138,7 +138,7 @@ public class ScenarioController {
 
 	@PatchMapping("/scenarios/{scenarioId}/order")
 	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Update Scenario order successful"),
+		@ApiResponse(responseCode = "200", description = "Update Scenario order successful"),
 		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
