@@ -7,7 +7,7 @@ public enum MissionType {
 	BASIC, TODAY;
 
 	@JsonCreator
-	public static MissionType fromValue(String value) {
+	public static MissionType fromValue(final String value) {
 		if (value == null) {
 			return null;
 		}

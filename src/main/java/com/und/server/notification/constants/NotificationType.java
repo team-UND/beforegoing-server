@@ -7,7 +7,7 @@ public enum NotificationType {
 	TIME, LOCATION;
 
 	@JsonCreator
-	public static NotificationType fromValue(String value) {
+	public static NotificationType fromValue(final String value) {
 		if (value == null) {
 			return null;
 		}

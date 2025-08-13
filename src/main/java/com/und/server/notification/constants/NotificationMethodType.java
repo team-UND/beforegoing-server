@@ -7,7 +7,7 @@ public enum NotificationMethodType {
 	PUSH, ALARM;
 
 	@JsonCreator
-	public static NotificationMethodType fromValue(String value) {
+	public static NotificationMethodType fromValue(final String value) {
 		if (value == null) {
 			return null;
 		}
