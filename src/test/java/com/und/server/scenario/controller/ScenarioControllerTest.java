@@ -16,8 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.und.server.notification.constants.NotificationType;
+import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
-import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -117,23 +117,30 @@ class ScenarioControllerTest {
 		// given
 		Long memberId = 1L;
 		Long expectedScenarioId = 456L;
-		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
-			"새 시나리오",
-			"메모",
-			null,
-			NotificationType.TIME
-		);
 
-		when(scenarioService.addScenarioWithoutNotification(memberId, request))
+		NotificationRequest notification = NotificationRequest.builder()
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.build();
+
+		ScenarioDetailRequest request = ScenarioDetailRequest.builder()
+			.scenarioName("새 시나리오")
+			.memo("메모")
+			.basicMissions(List.of())
+			.notification(notification)
+			.notificationCondition(null)
+			.build();
+
+		when(scenarioService.addScenario(memberId, request))
 			.thenReturn(expectedScenarioId);
 
 		// when
-		ResponseEntity<Long> response = scenarioController.addScenarioWithoutNotification(memberId, request);
+		ResponseEntity<Long> response = scenarioController.addScenario(memberId, request);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
-		verify(scenarioService).addScenarioWithoutNotification(memberId, request);
+		verify(scenarioService).addScenario(memberId, request);
 	}
 
 	@Test
@@ -141,20 +148,27 @@ class ScenarioControllerTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 2L;
-		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
-			"수정 시나리오",
-			"메모",
-			null,
-			NotificationType.LOCATION
-		);
+
+		NotificationRequest notification = NotificationRequest.builder()
+			.isActive(false)
+			.notificationType(NotificationType.LOCATION)
+			.build();
+
+		ScenarioDetailRequest request = ScenarioDetailRequest.builder()
+			.scenarioName("수정 시나리오")
+			.memo("메모")
+			.basicMissions(List.of())
+			.notification(notification)
+			.notificationCondition(null)
+			.build();
 
 		// when
 		ResponseEntity<Void> response = scenarioController
-			.updateScenarioWithoutNotification(memberId, scenarioId, request);
+			.updateScenario(memberId, scenarioId, request);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		verify(scenarioService).updateScenarioWithoutNotification(memberId, scenarioId, request);
+		verify(scenarioService).updateScenario(memberId, scenarioId, request);
 	}
 
 

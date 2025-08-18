@@ -62,6 +62,7 @@ class NotificationServiceTest {
 	void Given_NotificationRequestAndCondition_When_AddNotification_Then_SaveNotificationAndAddCondition() {
 		// given
 		NotificationRequest notificationInfo = NotificationRequest.builder()
+			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.PUSH)
 			.daysOfWeekOrdinal(List.of(0, 1, 2))
@@ -197,7 +198,12 @@ class NotificationServiceTest {
 		when(notificationRepository.save(any(Notification.class))).thenReturn(saved);
 
 		// when
-		Notification result = notificationService.addWithoutNotification(type);
+		NotificationRequest request = NotificationRequest.builder()
+			.isActive(false)
+			.notificationType(type)
+			.build();
+
+		Notification result = notificationService.addWithoutNotification(request);
 
 		// then
 		assertThat(result.getNotificationType()).isEqualTo(type);
