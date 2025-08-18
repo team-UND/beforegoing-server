@@ -20,7 +20,6 @@ import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
-import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionResponse;
@@ -94,32 +93,12 @@ public class ScenarioService {
 
 	@Transactional
 	public Long addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
-		return addScenarioInternal(
-			memberId,
-			scenarioDetailRequest.scenarioName(),
-			scenarioDetailRequest.memo(),
-			scenarioDetailRequest.basicMissions(),
-			scenarioDetailRequest.notification().notificationType(),
-			() -> notificationService.addNotification(
-				scenarioDetailRequest.notification(),
-				scenarioDetailRequest.notificationCondition()
-			)
-		);
-	}
-
-
-	@Transactional
-	public Long addScenarioWithoutNotification(
-		final Long memberId, final ScenarioNoNotificationRequest scenarioNoNotificationRequest
-	) {
-		return addScenarioInternal(
-			memberId,
-			scenarioNoNotificationRequest.scenarioName(),
-			scenarioNoNotificationRequest.memo(),
-			scenarioNoNotificationRequest.basicMissions(),
-			scenarioNoNotificationRequest.notificationType(),
-			() -> notificationService.addWithoutNotification(scenarioNoNotificationRequest.notificationType())
-		);
+		boolean isNotificationActive = scenarioDetailRequest.notification().isActive();
+		if (isNotificationActive) {
+			return addScenarioWithNotification(memberId, scenarioDetailRequest);
+		} else {
+			return addScenarioWithoutNotification(memberId, scenarioDetailRequest);
+		}
 	}
 
 
@@ -129,35 +108,12 @@ public class ScenarioService {
 		final Long scenarioId,
 		final ScenarioDetailRequest scenarioDetailRequest
 	) {
-		updateScenarioInternal(
-			memberId,
-			scenarioId,
-			scenarioDetailRequest.scenarioName(),
-			scenarioDetailRequest.memo(),
-			scenarioDetailRequest.basicMissions(),
-			notification -> notificationService.updateNotification(
-				notification,
-				scenarioDetailRequest.notification(),
-				scenarioDetailRequest.notificationCondition()
-			)
-		);
-	}
-
-
-	@Transactional
-	public void updateScenarioWithoutNotification(
-		final Long memberId,
-		final Long scenarioId,
-		final ScenarioNoNotificationRequest scenarioNoNotificationRequest
-	) {
-		updateScenarioInternal(
-			memberId,
-			scenarioId,
-			scenarioNoNotificationRequest.scenarioName(),
-			scenarioNoNotificationRequest.memo(),
-			scenarioNoNotificationRequest.basicMissions(),
-			notificationService::updateWithoutNotification
-		);
+		boolean isNotificationActive = scenarioDetailRequest.notification().isActive();
+		if (isNotificationActive) {
+			updateScenarioWithNotification(memberId, scenarioId, scenarioDetailRequest);
+		} else {
+			updateScenarioWithoutNotification(memberId, scenarioId, scenarioDetailRequest);
+		}
 	}
 
 
@@ -200,6 +156,35 @@ public class ScenarioService {
 	}
 
 
+	private Long addScenarioWithNotification(
+		final Long memberId, final ScenarioDetailRequest scenarioDetailRequest
+	) {
+		return addScenarioInternal(
+			memberId,
+			scenarioDetailRequest.scenarioName(),
+			scenarioDetailRequest.memo(),
+			scenarioDetailRequest.basicMissions(),
+			scenarioDetailRequest.notification().notificationType(),
+			() -> notificationService.addNotification(
+				scenarioDetailRequest.notification(),
+				scenarioDetailRequest.notificationCondition()
+			)
+		);
+	}
+
+	private Long addScenarioWithoutNotification(
+		final Long memberId, final ScenarioDetailRequest scenarioDetailRequest
+	) {
+		return addScenarioInternal(
+			memberId,
+			scenarioDetailRequest.scenarioName(),
+			scenarioDetailRequest.memo(),
+			scenarioDetailRequest.basicMissions(),
+			scenarioDetailRequest.notification().notificationType(),
+			() -> notificationService.addWithoutNotification(scenarioDetailRequest.notification())
+		);
+	}
+
 	private Long addScenarioInternal(
 		final Long memberId,
 		final String scenarioName,
@@ -232,6 +217,40 @@ public class ScenarioService {
 		missionService.addBasicMission(scenario, missions);
 
 		return scenario.getId();
+	}
+
+	private void updateScenarioWithNotification(
+		final Long memberId,
+		final Long scenarioId,
+		final ScenarioDetailRequest scenarioDetailRequest
+	) {
+		updateScenarioInternal(
+			memberId,
+			scenarioId,
+			scenarioDetailRequest.scenarioName(),
+			scenarioDetailRequest.memo(),
+			scenarioDetailRequest.basicMissions(),
+			notification -> notificationService.updateNotification(
+				notification,
+				scenarioDetailRequest.notification(),
+				scenarioDetailRequest.notificationCondition()
+			)
+		);
+	}
+
+	private void updateScenarioWithoutNotification(
+		final Long memberId,
+		final Long scenarioId,
+		final ScenarioDetailRequest scenarioDetailRequest
+	) {
+		updateScenarioInternal(
+			memberId,
+			scenarioId,
+			scenarioDetailRequest.scenarioName(),
+			scenarioDetailRequest.memo(),
+			scenarioDetailRequest.basicMissions(),
+			notificationService::updateWithoutNotification
+		);
 	}
 
 	private void updateScenarioInternal(

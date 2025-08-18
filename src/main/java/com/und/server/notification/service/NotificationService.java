@@ -30,11 +30,11 @@ public class NotificationService {
 
 	@Transactional
 	public Notification addNotification(
-		final NotificationRequest notificationInfo,
+		final NotificationRequest notificationRequest,
 		final NotificationConditionRequest notificationConditionRequest
 	) {
-		Notification notification = notificationInfo.toEntity();
-		List<Integer> daysOfWeekOrdinal = notificationInfo.daysOfWeekOrdinal();
+		Notification notification = notificationRequest.toEntity();
+		List<Integer> daysOfWeekOrdinal = notificationRequest.daysOfWeekOrdinal();
 
 		notificationRepository.save(notification);
 		notificationConditionSelector.addNotificationCondition(
@@ -45,11 +45,8 @@ public class NotificationService {
 
 
 	@Transactional
-	public Notification addWithoutNotification(final NotificationType notificationType) {
-		Notification notification = Notification.builder()
-			.isActive(false)
-			.notificationType(notificationType)
-			.build();
+	public Notification addWithoutNotification(final NotificationRequest notificationRequest) {
+		Notification notification = notificationRequest.toEntity();
 		notificationRepository.save(notification);
 
 		return notification;
@@ -59,18 +56,18 @@ public class NotificationService {
 	@Transactional
 	public void updateNotification(
 		final Notification notification,
-		final NotificationRequest notificationInfo,
+		final NotificationRequest notificationRequest,
 		final NotificationConditionRequest notificationConditionRequest
 	) {
-		List<Integer> daysOfWeekOrdinal = notificationInfo.daysOfWeekOrdinal();
+		List<Integer> daysOfWeekOrdinal = notificationRequest.daysOfWeekOrdinal();
 
 		NotificationType oldNotificationType = notification.getNotificationType();
-		NotificationType newNotificationtype = notificationInfo.notificationType();
+		NotificationType newNotificationtype = notificationRequest.notificationType();
 		boolean isChangeNotificationType = oldNotificationType != newNotificationtype;
 
 		notification.updateNotification(
 			newNotificationtype,
-			notificationInfo.notificationMethodType()
+			notificationRequest.notificationMethodType()
 		);
 		notification.updateActiveStatus(true);
 

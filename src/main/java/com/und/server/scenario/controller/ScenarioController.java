@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
-import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -88,22 +87,6 @@ public class ScenarioController {
 	}
 
 
-	@PostMapping("/scenarios/without-notification")
-	@ApiResponses({
-		@ApiResponse(responseCode = "201", description = "Create Scenario without notification successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter")
-	})
-	public ResponseEntity<Long> addScenarioWithoutNotification(
-		@AuthMember final Long memberId,
-		@RequestBody @Valid final ScenarioNoNotificationRequest scenarioNoNotificationResponse
-	) {
-		final Long scenarioId =
-			scenarioService.addScenarioWithoutNotification(memberId, scenarioNoNotificationResponse);
-
-		return ResponseEntity.status(HttpStatus.CREATED).body(scenarioId);
-	}
-
-
 	@PutMapping("/scenarios/{scenarioId}")
 	@ApiResponses({
 		@ApiResponse(responseCode = "204", description = "Update Scenario successful"),
@@ -116,23 +99,6 @@ public class ScenarioController {
 		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
 	) {
 		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
-
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-	}
-
-
-	@PutMapping("/scenarios/{scenarioId}/without-notification")
-	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Update Scenario without notification successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
-		@ApiResponse(responseCode = "404", description = "Scenario not found")
-	})
-	public ResponseEntity<Void> updateScenarioWithoutNotification(
-		@AuthMember final Long memberId,
-		@PathVariable final Long scenarioId,
-		@RequestBody @Valid final ScenarioNoNotificationRequest scenarioNoNotificationRequest
-	) {
-		scenarioService.updateScenarioWithoutNotification(memberId, scenarioId, scenarioNoNotificationRequest);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
