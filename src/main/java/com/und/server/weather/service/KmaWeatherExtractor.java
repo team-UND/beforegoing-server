@@ -12,38 +12,35 @@ import com.und.server.weather.dto.api.KmaWeatherResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 기상청 날씨 데이터 전용 추출 컴포넌트
- */
 @Slf4j
 @Component
 public class KmaWeatherExtractor {
 
-	/**
-	 * 기상청 응답에서 최악 날씨 추출
-	 *
-	 * @param response 기상청 API 응답
-	 * @param targetHours 대상 시간대 (null이면 전체 시간)
-	 * @param date 조회 날짜
-	 * @return 최악 날씨 (강수 없으면 null)
-	 */
-	public WeatherType extractWorstWeather(KmaWeatherResponse response, List<Integer> targetHours, LocalDate date) {
+	public WeatherType extractWorstWeather(
+		KmaWeatherResponse response,
+		List<Integer> targetHours,
+		LocalDate date
+	) {
 		if (!isValidResponse(response)) {
 			log.warn("기상청 응답 데이터가 비어있음");
-			return null;
+			return WeatherType.DEFAULT;
 		}
 
-		List<KmaWeatherResponse.WeatherItem> items = response.getResponse().getBody().getItems().getItem();
-		if (items == null || items.isEmpty()) {
+		KmaWeatherResponse.Response responseObj = response.getResponse();
+		KmaWeatherResponse.Body body = responseObj.getBody();
+		KmaWeatherResponse.Items bodies = body.getItems();
+		List<KmaWeatherResponse.WeatherItem> weatherItems = bodies.getItem();
+
+		if (weatherItems == null || weatherItems.isEmpty()) {
 			log.warn("기상청 응답 아이템이 비어있음");
-			return null;
+			return WeatherType.DEFAULT;
 		}
 
-		List<WeatherType> weatherList = extractPrecipitationData(items, targetHours, date);
+		List<WeatherType> weatherList = extractWeatherTypes(weatherItems, targetHours, date);
 
 		if (weatherList.isEmpty()) {
 			log.debug("강수 데이터 없음 - 날짜: {}, 시간대: {}", date, targetHours);
-			return null; // 강수 없음
+			return WeatherType.DEFAULT;
 		}
 
 		WeatherType worst = WeatherType.getWorst(weatherList);
@@ -51,20 +48,8 @@ public class KmaWeatherExtractor {
 		return worst;
 	}
 
-	/**
-	 * 응답 유효성 검사
-	 */
-	private boolean isValidResponse(KmaWeatherResponse response) {
-		return response != null
-			&& response.getResponse() != null
-			&& response.getResponse().getBody() != null
-			&& response.getResponse().getBody().getItems() != null;
-	}
 
-	/**
-	 * PTY(강수형태) 데이터 추출 및 변환
-	 */
-	private List<WeatherType> extractPrecipitationData(
+	private List<WeatherType> extractWeatherTypes(
 		List<KmaWeatherResponse.WeatherItem> items,
 		List<Integer> targetHours,
 		LocalDate date
@@ -73,22 +58,17 @@ public class KmaWeatherExtractor {
 		List<WeatherType> weatherList = new ArrayList<>();
 
 		for (KmaWeatherResponse.WeatherItem item : items) {
-			// PTY 카테고리만 처리
+
 			if (!"PTY".equals(item.getCategory())) {
 				continue;
 			}
-
-			// 날짜 필터링
 			if (!targetDateStr.equals(item.getFcstDate())) {
 				continue;
 			}
-
-			// 시간 필터링 (targetHours가 null이면 전체 시간 포함)
 			if (targetHours != null && !isTargetHour(item.getFcstTime(), targetHours)) {
 				continue;
 			}
 
-			// PTY 값을 WeatherType으로 변환
 			WeatherType weather = convertToWeatherType(item.getFcstValue());
 			if (weather != null) {
 				weatherList.add(weather);
@@ -96,26 +76,9 @@ public class KmaWeatherExtractor {
 					weather, item.getFcstTime(), item.getFcstValue());
 			}
 		}
-
 		return weatherList;
 	}
 
-	/**
-	 * 시간 필터링 확인
-	 */
-	private boolean isTargetHour(String fcstTime, List<Integer> targetHours) {
-		try {
-			int hour = Integer.parseInt(fcstTime) / 100; // HHMM -> HH
-			return targetHours.contains(hour);
-		} catch (NumberFormatException e) {
-			log.warn("시간 파싱 실패: {}", fcstTime);
-			return false;
-		}
-	}
-
-	/**
-	 * PTY 값을 WeatherType으로 변환
-	 */
 	private WeatherType convertToWeatherType(String fcstValue) {
 		try {
 			int ptyValue = Integer.parseInt(fcstValue);
@@ -125,4 +88,22 @@ public class KmaWeatherExtractor {
 			return null;
 		}
 	}
+
+	private boolean isTargetHour(String fcstTime, List<Integer> targetHours) {
+		try {
+			int hour = Integer.parseInt(fcstTime) / 100;
+			return targetHours.contains(hour);
+		} catch (NumberFormatException e) {
+			log.warn("시간 파싱 실패: {}", fcstTime);
+			return false;
+		}
+	}
+
+	private boolean isValidResponse(KmaWeatherResponse response) {
+		return response != null
+			&& response.getResponse() != null
+			&& response.getResponse().getBody() != null
+			&& response.getResponse().getBody().getItems() != null;
+	}
+
 }
