@@ -1,7 +1,7 @@
 package com.und.server.weather.dto.response;
 
-import com.und.server.weather.constants.FineDustLevel;
-import com.und.server.weather.constants.UvIndexLevel;
+import com.und.server.weather.constants.FineDustType;
+import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,7 +22,7 @@ public record WeatherResponse(
 
 ) {
 
-	public static WeatherResponse from(WeatherType weather, FineDustLevel fineDust, UvIndexLevel uvIndex) {
+	public static WeatherResponse from(WeatherType weather, FineDustType fineDust, UvType uvIndex) {
 		return WeatherResponse.builder()
 			.weather(weather.getDescription())
 			.fineDust(fineDust.getDescription())
