@@ -11,9 +11,9 @@ import com.und.server.common.exception.ServerException;
 import com.und.server.weather.client.KmaWeatherClient;
 import com.und.server.weather.client.OpenMeteoClient;
 import com.und.server.weather.config.WeatherProperties;
-import com.und.server.weather.constants.FineDustLevel;
+import com.und.server.weather.constants.FineDustType;
 import com.und.server.weather.constants.TimeSlot;
-import com.und.server.weather.constants.UvIndexLevel;
+import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.GridPoint;
 import com.und.server.weather.dto.api.KmaWeatherResponse;
@@ -64,7 +64,7 @@ public class WeatherService {
 			}
 		} catch (Exception e) {
 			log.error("날씨 정보 조회 중 예상치 못한 오류 발생", e);
-			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR);
+			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
 		}
 	}
 
@@ -100,8 +100,8 @@ public class WeatherService {
 		WeatherType weather = getWorstWeatherForSlot(latitude, longitude, currentSlot, now.toLocalDate());
 
 		// Open-Meteo API로 미세먼지 및 자외선 조회
-		FineDustLevel fineDust = getWorstFineDustForSlot(latitude, longitude, currentSlot, now.toLocalDate());
-		UvIndexLevel uvIndex = getWorstUvIndexForSlot(latitude, longitude, currentSlot, now.toLocalDate());
+		FineDustType fineDust = getWorstFineDustForSlot(latitude, longitude, currentSlot, now.toLocalDate());
+		UvType uvIndex = getWorstUvIndexForSlot(latitude, longitude, currentSlot, now.toLocalDate());
 
 		return WeatherResponse.from(weather, fineDust, uvIndex);
 	}
@@ -112,12 +112,14 @@ public class WeatherService {
 	private WeatherResponse getFutureWeather(Double latitude, Double longitude, LocalDate date) {
 		log.info("미래 날씨 조회 시작: {}", date);
 
+		LocalDateTime now = LocalDateTime.now();
+		TimeSlot currentSlot = TimeSlot.getCurrentSlot(now);
 		// 기상청 API로 하루 전체 날씨 조회
-		WeatherType weather = getWorstWeatherForDay(latitude, longitude, date);
+		WeatherType weather = getWorstWeatherForDay(latitude, longitude, currentSlot,date);
 
 		// Open-Meteo API로 하루 전체 미세먼지 및 자외선 조회
-		FineDustLevel fineDust = getWorstFineDustForDay(latitude, longitude, date);
-		UvIndexLevel uvIndex = getWorstUvIndexForDay(latitude, longitude, date);
+		FineDustType fineDust = getWorstFineDustForDay(latitude, longitude, date);
+		UvType uvIndex = getWorstUvIndexForDay(latitude, longitude, date);
 
 		return WeatherResponse.from(weather, fineDust, uvIndex);
 	}
@@ -129,45 +131,54 @@ public class WeatherService {
 		try {
 			GridPoint gridPoint = GridConverter.convertToGrid(latitude, longitude);
 
-			// baseDate는 현재 날짜로 설정 (예보 발표 기준일)
-			LocalDate today = LocalDate.now();
-			KmaWeatherResponse response = kmaWeatherClient.getVilageForecast(
-				weatherProperties.getKma().getServiceKey(),
-				1,      // pageNo
-				1000,   // numOfRows
-				"JSON", // dataType
-				today.format(DateTimeFormatter.ofPattern("yyyyMMdd")), // baseDate = 현재 날짜
-				slot.getBaseTime(), // baseTime
-				gridPoint.x(),
-				gridPoint.y()
-			);
+					// baseDate는 슬롯에 따라 조정 (SLOT_00_04는 전날 23시 발표)
+		LocalDate today = LocalDate.now();
+		String baseDate = slot.getBaseDate(today).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		String baseTime = slot.getBaseTime();
 
-			// PTY 데이터를 추출하여 최악 시나리오 계산
-			List<Integer> targetHours = slot.getForecastHours();
-			return kmaWeatherExtractor.extractWorstWeather(response, targetHours, date);
+		log.info("기상청 API 호출 파라미터: baseDate={}, baseTime={}, nx={}, ny={}",
+			baseDate, baseTime, gridPoint.x(), gridPoint.y());
+
+		KmaWeatherResponse response = kmaWeatherClient.getVilageForecast(
+			weatherProperties.getKma().getServiceKey(),
+			1,      // pageNo
+			1000,   // numOfRows
+			"JSON", // dataType
+			baseDate, // baseDate = 현재 날짜
+			baseTime, // baseTime
+			gridPoint.x(),
+			gridPoint.y()
+		);
+
+					// PTY 데이터를 추출하여 최악 시나리오 계산 (시작시간부터 23시까지)
+		List<Integer> targetHours = slot.getForecastHoursFromStart();
+					return kmaWeatherExtractor.extractWorstWeather(response, targetHours, date);
 
 		} catch (Exception e) {
 			log.error("기상청 API 호출 실패", e);
-			throw new ServerException(WeatherErrorResult.KMA_API_ERROR);
+			throw new ServerException(WeatherErrorResult.KMA_API_ERROR, e);
 		}
 	}
 
 	/**
 	 * 하루 전체의 최악 날씨 조회
 	 */
-	private WeatherType getWorstWeatherForDay(Double latitude, Double longitude, LocalDate date) {
+	private WeatherType getWorstWeatherForDay(Double latitude, Double longitude,TimeSlot slot, LocalDate date) {
 		try {
 			GridPoint gridPoint = GridConverter.convertToGrid(latitude, longitude);
 
 			// baseDate는 현재 날짜로 설정 (예보 발표 기준일)
 			LocalDate today = LocalDate.now();
+			String baseDate = slot.getBaseDate(today).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+			String baseTime = slot.getBaseTime();
+
 			KmaWeatherResponse response = kmaWeatherClient.getVilageForecast(
 				weatherProperties.getKma().getServiceKey(),
 				1,      // pageNo
 				1000,   // numOfRows
 				"JSON", // dataType
-				today.format(DateTimeFormatter.ofPattern("yyyyMMdd")), // baseDate = 현재 날짜
-				"0200", // baseTime (02시 발표)
+				baseDate, // baseDate = 현재 날짜
+				baseTime, // baseTime (02시 발표)
 				gridPoint.x(),
 				gridPoint.y()
 			);
@@ -184,7 +195,7 @@ public class WeatherService {
 	/**
 	 * 특정 시간 구간의 최악 미세먼지 조회
 	 */
-	private FineDustLevel getWorstFineDustForSlot(Double latitude, Double longitude, TimeSlot slot, LocalDate date) {
+	private FineDustType getWorstFineDustForSlot(Double latitude, Double longitude, TimeSlot slot, LocalDate date) {
 		try {
 			OpenMeteoResponse response = openMeteoClient.getForecast(
 				latitude,
@@ -195,7 +206,7 @@ public class WeatherService {
 				"Asia/Seoul"
 			);
 
-			List<Integer> targetHours = slot.getForecastHours();
+			List<Integer> targetHours = slot.getForecastHoursFromStart();
 			return fineDustExtractor.extractWorstFineDust(response, targetHours, date);
 
 		} catch (Exception e) {
@@ -207,7 +218,7 @@ public class WeatherService {
 	/**
 	 * 하루 전체의 최악 미세먼지 조회
 	 */
-	private FineDustLevel getWorstFineDustForDay(Double latitude, Double longitude, LocalDate date) {
+	private FineDustType getWorstFineDustForDay(Double latitude, Double longitude, LocalDate date) {
 		try {
 			OpenMeteoResponse response = openMeteoClient.getForecast(
 				latitude,
@@ -229,7 +240,7 @@ public class WeatherService {
 	/**
 	 * 특정 시간 구간의 최악 자외선 지수 조회
 	 */
-	private UvIndexLevel getWorstUvIndexForSlot(Double latitude, Double longitude, TimeSlot slot, LocalDate date) {
+	private UvType getWorstUvIndexForSlot(Double latitude, Double longitude, TimeSlot slot, LocalDate date) {
 		try {
 			OpenMeteoResponse response = openMeteoClient.getForecast(
 				latitude,
@@ -240,7 +251,7 @@ public class WeatherService {
 				"Asia/Seoul"
 			);
 
-			List<Integer> targetHours = slot.getForecastHours();
+			List<Integer> targetHours = slot.getForecastHoursFromStart();
 			return uvIndexExtractor.extractWorstUvIndex(response, targetHours, date);
 
 		} catch (Exception e) {
@@ -252,7 +263,7 @@ public class WeatherService {
 	/**
 	 * 하루 전체의 최악 자외선 지수 조회
 	 */
-	private UvIndexLevel getWorstUvIndexForDay(Double latitude, Double longitude, LocalDate date) {
+	private UvType getWorstUvIndexForDay(Double latitude, Double longitude, LocalDate date) {
 		try {
 			OpenMeteoResponse response = openMeteoClient.getForecast(
 				latitude,
@@ -270,4 +281,5 @@ public class WeatherService {
 			throw new ServerException(WeatherErrorResult.OPEN_METEO_API_ERROR, e);
 		}
 	}
+
 }
