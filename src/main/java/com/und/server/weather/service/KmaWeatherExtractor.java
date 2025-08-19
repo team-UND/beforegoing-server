@@ -22,7 +22,7 @@ public class KmaWeatherExtractor {
 		LocalDate date
 	) {
 		if (!isValidResponse(response)) {
-			log.warn("기상청 응답 데이터가 비어있음");
+			log.warn("기상청 응답 데이터가 비어있음. response: {}", response);
 			return WeatherType.DEFAULT;
 		}
 
@@ -71,6 +71,7 @@ public class KmaWeatherExtractor {
 
 			WeatherType weather = convertToWeatherType(item.getFcstValue());
 			if (weather != null) {
+				System.out.println(item);
 				weatherList.add(weather);
 				log.debug("강수 데이터 추가: {} (시간: {}, 값: {})",
 					weather, item.getFcstTime(), item.getFcstValue());

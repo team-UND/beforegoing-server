@@ -29,6 +29,17 @@ public class FineDustExtractor {
 		List<Double> pm10Values = openMeteoResponse.getHourly().getPm10();
 		List<Double> pm25Values = openMeteoResponse.getHourly().getPm25();
 
+		for (String time : times) {
+			System.out.println(time);
+		}
+		for (Double value : pm10Values) {
+			System.out.println(value);
+		}
+		for (Double value : pm25Values) {
+			System.out.println("초미세");
+			System.out.println(value);
+		}
+
 		if (!isValidData(times, pm10Values, pm25Values)) {
 			log.warn("Open-Meteo 미세먼지 데이터가 유효하지 않음");
 			return FineDustType.DEFAULT;

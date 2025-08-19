@@ -28,6 +28,13 @@ public class UvIndexExtractor {
 		List<String> times = openMeteoResponse.getHourly().getTime();
 		List<Double> uvIndexValues = openMeteoResponse.getHourly().getUvIndex();
 
+		for(String time : times) {
+			System.out.println(time);
+		}
+		for(Double uvIndexValue : uvIndexValues) {
+			System.out.println(uvIndexValue);
+		}
+
 		if (!isValidData(times, uvIndexValues)) {
 			log.warn("Open-Meteo 자외선 데이터가 유효하지 않음");
 			return UvType.DEFAULT;
