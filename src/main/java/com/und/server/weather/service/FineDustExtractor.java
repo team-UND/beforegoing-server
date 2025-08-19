@@ -48,7 +48,7 @@ public class FineDustExtractor {
 			return FineDustLevel.GOOD; // 기본값
 		}
 
-		FineDustLevel worst = FineDustLevel.getWorst(fineDustList.toArray(new FineDustLevel[0]));
+		FineDustLevel worst = FineDustLevel.getWorst(fineDustList);
 		log.debug("최악 미세먼지 등급 추출 완료: {} (총 {}개 데이터)", worst, fineDustList.size());
 		return worst;
 	}
@@ -145,7 +145,7 @@ public class FineDustExtractor {
 		FineDustLevel pm10Level = FineDustLevel.fromPm10Concentration(pm10);
 		FineDustLevel pm25Level = FineDustLevel.fromPm25Concentration(pm25);
 
-		FineDustLevel worseLevel = FineDustLevel.getWorst(pm10Level, pm25Level);
+		FineDustLevel worseLevel = FineDustLevel.getWorst(List.of(pm10Level, pm25Level));
 		log.debug("PM 농도 변환: PM10={} ({}), PM2.5={} ({}) -> {}",
 			pm10, pm10Level, pm25, pm25Level, worseLevel);
 

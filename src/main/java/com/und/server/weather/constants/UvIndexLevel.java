@@ -3,6 +3,8 @@ package com.und.server.weather.constants;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 /**
  * 자외선 지수 등급 enum
  * 기상청 생활기상지수 API의 자외선지수 값과 매핑
@@ -46,7 +48,7 @@ public enum UvIndexLevel {
 	/**
 	 * 가장 높은 자외선 등급 반환 (최악 시나리오용)
 	 */
-	public static UvIndexLevel getWorst(UvIndexLevel... levels) {
+	public static UvIndexLevel getWorst(List<UvIndexLevel> levels) {
 		UvIndexLevel worst = VERY_LOW;
 		for (UvIndexLevel level : levels) {
 			if (level.severity > worst.severity) {
@@ -55,4 +57,5 @@ public enum UvIndexLevel {
 		}
 		return worst;
 	}
+
 }

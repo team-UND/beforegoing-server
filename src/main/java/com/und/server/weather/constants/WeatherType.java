@@ -1,5 +1,7 @@
 package com.und.server.weather.constants;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -36,21 +38,17 @@ public enum WeatherType {
 		return NOTHING; // 알 수 없는 PTY 값
 	}
 
-	/**
-	 * 가장 심각한 날씨 반환 (최악 시나리오용)
-	 * null 값은 무시하고 처리
-	 */
-	public static WeatherType getWorst(WeatherType... types) {
-		WeatherType worst = null;
 
+	public static WeatherType getWorst(List<WeatherType> types) {
+		WeatherType worst = NOTHING;
 		for (WeatherType type : types) {
 			if (type != null) {
-				if (worst == null || type.severity > worst.severity) {
+				if (type.severity > worst.severity) {
 					worst = type;
 				}
 			}
 		}
-
-		return worst; // 모든 값이 null이면 null 반환 (강수 없음)
+		return worst;
 	}
+
 }

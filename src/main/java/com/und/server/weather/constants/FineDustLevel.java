@@ -3,6 +3,8 @@ package com.und.server.weather.constants;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 /**
  * 미세먼지 등급 enum
  * 한국환경공단 에어코리아 API의 등급코드와 직접 매핑
@@ -94,7 +96,7 @@ public enum FineDustLevel {
 	/**
 	 * 가장 심각한 미세먼지 등급 반환 (최악 시나리오용)
 	 */
-	public static FineDustLevel getWorst(FineDustLevel... levels) {
+	public static FineDustLevel getWorst(List<FineDustLevel> levels) {
 		FineDustLevel worst = GOOD;
 		for (FineDustLevel level : levels) {
 			if (level.severity > worst.severity) {
@@ -103,4 +105,5 @@ public enum FineDustLevel {
 		}
 		return worst;
 	}
+
 }

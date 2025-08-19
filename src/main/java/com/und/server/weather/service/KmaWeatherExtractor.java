@@ -46,7 +46,7 @@ public class KmaWeatherExtractor {
 			return null; // 강수 없음
 		}
 
-		WeatherType worst = WeatherType.getWorst(weatherList.toArray(new WeatherType[0]));
+		WeatherType worst = WeatherType.getWorst(weatherList);
 		log.debug("최악 날씨 추출 완료: {} (총 {}개 데이터)", worst, weatherList.size());
 		return worst;
 	}

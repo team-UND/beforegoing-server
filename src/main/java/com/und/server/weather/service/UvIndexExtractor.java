@@ -47,7 +47,7 @@ public class UvIndexExtractor {
 			return UvIndexLevel.VERY_LOW; // 기본값
 		}
 
-		UvIndexLevel worst = UvIndexLevel.getWorst(uvIndexList.toArray(new UvIndexLevel[0]));
+		UvIndexLevel worst = UvIndexLevel.getWorst(uvIndexList);
 		log.debug("최악 자외선 지수 추출 완료: {} (총 {}개 데이터)", worst, uvIndexList.size());
 		return worst;
 	}
