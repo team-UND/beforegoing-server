@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * 기상청 단기예보 API 응답 DTO
@@ -70,6 +71,7 @@ public class KmaWeatherResponse {
 	@Getter
 	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@ToString
 	public static class WeatherItem {
 
 		@JsonProperty("baseDate")
