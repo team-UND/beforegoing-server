@@ -9,12 +9,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * 기상청 단기예보 API 응답 DTO
- */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ToString
 public class KmaWeatherResponse {
 
 	@JsonProperty("response")
@@ -23,6 +21,7 @@ public class KmaWeatherResponse {
 	@Getter
 	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@ToString
 	public static class Response {
 
 		@JsonProperty("header")
@@ -35,6 +34,7 @@ public class KmaWeatherResponse {
 	@Getter
 	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@ToString
 	public static class Header {
 
 		@JsonProperty("resultCode")
@@ -47,6 +47,7 @@ public class KmaWeatherResponse {
 	@Getter
 	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@ToString
 	public static class Body {
 
 		@JsonProperty("dataType")
@@ -62,6 +63,7 @@ public class KmaWeatherResponse {
 	@Getter
 	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@ToString
 	public static class Items {
 
 		@JsonProperty("item")
@@ -75,27 +77,28 @@ public class KmaWeatherResponse {
 	public static class WeatherItem {
 
 		@JsonProperty("baseDate")
-		private String baseDate;      // 발표일자 (YYYYMMDD)
+		private String baseDate;
 
 		@JsonProperty("baseTime")
-		private String baseTime;      // 발표시각 (HHMM)
+		private String baseTime;
 
 		@JsonProperty("category")
-		private String category;      // 자료구분코드 (PTY, SKY 등)
+		private String category;
 
 		@JsonProperty("fcstDate")
-		private String fcstDate;      // 예보일자 (YYYYMMDD)
+		private String fcstDate;
 
 		@JsonProperty("fcstTime")
-		private String fcstTime;      // 예보시각 (HHMM)
+		private String fcstTime;
 
 		@JsonProperty("fcstValue")
-		private String fcstValue;     // 예보값
+		private String fcstValue;
 
 		@JsonProperty("nx")
-		private Integer nx;           // 예보지점 X 좌표
+		private Integer nx;
 
 		@JsonProperty("ny")
-		private Integer ny;           // 예보지점 Y 좌표
+		private Integer ny;
 	}
+
 }

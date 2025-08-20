@@ -7,13 +7,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
-/**
- * Open-Meteo API 응답 DTO
- */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ToString
 public class OpenMeteoResponse {
 
 	@JsonProperty("latitude")
@@ -34,37 +33,39 @@ public class OpenMeteoResponse {
 	@Getter
 	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@ToString
 	public static class HourlyUnits {
 
 		@JsonProperty("time")
 		private String time;
 
 		@JsonProperty("pm2_5")
-		private String pm25;          // µg/m³
+		private String pm25;
 
 		@JsonProperty("pm10")
-		private String pm10;          // µg/m³
+		private String pm10;
 
 		@JsonProperty("uv_index")
-		private String uvIndex;       // UV index
+		private String uvIndex;
 	}
 
 	@Getter
 	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@ToString
 	public static class Hourly {
 
 		@JsonProperty("time")
-		private List<String> time;    // ISO 8601 형식 ("2024-01-01T00:00")
+		private List<String> time;
 
 		@JsonProperty("pm2_5")
-		private List<Double> pm25;    // PM2.5 농도 (µg/m³)
+		private List<Double> pm25;
 
 		@JsonProperty("pm10")
-		private List<Double> pm10;    // PM10 농도 (µg/m³)
+		private List<Double> pm10;
 
 		@JsonProperty("uv_index")
-		private List<Double> uvIndex; // 자외선 지수
+		private List<Double> uvIndex;
 	}
 
 }
