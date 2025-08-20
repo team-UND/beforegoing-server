@@ -56,4 +56,24 @@ public enum FineDustType {
 		return worst;
 	}
 
+	/**
+	 * 미세먼지 수치 평균값 계산용 중간값 반환
+	 */
+	public double getAverageValue() {
+		if (this == UNKNOWN) {
+			return 0.0;
+		}
+		if (maxPm25 == Integer.MAX_VALUE) {
+			return minPm25 + 50; // 매우나쁨의 경우 적절한 값 사용
+		}
+		return (double) (minPm25 + maxPm25) / 2;
+	}
+
+	/**
+	 * 평균값으로부터 적절한 FineDustType 반환
+	 */
+	public static FineDustType fromAverageValue(double averageValue) {
+		return fromPm25Concentration(averageValue);
+	}
+
 }

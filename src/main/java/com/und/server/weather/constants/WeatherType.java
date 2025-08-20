@@ -15,11 +15,11 @@ public enum WeatherType {
 	SNOW(3, "눈", 2),
 	SHOWER(4, "소나기", 3);
 
-	public static final WeatherType DEFAULT = WeatherType.NOTHING;
-
 	private final int fcstValue;
 	private final String description;
 	private final int severity;
+
+	public static final WeatherType DEFAULT = WeatherType.NOTHING;
 
 	public static WeatherType fromPtyValue(int ptyValue) {
 		for (WeatherType type : values()) {

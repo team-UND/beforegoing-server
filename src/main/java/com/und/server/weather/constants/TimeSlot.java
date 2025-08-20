@@ -9,10 +9,6 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * 4시간 단위 시간 구간 enum
- * 각 슬롯의 시작시간부터 23시까지의 최악 시나리오를 계산
- */
 @Getter
 @RequiredArgsConstructor
 public enum TimeSlot {
@@ -68,34 +64,13 @@ public enum TimeSlot {
 		};
 	}
 
-	/**
-	 * 기상청 API 호출을 위한 발표일자 계산
-	 * SLOT_00_04의 경우 전날 23시 발표이므로 전날 날짜 사용
-	 */
 	public LocalDate getBaseDate(LocalDate currentDate) {
-		if(this == SLOT_00_04) {
+		if (this == SLOT_00_04) {
 			return currentDate.minusDays(1);
 		}
 		return currentDate;
 	}
 
-	/**
-	 * 시작시간부터 23시까지의 예보 조회 시각 리스트 반환
-	 * 예: SLOT_12_16 → [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-	 */
-	public List<Integer> getForecastHoursFromStart() {
-		List<Integer> hours = new ArrayList<>();
-		for (int i = startHour; i <= 23; i++) {
-			hours.add(i);
-		}
-		return hours;
-	}
-
-	/**
-	 * 기존 호환성을 위한 메서드 (4시간 구간만)
-	 * @deprecated 새로운 로직에서는 getForecastHoursFromStart() 사용 권장
-	 */
-	@Deprecated
 	public List<Integer> getForecastHours() {
 		List<Integer> hours = new ArrayList<>();
 		for (int i = startHour; i < endHour; i++) {
