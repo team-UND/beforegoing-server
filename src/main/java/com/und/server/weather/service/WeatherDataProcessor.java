@@ -1,7 +1,7 @@
 package com.und.server.weather.service;
 
+import java.security.KeyStore;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +21,7 @@ import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.GridPoint;
 import com.und.server.weather.dto.api.KmaWeatherResponse;
 import com.und.server.weather.dto.api.OpenMeteoResponse;
-import com.und.server.weather.dto.cache.FutureWeatherCacheData;
-import com.und.server.weather.dto.cache.HourlyWeatherInfo;
+import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.exception.WeatherErrorResult;
 import com.und.server.weather.util.GridConverter;
@@ -46,10 +45,12 @@ public class WeatherDataProcessor {
     private final FineDustExtractor fineDustExtractor;
     private final UvIndexExtractor uvIndexExtractor;
 
+	private final FutureWeatherDecisionSelector futureWeatherDecisionSelector;
+
     /**
      * 오늘 슬롯 데이터 처리
      */
-    public WeatherCacheData fetchTodaySlotData(Double latitude, Double longitude, TimeSlot currentSlot) {
+    public TimeSlotWeatherCacheData fetchTodaySlotData(Double latitude, Double longitude, TimeSlot currentSlot) {
         log.info("오늘 슬롯 데이터 처리 시작: slot={}", currentSlot);
 
         GridPoint gridPoint = GridConverter.convertToGrid(latitude, longitude);
@@ -68,13 +69,19 @@ public class WeatherDataProcessor {
 
             // 현재 슬롯 시간대 데이터 처리
             List<Integer> slotHours = currentSlot.getForecastHours();
-            Map<String, HourlyWeatherInfo> hourlyData = processHourlyData(
+            Map<String, WeatherCacheData> hourlyData = processHourlyData(
                 weatherData, dustUvData, slotHours, today);
 
-            return WeatherCacheData.builder()
-                .hours(hourlyData)
-                .lastUpdated(LocalDateTime.now())
-                .sourceSlot(currentSlot)
+
+			for(Map.Entry<String, WeatherCacheData> entry : hourlyData.entrySet()) {
+				System.out.println(entry.getKey() + ":" + entry.getValue());
+			}
+
+
+
+
+            return TimeSlotWeatherCacheData.builder()
+				.hours(hourlyData)
                 .build();
 
         } catch (Exception e) {
@@ -105,13 +112,28 @@ public class WeatherDataProcessor {
 
 			// 하루 전체 시간대 데이터 처리 (0~23시, 계산용)
 			List<Integer> allHours = getAllDayHours();
-			Map<String, HourlyWeatherInfo> hourlyData = processHourlyData(
-				weatherData, dustUvData, allHours, targetDate);
+
+			Map<Integer, WeatherType> weatherMap = kmaWeatherExtractor.extractWeatherForHours(weatherData, allHours, targetDate);
+			Map<Integer, FineDustType> dustMap = fineDustExtractor.extractDustForHours(dustUvData, allHours, targetDate);
+			Map<Integer, UvType> uvMap = uvIndexExtractor.extractUvForHours(dustUvData, allHours, targetDate);
+
+			System.out.println(weatherMap);
+			System.out.println(dustMap);
+			System.out.println(uvMap);
+
+			WeatherType worstWeather = futureWeatherDecisionSelector.calculateWorstWeather(weatherMap.values().stream().toList());
+			FineDustType avgDust = futureWeatherDecisionSelector.calculateAverageDust(dustMap.values().stream().toList());
+			UvType avgUv = futureWeatherDecisionSelector.calculateAverageUv(uvMap.values().stream().toList());
+
+			System.out.println("가장 최악의 날씨");
+			System.out.println(worstWeather);
+			System.out.println(avgDust);
+			System.out.println(avgUv);
 
 			return WeatherCacheData.builder()
-				.hours(hourlyData)
-				.lastUpdated(LocalDateTime.now())
-				.sourceSlot(currentSlot)
+				.weather(worstWeather)
+				.dust(avgDust)
+				.uv(avgUv)
 				.build();
 
 		} catch (Exception e) {
@@ -123,13 +145,13 @@ public class WeatherDataProcessor {
     /**
      * 시간별 데이터 처리 (배치 최적화)
      */
-    private Map<String, HourlyWeatherInfo> processHourlyData(
+    private Map<String, WeatherCacheData> processHourlyData( // 얘도............Extractor 아닌가?
         KmaWeatherResponse weatherData,
         OpenMeteoResponse dustUvData,
         List<Integer> targetHours,
         LocalDate date
     ) {
-        Map<String, HourlyWeatherInfo> hourlyData = new HashMap<>();
+        Map<String, WeatherCacheData> hourlyData = new HashMap<>();
 
         try {
             // 한 번에 모든 시간대 데이터 추출 (성능 최적화)
@@ -143,8 +165,7 @@ public class WeatherDataProcessor {
                 FineDustType dust = dustMap.getOrDefault(hour, FineDustType.DEFAULT);
                 UvType uv = uvMap.getOrDefault(hour, UvType.DEFAULT);
 
-                HourlyWeatherInfo hourInfo = HourlyWeatherInfo.builder()
-                    .hour(hour)
+				WeatherCacheData hourInfo = WeatherCacheData.builder()
                     .weather(weather)
                     .dust(dust)
                     .uv(uv)
@@ -154,41 +175,11 @@ public class WeatherDataProcessor {
                 log.debug("시간별 데이터 조합 완료: {}시 - 날씨:{}, 미세먼지:{}, UV:{}",
                     hour, weather, dust, uv);
             }
-
             log.info("배치 데이터 처리 완료: 총 {}개 시간대 처리", targetHours.size());
 
         } catch (Exception e) {
-            log.error("배치 데이터 처리 실패, 개별 처리로 폴백", e);
-
-            // 폴백: 개별 처리
-            for (int hour : targetHours) {
-                try {
-                    WeatherType weather = kmaWeatherExtractor.extractWeatherForHour(weatherData, hour, date);
-                    FineDustType dust = fineDustExtractor.extractDustForHour(dustUvData, hour, date);
-                    UvType uv = uvIndexExtractor.extractUvForHour(dustUvData, hour, date);
-
-                    HourlyWeatherInfo hourInfo = HourlyWeatherInfo.builder()
-                        .hour(hour)
-                        .weather(weather)
-                        .dust(dust)
-                        .uv(uv)
-                        .build();
-
-                    hourlyData.put(String.format("%02d", hour), hourInfo);
-
-                } catch (Exception innerE) {
-                    log.warn("{}시 개별 데이터 처리 실패, 기본값으로 설정", hour, innerE);
-                    HourlyWeatherInfo hourInfo = HourlyWeatherInfo.builder()
-                        .hour(hour)
-                        .weather(WeatherType.DEFAULT)
-                        .dust(FineDustType.DEFAULT)
-                        .uv(UvType.DEFAULT)
-                        .build();
-                    hourlyData.put(String.format("%02d", hour), hourInfo);
-                }
-            }
+			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
         }
-
         return hourlyData;
     }
 
@@ -238,46 +229,8 @@ public class WeatherDataProcessor {
         }
     }
 
-    /**
-     * 미래 하루 전체 데이터 처리 (0~23시, 계산용)
-//     */
-//    public WeatherCacheData fetchFullDayData(Double latitude, Double longitude, LocalDate targetDate, TimeSlot currentSlot) {
-//        log.info("미래 하루 전체 데이터 처리 시작: date={}, currentSlot={}", targetDate, currentSlot);
-//
-//        GridPoint gridPoint = GridConverter.convertToGrid(latitude, longitude);
-//
-//        try {
-//            // 동시 API 호출 (하루 전체 데이터)
-//            CompletableFuture<KmaWeatherResponse> weatherFuture =
-//                CompletableFuture.supplyAsync(() -> callKmaWeatherAPI(gridPoint, currentSlot, targetDate));
-//            CompletableFuture<OpenMeteoResponse> openMeteoFuture =
-//                CompletableFuture.supplyAsync(() -> callOpenMeteoAPI(latitude, longitude, targetDate));
-//
-//            // 결과 대기
-//            KmaWeatherResponse weatherData = weatherFuture.get();
-//            OpenMeteoResponse dustUvData = openMeteoFuture.get();
-//
-//            // 하루 전체 시간대 데이터 처리 (0~23시, 계산용)
-//            List<Integer> allHours = getAllDayHours();
-//            Map<String, HourlyWeatherInfo> hourlyData = processHourlyData(
-//                weatherData, dustUvData, allHours, targetDate);
-//
-//            return WeatherCacheData.builder()
-//                .hours(hourlyData)
-//                .lastUpdated(LocalDateTime.now())
-//                .sourceSlot(currentSlot)
-//                .build();
-//
-//        } catch (Exception e) {
-//            log.error("미래 하루 전체 데이터 처리 중 오류 발생", e);
-//            throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
-//        }
-//    }
-
-    /**
-     * 하루 전체 시간 리스트 (0~23시)
-     */
     private List<Integer> getAllDayHours() {
-        return List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
+//        return List.of(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+        return List.of(12, 13, 14, 15, 16);
     }
 }

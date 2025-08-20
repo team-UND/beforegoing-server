@@ -8,31 +8,31 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 날씨 관련 에러 코드 정의
+ * Weather related error codes
  */
 @Getter
 @RequiredArgsConstructor
 public enum WeatherErrorResult implements ErrorResult {
 
-	// 위치 관련 에러
-	INVALID_COORDINATES(HttpStatus.BAD_REQUEST, "위치 좌표가 올바르지 않습니다"),
-	GRID_CONVERSION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "격자 좌표 변환에 실패했습니다"),
+	// Location related errors
+	INVALID_COORDINATES(HttpStatus.BAD_REQUEST, "Invalid location coordinates"),
+	GRID_CONVERSION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to convert grid coordinates"),
 
-	// 날짜 관련 에러
-	INVALID_DATE(HttpStatus.BAD_REQUEST, "날짜가 올바르지 않습니다"),
-	DATE_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "조회 가능한 날짜 범위를 벗어났습니다 (최대 +3일)"),
+	// Date related errors
+	INVALID_DATE(HttpStatus.BAD_REQUEST, "Invalid date"),
+	DATE_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "Date is out of range (maximum +3 days)"),
 
-	// API 호출 관련 에러
-	KMA_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "기상청 API 호출에 실패했습니다"),
-	OPEN_METEO_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "Open-Meteo API 호출에 실패했습니다"),
-	API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "API 호출 한도를 초과했습니다"),
+	// API call related errors
+	KMA_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "Failed to call KMA weather API"),
+	OPEN_METEO_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "Failed to call Open-Meteo API"),
+	API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "API rate limit exceeded"),
 
-	// 데이터 처리 관련 에러
-	WEATHER_DATA_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "날씨 데이터 파싱에 실패했습니다"),
-	NO_WEATHER_DATA_AVAILABLE(HttpStatus.NOT_FOUND, "해당 지역/시간의 날씨 정보를 찾을 수 없습니다"),
+	// Data processing related errors
+	WEATHER_DATA_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to parse weather data"),
+	NO_WEATHER_DATA_AVAILABLE(HttpStatus.NOT_FOUND, "No weather data available for the specified location/time"),
 
-	// 일반 에러
-	WEATHER_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "날씨 서비스 처리 중 오류가 발생했습니다");
+	// General errors
+	WEATHER_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing weather service");
 
 	private final HttpStatus httpStatus;
 	private final String message;
