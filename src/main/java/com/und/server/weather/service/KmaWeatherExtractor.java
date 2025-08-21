@@ -1,7 +1,6 @@
 package com.und.server.weather.service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,6 @@ public class KmaWeatherExtractor {
 		Map<Integer, WeatherType> result = new HashMap<>();
 
 		if (!isValidResponse(response)) {
-			log.warn("기상청 응답 데이터가 비어있음. response: {}", response);
 			return result;
 		}
 
@@ -35,13 +33,11 @@ public class KmaWeatherExtractor {
 		List<KmaWeatherResponse.WeatherItem> weatherItems = bodies.getItem();
 
 		if (weatherItems == null || weatherItems.isEmpty()) {
-			log.warn("기상청 응답 아이템이 비어있음");
 			return result;
 		}
 
 		String targetDateStr = date.format(WeatherType.KMA_DATE_FORMATTER);
 
-		// 한 번만 파싱해서 시간별로 매핑
 		for (KmaWeatherResponse.WeatherItem item : weatherItems) {
 			String category = item.getCategory();
 
@@ -56,8 +52,6 @@ public class KmaWeatherExtractor {
 				int hour = Integer.parseInt(item.getFcstTime()) / 100;
 				if (targetHours.contains(hour)) {
 					System.out.println(item);
-
-
 					WeatherType weather = convertToWeatherType(category, item.getFcstValue());
 
 					if (weather != null) {
@@ -69,7 +63,6 @@ public class KmaWeatherExtractor {
 						}
 						if (!result.containsKey(hour) && "SKY".equals(category)) {
 							result.put(hour, weather);
-							log.debug("SKY 데이터 저장: {}시 -> {} (fcstValue: {})", hour, weather, item.getFcstValue());
 						}
 					}
 
@@ -78,7 +71,6 @@ public class KmaWeatherExtractor {
 				log.warn("시간 파싱 실패: {}", item.getFcstTime());
 			}
 		}
-
 		log.debug("배치 날씨 추출 완료: {} (총 {}개 시간)", result.size(), targetHours.size());
 		return result;
 	}
@@ -94,7 +86,6 @@ public class KmaWeatherExtractor {
 			};
 
 		} catch (NumberFormatException e) {
-			log.warn("{} 값 파싱 실패: {}", category, fcstValue);
 			return WeatherType.NOTHING;
 		}
 	}

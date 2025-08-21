@@ -1,7 +1,6 @@
 package com.und.server.weather.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,6 @@ public class FineDustExtractor {
 		Map<Integer, FineDustType> result = new HashMap<>();
 
 		if (!isValidResponse(openMeteoResponse)) {
-			log.warn("Open-Meteo 미세먼지 응답 데이터가 비어있음");
 			return result;
 		}
 
@@ -33,24 +31,22 @@ public class FineDustExtractor {
 		List<Double> pm10Values = openMeteoResponse.getHourly().getPm10();
 		List<Double> pm25Values = openMeteoResponse.getHourly().getPm25();
 
-		for(String time : times) {
+		for (String time : times) {
 			System.out.println(time);
 		}
-		for(Double value : pm10Values) {
+		for (Double value : pm10Values) {
 			System.out.println(value);
 		}
-		for(Double value : pm25Values) {
+		for (Double value : pm25Values) {
 			System.out.println(value);
 		}
 
 		if (!isValidData(times, pm10Values, pm25Values)) {
-			log.warn("Open-Meteo 미세먼지 데이터가 유효하지 않음");
 			return result;
 		}
 
 		String targetDateStr = date.toString();
 
-		// 한 번만 파싱해서 시간별로 매핑
 		for (int i = 0; i < times.size(); i++) {
 			String timeStr = times.get(i);
 
@@ -61,7 +57,8 @@ public class FineDustExtractor {
 			try {
 				int hour = Integer.parseInt(timeStr.substring(11, 13));
 				if (targetHours.contains(hour)) {
-					FineDustType dust = convertToFineDustType(i, pm10Values, pm25Values, timeStr);
+					FineDustType dust = convertToFineDustType(i, pm10Values, pm25Values);
+
 					if (dust != null) {
 						result.put(hour, dust);
 						System.out.println("미세먼지" + timeStr);
@@ -72,21 +69,13 @@ public class FineDustExtractor {
 				log.warn("시간 파싱 실패: {}", timeStr);
 			}
 		}
-
 		log.debug("배치 미세먼지 추출 완료: {} (총 {}개 시간)", result.size(), targetHours.size());
 		return result;
 	}
 
 
-	private FineDustType convertToFineDustType(
-		int index,
-		List<Double> pm10Values,
-		List<Double> pm25Values,
-		String timeStr
-	) {
+	private FineDustType convertToFineDustType(int index, List<Double> pm10Values, List<Double> pm25Values) {
 		if (index >= pm10Values.size() || index >= pm25Values.size()) {
-			log.warn("인덱스 범위 초과: {} (PM10 size: {}, PM2.5 size: {})",
-				index, pm10Values.size(), pm25Values.size());
 			return null;
 		}
 
@@ -94,19 +83,13 @@ public class FineDustExtractor {
 		Double pm25 = pm25Values.get(index);
 
 		if (pm10 == null || pm25 == null) {
-			log.debug("PM 농도 데이터 null: PM10={}, PM2.5={} (시간: {})", pm10, pm25, timeStr);
 			return null;
 		}
 
 		FineDustType pm10Level = FineDustType.fromPm10Concentration(pm10);
 		FineDustType pm25Level = FineDustType.fromPm25Concentration(pm25);
 
-		FineDustType worseLevel = FineDustType.getWorst(List.of(pm10Level, pm25Level));
-		log.debug("PM 농도 변환: PM10={} ({}), PM2.5={} ({}) -> {}",
-			pm10, pm10Level, pm25, pm25Level, worseLevel);
-
-
-		return worseLevel;
+		return FineDustType.getWorst(List.of(pm10Level, pm25Level));
 	}
 
 	private boolean isValidResponse(OpenMeteoResponse openMeteoResponse) {
