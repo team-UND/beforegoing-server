@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import com.und.server.weather.constants.FineDustType;
 import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
-import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,43 +22,21 @@ public class FutureWeatherDecisionSelector {
         if (weatherTypes == null || weatherTypes.isEmpty()) {
             return WeatherType.DEFAULT;
         }
-		WeatherType worst = WeatherType.DEFAULT;
-		for (WeatherType type : weatherTypes) {
-			if (type != null) {
-				if (type.getSeverity() > worst.getSeverity()) {
-					worst = type;
-				}
-			}
-		}
-		return worst;
+		return WeatherType.getWorst(weatherTypes);
     }
 
-    public FineDustType calculateAverageDust(List<FineDustType> fineDustTypes) {
+    public FineDustType calculateWorstFineDust(List<FineDustType> fineDustTypes) {
 		if (fineDustTypes == null || fineDustTypes.isEmpty()) {
 			return FineDustType.DEFAULT;
 		}
-
-		double averageValue = fineDustTypes.stream()
-			.filter(dust -> dust != null && dust != FineDustType.UNKNOWN)
-			.mapToDouble(FineDustType::getAverageValue)
-			.average()
-			.orElse(0.0);
-
-		return FineDustType.fromAverageValue(averageValue);
+		return FineDustType.getWorst(fineDustTypes);
     }
 
-    public UvType calculateAverageUv(List<UvType> uvTypes) {
+    public UvType calculateWorstUv(List<UvType> uvTypes) {
         if (uvTypes == null || uvTypes.isEmpty()) {
             return UvType.DEFAULT;
         }
-
-		double averageValue = uvTypes.stream()
-			.filter(uv -> uv != null && uv != UvType.UNKNOWN)
-			.mapToDouble(UvType::getAverageValue)
-			.average()
-			.orElse(0.0);
-
-		return UvType.fromAverageValue(averageValue);
+		return UvType.getWorst(uvTypes);
     }
 
 }

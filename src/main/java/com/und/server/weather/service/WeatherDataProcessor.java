@@ -1,6 +1,5 @@
 package com.und.server.weather.service;
 
-import java.security.KeyStore;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -122,8 +121,8 @@ public class WeatherDataProcessor {
 			System.out.println(uvMap);
 
 			WeatherType worstWeather = futureWeatherDecisionSelector.calculateWorstWeather(weatherMap.values().stream().toList());
-			FineDustType avgDust = futureWeatherDecisionSelector.calculateAverageDust(dustMap.values().stream().toList());
-			UvType avgUv = futureWeatherDecisionSelector.calculateAverageUv(uvMap.values().stream().toList());
+			FineDustType avgDust = futureWeatherDecisionSelector.calculateWorstFineDust(dustMap.values().stream().toList());
+			UvType avgUv = futureWeatherDecisionSelector.calculateWorstUv(uvMap.values().stream().toList());
 
 			System.out.println("가장 최악의 날씨");
 			System.out.println(worstWeather);
