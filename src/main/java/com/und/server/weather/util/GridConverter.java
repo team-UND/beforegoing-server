@@ -18,9 +18,17 @@ public class GridConverter {
 
 	private static final double DEGRAD = Math.PI / 180.0;
 
-	public static GridPoint convertToGrid(double latitude, double longitude) {
+	public static GridPoint convertToCacheGrid(double latitude, double longitude, double grid) {
+		return convertToGrid(latitude, longitude, grid);
+	}
 
-		double re = RE / KMA_API_GRID;
+	public static GridPoint convertToApiGrid(double latitude, double longitude) {
+		return convertToGrid(latitude, longitude, KMA_API_GRID);
+	}
+
+	private static GridPoint convertToGrid(double latitude, double longitude, double grid) {
+
+		double re = RE / grid;
 		double slat1 = SLAT1 * DEGRAD;
 		double slat2 = SLAT2 * DEGRAD;
 		double olon = OLON * DEGRAD;

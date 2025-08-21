@@ -34,7 +34,7 @@ public class WeatherService {
 			if (isToday) {
 				return cacheService.getTodayWeather(weatherRequest.latitude(), weatherRequest.longitude(), now);
 			} else {
-				return cacheService.getFutureWeather(weatherRequest.latitude(), weatherRequest.longitude(), date);
+				return cacheService.getFutureWeather(weatherRequest.latitude(), weatherRequest.longitude(), now);
 			}
 		} catch (Exception e) {
 			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);

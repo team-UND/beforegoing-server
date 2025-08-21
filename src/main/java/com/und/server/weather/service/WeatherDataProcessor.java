@@ -52,7 +52,7 @@ public class WeatherDataProcessor {
     public TimeSlotWeatherCacheData fetchTodaySlotData(Double latitude, Double longitude, TimeSlot currentSlot) {
         log.info("오늘 슬롯 데이터 처리 시작: slot={}", currentSlot);
 
-        GridPoint gridPoint = GridConverter.convertToGrid(latitude, longitude);
+        GridPoint gridPoint = GridConverter.convertToApiGrid(latitude, longitude);
         LocalDate today = LocalDate.now();
 
         try {
@@ -97,7 +97,7 @@ public class WeatherDataProcessor {
     public WeatherCacheData fetchFutureDayData(Double latitude, Double longitude, LocalDate targetDate, TimeSlot currentSlot) {
         log.info("미래 하루 데이터 처리 시작: date={}, currentSlot={}", targetDate, currentSlot);
 
-        GridPoint gridPoint = GridConverter.convertToGrid(latitude, longitude);
+        GridPoint gridPoint = GridConverter.convertToApiGrid(latitude, longitude);
 		LocalDate today = LocalDate.now();
 
         try {
