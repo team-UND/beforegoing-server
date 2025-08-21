@@ -79,4 +79,13 @@ public enum TimeSlot {
 		return hours;
 	}
 
+
+	public static List<Integer> getAllDayHours() {
+		List<Integer> hours = new ArrayList<>();
+		for (int hour = 0; hour < 24; hour++) {
+			hours.add(hour);
+		}
+		return hours;
+	}
+
 }

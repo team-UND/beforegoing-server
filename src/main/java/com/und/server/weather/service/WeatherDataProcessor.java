@@ -68,6 +68,8 @@ public class WeatherDataProcessor {
 
             // 현재 슬롯 시간대 데이터 처리
             List<Integer> slotHours = currentSlot.getForecastHours();
+
+			System.out.println(slotHours);
             Map<String, WeatherCacheData> hourlyData = processHourlyData(
                 weatherData, dustUvData, slotHours, today);
 
@@ -110,7 +112,7 @@ public class WeatherDataProcessor {
             OpenMeteoResponse dustUvData = openMeteoFuture.get();
 
 			// 하루 전체 시간대 데이터 처리 (0~23시, 계산용)
-			List<Integer> allHours = getAllDayHours();
+			List<Integer> allHours = TimeSlot.getAllDayHours();
 
 			Map<Integer, WeatherType> weatherMap = kmaWeatherExtractor.extractWeatherForHours(weatherData, allHours, targetDate);
 			Map<Integer, FineDustType> dustMap = fineDustExtractor.extractDustForHours(dustUvData, allHours, targetDate);
@@ -228,8 +230,4 @@ public class WeatherDataProcessor {
         }
     }
 
-    private List<Integer> getAllDayHours() {
-//        return List.of(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
-        return List.of(12, 13, 14, 15, 16);
-    }
 }

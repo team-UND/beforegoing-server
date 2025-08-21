@@ -1,6 +1,7 @@
 package com.und.server.weather.constants;
 
 import java.util.List;
+import java.util.Objects;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -9,13 +10,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum WeatherType {
 
-	NOTHING(0, "없음", 0),
-	RAIN(1, "비", 4),
-	SLEET(2, "진눈깨비", 1),
-	SNOW(3, "눈", 2),
-	SHOWER(4, "소나기", 3);
+	NOTHING(null, null,"없음", 0),
+	SUNNY(null,1,"맑음",1),
+	CLOUDY(null,3,"흐림",2),
+	OVERCAST(null,4,"흐림",2),
+	RAIN(1, null,"비", 5),
+	SLEET(2, null,"진눈깨비", 3),
+	SNOW(3, null,"눈", 4),
+	SHOWER(4, null,"소나기", 6);
 
-	private final int fcstValue;
+	private final Integer ptyValue;
+	private final Integer skyValue;
 	private final String description;
 	private final int severity;
 
@@ -23,7 +28,16 @@ public enum WeatherType {
 
 	public static WeatherType fromPtyValue(int ptyValue) {
 		for (WeatherType type : values()) {
-			if (type.fcstValue == ptyValue) {
+			if (Objects.equals(type.ptyValue, ptyValue)) {
+				return type;
+			}
+		}
+		return DEFAULT;
+	}
+
+	public static WeatherType fromSkyValue(int skyValue) {
+		for (WeatherType type : values()) {
+			if (Objects.equals(type.skyValue, skyValue)) {
 				return type;
 			}
 		}

@@ -2,7 +2,6 @@ package com.und.server.weather.service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,9 @@ public class KmaWeatherExtractor {
 
 		// 한 번만 파싱해서 시간별로 매핑
 		for (KmaWeatherResponse.WeatherItem item : weatherItems) {
-			if (!"PTY".equals(item.getCategory())) {
+			String category = item.getCategory();
+
+			if (!"PTY".equals(category) && !"SKY".equals(category)) {
 				continue;
 			}
 			if (!targetDateStr.equals(item.getFcstDate())) {
@@ -54,12 +55,24 @@ public class KmaWeatherExtractor {
 			try {
 				int hour = Integer.parseInt(item.getFcstTime()) / 100;
 				if (targetHours.contains(hour)) {
-					WeatherType weather = convertToWeatherType(item.getFcstValue());
+					System.out.println(item);
+
+
+					WeatherType weather = convertToWeatherType(category, item.getFcstValue());
+
 					if (weather != null) {
-						result.put(hour, weather);
-						System.out.println(item);
-						log.debug("날씨 데이터 매핑: {}시 -> {}", hour, weather);
+						if ("PTY".equals(category)) {
+							if (weather != WeatherType.DEFAULT) {
+								result.put(hour, weather);
+							}
+							continue;
+						}
+						if (!result.containsKey(hour) && "SKY".equals(category)) {
+							result.put(hour, weather);
+							log.debug("SKY 데이터 저장: {}시 -> {} (fcstValue: {})", hour, weather, item.getFcstValue());
+						}
 					}
+
 				}
 			} catch (NumberFormatException e) {
 				log.warn("시간 파싱 실패: {}", item.getFcstTime());
@@ -70,13 +83,19 @@ public class KmaWeatherExtractor {
 		return result;
 	}
 
-	private WeatherType convertToWeatherType(String fcstValue) {
+	private WeatherType convertToWeatherType(String category, String fcstValue) {
 		try {
-			int ptyValue = Integer.parseInt(fcstValue);
-			return WeatherType.fromPtyValue(ptyValue);
+			int value = Integer.parseInt(fcstValue);
+
+			return switch (category) {
+				case "PTY" -> WeatherType.fromPtyValue(value);
+				case "SKY" -> WeatherType.fromSkyValue(value);
+				default -> WeatherType.NOTHING;
+			};
+
 		} catch (NumberFormatException e) {
-			log.warn("PTY 값 파싱 실패: {}", fcstValue);
-			return null;
+			log.warn("{} 값 파싱 실패: {}", category, fcstValue);
+			return WeatherType.NOTHING;
 		}
 	}
 
