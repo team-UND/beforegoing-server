@@ -23,6 +23,7 @@ public enum FineDustType {
 	private final int severity;
 
 	public static final FineDustType DEFAULT = FineDustType.UNKNOWN;
+	public static final String OPEN_METEO_VARIABLES = "pm2_5,pm10";
 
 	public static FineDustType fromPm10Concentration(double pm10Value) {
 		int pm10 = (int) Math.round(pm10Value);

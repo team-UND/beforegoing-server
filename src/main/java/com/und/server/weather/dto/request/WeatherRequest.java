@@ -1,7 +1,5 @@
 package com.und.server.weather.dto.request;
 
-import java.time.LocalDate;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -10,9 +8,6 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Weather request")
 public record WeatherRequest(
-
-	@NotNull(message = "Date is required")
-	LocalDate date,
 
 	@Schema(description = "Latitude", example = "37.5663")
 	@NotNull(message = "Latitude must not be null")

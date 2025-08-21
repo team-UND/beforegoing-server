@@ -37,12 +37,10 @@ public class WeatherService {
 
 		try {
 			if (isToday) {
-				TimeSlotWeatherCacheData todayWeatherCacheData =
-					cacheService.getTodayWeather(weatherRequest.latitude(), weatherRequest.longitude(), now);
+				TimeSlotWeatherCacheData todayWeatherCacheData = cacheService.getTodayWeather(weatherRequest, now);
 				return extractTodayDataByTime(todayWeatherCacheData, now.getHour());
 			} else {
-				WeatherCacheData futureWeatherCacheData =
-					cacheService.getFutureWeather(weatherRequest.latitude(), weatherRequest.longitude(), now, date);
+				WeatherCacheData futureWeatherCacheData = cacheService.getFutureWeather(weatherRequest, now, date);
 				return futureWeatherCacheData.toWeatherResponse();
 			}
 		} catch (Exception e) {

@@ -22,6 +22,7 @@ public enum UvType {
 	private final int severity;
 
 	public static final UvType DEFAULT = UvType.UNKNOWN;
+	public static final String OPEN_METEO_VARIABLES = "uv_index";
 
 	public static UvType fromUvIndex(double uvIndexValue) {
 		int uvIndex = (int) Math.round(uvIndexValue);

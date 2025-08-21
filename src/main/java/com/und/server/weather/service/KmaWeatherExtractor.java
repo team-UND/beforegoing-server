@@ -39,7 +39,7 @@ public class KmaWeatherExtractor {
 			return result;
 		}
 
-		String targetDateStr = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		String targetDateStr = date.format(WeatherType.KMA_DATE_FORMATTER);
 
 		// 한 번만 파싱해서 시간별로 매핑
 		for (KmaWeatherResponse.WeatherItem item : weatherItems) {
