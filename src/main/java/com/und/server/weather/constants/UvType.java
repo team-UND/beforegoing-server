@@ -46,8 +46,12 @@ public enum UvType {
 	}
 
 	public double getAverageValue() {
-		if (this == UNKNOWN) return 0.0;
-		if (maxUvIndex == Integer.MAX_VALUE) return minUvIndex + 5; // 매우높음의 경우 적절한 값 사용
+		if (this == UNKNOWN) {
+			return 0.0;
+		}
+		if (maxUvIndex == Integer.MAX_VALUE) {
+			return minUvIndex + 5; // 매우높음의 경우 적절한 값 사용
+		}
 		return (double) (minUvIndex + maxUvIndex) / 2;
 	}
 

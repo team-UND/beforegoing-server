@@ -27,8 +27,8 @@ public class WeatherCacheKey {
 	public static WeatherCacheKey forToday(GridPoint gridPoint, LocalDate today, TimeSlot slot) {
 		return WeatherCacheKey.builder()
 			.isToday(true)
-			.gridX(gridPoint.x())
-			.gridY(gridPoint.y())
+			.gridX(gridPoint.gridX())
+			.gridY(gridPoint.gridY())
 			.date(today)
 			.slot(slot)
 			.build();
@@ -37,8 +37,8 @@ public class WeatherCacheKey {
 	public static WeatherCacheKey forFuture(GridPoint gridPoint, LocalDate future, TimeSlot slot) {
 		return WeatherCacheKey.builder()
 			.isToday(false)
-			.gridX(gridPoint.x())
-			.gridY(gridPoint.y())
+			.gridX(gridPoint.gridX())
+			.gridY(gridPoint.gridY())
 			.date(future)
 			.slot(slot)
 			.build();

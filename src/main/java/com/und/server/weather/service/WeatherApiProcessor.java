@@ -53,9 +53,9 @@ public class WeatherApiProcessor {
 
 		try {
 			CompletableFuture<KmaWeatherResponse> weatherFuture =
-				CompletableFuture.supplyAsync(() -> callKmaWeatherAPI(gridPoint, currentSlot, today));
+				CompletableFuture.supplyAsync(() -> callKmaWeatherApi(gridPoint, currentSlot, today));
 			CompletableFuture<OpenMeteoResponse> openMeteoFuture =
-				CompletableFuture.supplyAsync(() -> callOpenMeteoAPI(latitude, longitude, today));
+				CompletableFuture.supplyAsync(() -> callOpenMeteoApi(latitude, longitude, today));
 
 			KmaWeatherResponse weatherData = weatherFuture.get();
 			OpenMeteoResponse dustUvData = openMeteoFuture.get();
@@ -100,9 +100,9 @@ public class WeatherApiProcessor {
 
 		try {
 			CompletableFuture<KmaWeatherResponse> weatherFuture =
-				CompletableFuture.supplyAsync(() -> callKmaWeatherAPI(gridPoint, timeSlot, today));
+				CompletableFuture.supplyAsync(() -> callKmaWeatherApi(gridPoint, timeSlot, today));
 			CompletableFuture<OpenMeteoResponse> openMeteoFuture =
-				CompletableFuture.supplyAsync(() -> callOpenMeteoAPI(latitude, longitude, targetDate));
+				CompletableFuture.supplyAsync(() -> callOpenMeteoApi(latitude, longitude, targetDate));
 
 			KmaWeatherResponse weatherData = weatherFuture.get();
 			OpenMeteoResponse dustUvData = openMeteoFuture.get();
@@ -173,10 +173,10 @@ public class WeatherApiProcessor {
 		return hourlyData;
 	}
 
-	private KmaWeatherResponse callKmaWeatherAPI(GridPoint gridPoint, TimeSlot slot, LocalDate date) {
+	private KmaWeatherResponse callKmaWeatherApi(GridPoint gridPoint, TimeSlot timeSlot, LocalDate date) {
 		try {
-			String baseDate = slot.getBaseDate(date).format(WeatherType.KMA_DATE_FORMATTER);
-			String baseTime = slot.getBaseTime();
+			String baseDate = timeSlot.getBaseDate(date).format(WeatherType.KMA_DATE_FORMATTER);
+			String baseTime = timeSlot.getBaseTime();
 
 			return kmaWeatherClient.getVilageForecast(
 				weatherProperties.kma().serviceKey(),
@@ -185,8 +185,8 @@ public class WeatherApiProcessor {
 				"JSON",
 				baseDate,
 				baseTime,
-				gridPoint.x(),
-				gridPoint.y()
+				gridPoint.gridX(),
+				gridPoint.gridY()
 			);
 		} catch (Exception e) {
 			log.error("기상청 API 호출 실패", e);
@@ -194,7 +194,7 @@ public class WeatherApiProcessor {
 		}
 	}
 
-	private OpenMeteoResponse callOpenMeteoAPI(Double latitude, Double longitude, LocalDate date) {
+	private OpenMeteoResponse callOpenMeteoApi(Double latitude, Double longitude, LocalDate date) {
 		String variables = String.join(",",
 			FineDustType.OPEN_METEO_VARIABLES,
 			UvType.OPEN_METEO_VARIABLES

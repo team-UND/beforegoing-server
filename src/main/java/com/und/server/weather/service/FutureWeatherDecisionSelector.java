@@ -18,25 +18,25 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class FutureWeatherDecisionSelector {
 
-    public WeatherType calculateWorstWeather(List<WeatherType> weatherTypes) {
-        if (weatherTypes == null || weatherTypes.isEmpty()) {
-            return WeatherType.DEFAULT;
-        }
+	public WeatherType calculateWorstWeather(List<WeatherType> weatherTypes) {
+		if (weatherTypes == null || weatherTypes.isEmpty()) {
+			return WeatherType.DEFAULT;
+		}
 		return WeatherType.getWorst(weatherTypes);
-    }
+	}
 
-    public FineDustType calculateWorstFineDust(List<FineDustType> fineDustTypes) {
+	public FineDustType calculateWorstFineDust(List<FineDustType> fineDustTypes) {
 		if (fineDustTypes == null || fineDustTypes.isEmpty()) {
 			return FineDustType.DEFAULT;
 		}
 		return FineDustType.getWorst(fineDustTypes);
-    }
+	}
 
-    public UvType calculateWorstUv(List<UvType> uvTypes) {
-        if (uvTypes == null || uvTypes.isEmpty()) {
-            return UvType.DEFAULT;
-        }
+	public UvType calculateWorstUv(List<UvType> uvTypes) {
+		if (uvTypes == null || uvTypes.isEmpty()) {
+			return UvType.DEFAULT;
+		}
 		return UvType.getWorst(uvTypes);
-    }
+	}
 
 }

@@ -55,10 +55,10 @@ public class GridConverter {
 		}
 		theta *= sn;
 
-		int x = (int) Math.floor(ra * Math.sin(theta) + XO + 0.5);
-		int y = (int) Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
+		int gridX = (int) Math.floor(ra * Math.sin(theta) + XO + 0.5);
+		int gridY = (int) Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
 
-		return GridPoint.builder().x(x).y(y).build();
+		return GridPoint.from(gridX, gridY);
 	}
 
 }

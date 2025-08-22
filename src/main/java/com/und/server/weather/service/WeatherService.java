@@ -63,8 +63,10 @@ public class WeatherService {
 	}
 
 	private void validateLocation(WeatherRequest request) {
-		if (request.latitude() < -90 || request.latitude() > 90 ||
-			request.longitude() < -180 || request.longitude() > 180) {
+		if (request.latitude() < -90
+			|| request.latitude() > 90
+			|| request.longitude() < -180
+			|| request.longitude() > 180) {
 			throw new ServerException(WeatherErrorResult.INVALID_COORDINATES);
 		}
 	}

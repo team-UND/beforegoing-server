@@ -5,7 +5,13 @@ import lombok.Builder;
 @Builder
 public record GridPoint(
 
-	int x,
-	int y
+	int gridX,
+	int gridY
 
-) { }
+) {
+
+	public static GridPoint from(int gridX, int gridY) {
+		return new GridPoint(gridX, gridY);
+	}
+
+}
