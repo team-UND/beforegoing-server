@@ -33,6 +33,43 @@ public class NotificationService {
 		final NotificationRequest notificationRequest,
 		final NotificationConditionRequest notificationConditionRequest
 	) {
+		boolean isNotificationActive = notificationRequest.isActive();
+		if (isNotificationActive) {
+			return addWithNotification(notificationRequest, notificationConditionRequest);
+		} else {
+			return addWithoutNotification(notificationRequest);
+		}
+	}
+
+
+	@Transactional
+	public void updateNotification(
+		final Notification notification,
+		final NotificationRequest notificationRequest,
+		final NotificationConditionRequest notificationConditionRequest
+	) {
+		boolean isNotificationActive = notificationRequest.isActive();
+		if (isNotificationActive) {
+			updateWithNotification(notification, notificationRequest, notificationConditionRequest);
+		} else {
+			updateWithoutNotification(notification);
+		}
+	}
+
+
+	@Transactional
+	public void deleteNotification(final Notification notification) {
+		notificationConditionSelector.deleteNotificationCondition(
+			notification.getNotificationType(),
+			notification.getId()
+		);
+	}
+
+
+	private Notification addWithNotification(
+		final NotificationRequest notificationRequest,
+		final NotificationConditionRequest notificationConditionRequest
+	) {
 		Notification notification = notificationRequest.toEntity();
 		List<Integer> daysOfWeekOrdinal = notificationRequest.daysOfWeekOrdinal();
 
@@ -43,18 +80,14 @@ public class NotificationService {
 		return notification;
 	}
 
-
-	@Transactional
-	public Notification addWithoutNotification(final NotificationRequest notificationRequest) {
+	private Notification addWithoutNotification(final NotificationRequest notificationRequest) {
 		Notification notification = notificationRequest.toEntity();
 		notificationRepository.save(notification);
 
 		return notification;
 	}
 
-
-	@Transactional
-	public void updateNotification(
+	private void updateWithNotification(
 		final Notification notification,
 		final NotificationRequest notificationRequest,
 		final NotificationConditionRequest notificationConditionRequest
@@ -82,23 +115,12 @@ public class NotificationService {
 			notification, daysOfWeekOrdinal, notificationConditionRequest);
 	}
 
-
-	@Transactional
-	public void updateWithoutNotification(final Notification oldNotification) {
+	private void updateWithoutNotification(final Notification oldNotification) {
 		notificationConditionSelector.deleteNotificationCondition(
 			oldNotification.getNotificationType(), oldNotification.getId());
 
 		oldNotification.updateActiveStatus(false);
 		oldNotification.deleteNotificationMethodType();
-	}
-
-
-	@Transactional
-	public void deleteNotification(final Notification notification) {
-		notificationConditionSelector.deleteNotificationCondition(
-			notification.getNotificationType(),
-			notification.getId()
-		);
 	}
 
 }
