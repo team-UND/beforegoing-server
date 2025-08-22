@@ -2,6 +2,7 @@ package com.und.server.weather.dto.cache;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -23,17 +24,24 @@ public class TimeSlotWeatherCacheData {
 	private Map<String, WeatherCacheData> hours;
 
 	public WeatherCacheData getHourlyData(int hour) {
-		String hourKey = String.format("%02d", hour);
+		String hourKey = getFormatHour(hour);
 		return hours.get(hourKey);
 	}
 
-	public boolean hasDataForHour(int hour) {
-		String hourKey = String.format("%02d", hour);
-		return hours.containsKey(hourKey) && hours.get(hourKey) != null;
+	public boolean hasValidDataForHour(int hour) {
+		String hourKey = getFormatHour(hour);
+		WeatherCacheData weatherCacheData = hours.get(hourKey);
+
+		return weatherCacheData != null && weatherCacheData.isValid();
 	}
 
+	@JsonIgnore
 	public boolean isValid() {
 		return hours != null && !hours.isEmpty();
+	}
+
+	private String getFormatHour(int hour) {
+		return String.format("%02d", hour);
 	}
 
 }

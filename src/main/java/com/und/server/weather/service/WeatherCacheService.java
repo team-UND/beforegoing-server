@@ -16,6 +16,7 @@ import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
 import com.und.server.weather.exception.WeatherErrorResult;
+import com.und.server.weather.util.WeatherKeyGenerator;
 import com.und.server.weather.util.WeatherTtlCalculator;
 
 import lombok.RequiredArgsConstructor;
@@ -33,15 +34,16 @@ public class WeatherCacheService {
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
 
-	public TimeSlotWeatherCacheData getTodayWeather(WeatherRequest weatherRequest, LocalDateTime nowDateTime) {
+	public TimeSlotWeatherCacheData getTodayWeatherCache(WeatherRequest weatherRequest, LocalDateTime nowDateTime) {
 		Double latitude = weatherRequest.latitude();
 		Double longitude = weatherRequest.longitude();
+		LocalDate nowDate = nowDateTime.toLocalDate();
 
 		TimeSlot currentSlot = TimeSlot.getCurrentSlot(nowDateTime);
-		String cacheKey = keyGenerator.generateTodayKey(latitude, longitude, currentSlot);
+		String cacheKey = keyGenerator.generateTodayKey(latitude, longitude, nowDate, currentSlot);
 
 		TimeSlotWeatherCacheData cached = getTodayWeatherCache(cacheKey);
-		if (cached != null && cached.hasDataForHour(nowDateTime.getHour())) {
+		if (cached != null && cached.isValid() && cached.hasValidDataForHour(nowDateTime.getHour())) {
 			System.out.println("✅ 캐시 히트! 기존 데이터 사용");
 			return cached;
 		}
@@ -49,7 +51,7 @@ public class WeatherCacheService {
 		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
 		TimeSlotWeatherCacheData todayWeatherCacheData =
 			weatherApiProcessor.fetchTodaySlotData(
-				weatherRequest, currentSlot, nowDateTime.toLocalDate());
+				weatherRequest, currentSlot, nowDate);
 
 		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
 		saveTodayCache(cacheKey, todayWeatherCacheData, ttl);
@@ -58,7 +60,7 @@ public class WeatherCacheService {
 	}
 
 
-	public WeatherCacheData getFutureWeather(
+	public WeatherCacheData getFutureWeatherCache(
 		WeatherRequest weatherRequest,
 		LocalDateTime nowDateTime, LocalDate targetDate
 	) {

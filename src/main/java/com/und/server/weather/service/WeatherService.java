@@ -6,9 +6,6 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.und.server.common.exception.ServerException;
-import com.und.server.weather.constants.FineDustType;
-import com.und.server.weather.constants.UvType;
-import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
@@ -24,24 +21,22 @@ import lombok.extern.slf4j.Slf4j;
 public class WeatherService {
 
 	private static final int MAX_FUTURE_DATE = 3;
-	private final WeatherCacheService cacheService;
+	private final WeatherCacheService weatherCacheService;
+
 
 	public WeatherResponse getWeatherInfo(WeatherRequest weatherRequest, LocalDate date) {
-		LocalDateTime now = LocalDateTime.now();
-		LocalDate today = now.toLocalDate();
+		LocalDateTime nowDateTime = LocalDateTime.now();
+		LocalDate today = nowDateTime.toLocalDate();
 
 		validateLocation(weatherRequest);
 		validateDate(date, today);
 
 		boolean isToday = date.equals(today);
-
 		try {
 			if (isToday) {
-				TimeSlotWeatherCacheData todayWeatherCacheData = cacheService.getTodayWeather(weatherRequest, now);
-				return extractTodayDataByTime(todayWeatherCacheData, now.getHour());
+				return getTodayWeather(weatherRequest, nowDateTime);
 			} else {
-				WeatherCacheData futureWeatherCacheData = cacheService.getFutureWeather(weatherRequest, now, date);
-				return futureWeatherCacheData.toWeatherResponse();
+				return getFutureWeather(weatherRequest, nowDateTime, date);
 			}
 		} catch (Exception e) {
 			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
@@ -49,22 +44,23 @@ public class WeatherService {
 	}
 
 
-	private WeatherResponse extractTodayDataByTime(TimeSlotWeatherCacheData data, int hour) {
-		WeatherCacheData weatherCacheData = data.getHourlyData(hour);
+	private WeatherResponse getTodayWeather(WeatherRequest weatherRequest, LocalDateTime nowDateTime) {
+		TimeSlotWeatherCacheData todayWeatherCacheData =
+			weatherCacheService.getTodayWeatherCache(weatherRequest, nowDateTime);
 
-		System.out.println("찾은캐시");
-		System.out.println(weatherCacheData);
-		if (weatherCacheData == null || !weatherCacheData.isValid()) {
-			log.warn("유효하지 않은 시간별 데이터: hour={}", hour);
-			return createDefaultResponse();
-		}
-
-		log.debug("오늘 데이터 추출 완료: {}시 - 날씨:{}, 미세먼지:{}, UV:{}",
-			hour, weatherCacheData.getWeather(), weatherCacheData.getDust(), weatherCacheData.getUv());
+		WeatherCacheData weatherCacheData = todayWeatherCacheData.getHourlyData(nowDateTime.getHour());
 
 		return weatherCacheData.toWeatherResponse();
 	}
 
+	private WeatherResponse getFutureWeather(
+		WeatherRequest weatherRequest, LocalDateTime nowDateTime, LocalDate targetDate
+	) {
+		WeatherCacheData futureWeatherCacheData =
+			weatherCacheService.getFutureWeatherCache(weatherRequest, nowDateTime, targetDate);
+
+		return futureWeatherCacheData.toWeatherResponse();
+	}
 
 	private void validateLocation(WeatherRequest request) {
 		if (request.latitude() < -90 || request.latitude() > 90 ||
@@ -79,14 +75,6 @@ public class WeatherService {
 		if (requestDate.isBefore(today) || requestDate.isAfter(maxDate)) {
 			throw new ServerException(WeatherErrorResult.DATE_OUT_OF_RANGE);
 		}
-	}
-
-	private WeatherResponse createDefaultResponse() {
-		return WeatherResponse.from(
-			WeatherType.DEFAULT,
-			FineDustType.DEFAULT,
-			UvType.DEFAULT
-		);
 	}
 
 }
