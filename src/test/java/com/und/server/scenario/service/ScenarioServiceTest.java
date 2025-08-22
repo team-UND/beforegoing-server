@@ -270,7 +270,7 @@ class ScenarioServiceTest {
 	void Given_ValidRequest_When_AddScenario_Then_SaveScenarioAndAddMissions() {
 		//given
 		Long memberId = 1L;
-		int calculatedOrder = 1000;
+		int calculatedOrder = 100000;
 
 		Member member = Member.builder().id(memberId).build();
 		given(em.getReference(Member.class, memberId)).willReturn(member);
