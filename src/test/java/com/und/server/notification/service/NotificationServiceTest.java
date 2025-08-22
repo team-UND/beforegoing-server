@@ -108,6 +108,7 @@ class NotificationServiceTest {
 			.build();
 
 		NotificationRequest notificationInfo = NotificationRequest.builder()
+			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.notificationMethodType(NotificationMethodType.ALARM)
 			.daysOfWeekOrdinal(List.of(0, 1, 2, 3))
@@ -141,6 +142,7 @@ class NotificationServiceTest {
 			.build();
 
 		NotificationRequest notificationInfo = NotificationRequest.builder()
+			.isActive(true)
 			.notificationType(NotificationType.LOCATION)
 			.notificationMethodType(NotificationMethodType.ALARM)
 			.daysOfWeekOrdinal(List.of(0, 1, 2))
@@ -175,8 +177,13 @@ class NotificationServiceTest {
 			.isActive(true)
 			.build();
 
+		NotificationRequest notificationRequest = NotificationRequest.builder()
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.build();
+
 		// when
-		notificationService.updateWithoutNotification(oldNotification);
+		notificationService.updateNotification(oldNotification, notificationRequest, null);
 
 		// then
 		assertThat(oldNotification.isActive()).isFalse();
@@ -203,7 +210,7 @@ class NotificationServiceTest {
 			.notificationType(type)
 			.build();
 
-		Notification result = notificationService.addWithoutNotification(request);
+		Notification result = notificationService.addNotification(request, null);
 
 		// then
 		assertThat(result.getNotificationType()).isEqualTo(type);
