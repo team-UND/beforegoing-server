@@ -50,8 +50,7 @@ public class WeatherCacheService {
 
 		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
 		TimeSlotWeatherCacheData todayWeatherCacheData =
-			weatherApiProcessor.fetchTodaySlotData(
-				weatherRequest, currentSlot, nowDate);
+			weatherApiProcessor.fetchTodaySlotData(weatherRequest, currentSlot, nowDate);
 
 		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
 		saveTodayCache(cacheKey, todayWeatherCacheData, ttl);

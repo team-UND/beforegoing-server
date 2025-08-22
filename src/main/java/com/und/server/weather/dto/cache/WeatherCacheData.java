@@ -36,4 +36,12 @@ public class WeatherCacheData {
 		return weather != null && dust != null && uv != null;
 	}
 
+	public static WeatherCacheData from(WeatherType weather, FineDustType dust, UvType uv) {
+		return WeatherCacheData.builder()
+			.weather(weather)
+			.dust(dust)
+			.uv(uv)
+			.build();
+	}
+
 }

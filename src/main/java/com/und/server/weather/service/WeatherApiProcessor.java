@@ -122,21 +122,12 @@ public class WeatherApiProcessor {
 
 			WeatherType worstWeather =
 				futureWeatherDecisionSelector.calculateWorstWeather(weatherMap.values().stream().toList());
-			FineDustType avgDust =
+			FineDustType worstFineDust =
 				futureWeatherDecisionSelector.calculateWorstFineDust(dustMap.values().stream().toList());
-			UvType avgUv =
+			UvType worstUv =
 				futureWeatherDecisionSelector.calculateWorstUv(uvMap.values().stream().toList());
 
-			System.out.println("가장 최악의 날씨");
-			System.out.println(worstWeather);
-			System.out.println(avgDust);
-			System.out.println(avgUv);
-
-			return WeatherCacheData.builder()
-				.weather(worstWeather)
-				.dust(avgDust)
-				.uv(avgUv)
-				.build();
+			return WeatherCacheData.from(worstWeather, worstFineDust, worstUv);
 
 		} catch (Exception e) {
 			log.error("미래 하루 전체 데이터 처리 중 오류 발생", e);
@@ -159,13 +150,9 @@ public class WeatherApiProcessor {
 				FineDustType dust = dustByHour.getOrDefault(hour, FineDustType.DEFAULT);
 				UvType uv = uvByHour.getOrDefault(hour, UvType.DEFAULT);
 
-				WeatherCacheData hourInfo = WeatherCacheData.builder()
-					.weather(weather)
-					.dust(dust)
-					.uv(uv)
-					.build();
+				WeatherCacheData weatherCacheData = WeatherCacheData.from(weather, dust, uv);
 
-				hourlyData.put(String.format("%02d", hour), hourInfo);
+				hourlyData.put(String.format("%02d", hour), weatherCacheData);
 			}
 		} catch (Exception e) {
 			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
