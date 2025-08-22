@@ -8,11 +8,11 @@ import lombok.Builder;
 @Schema(description = "Scenario order update request")
 public record ScenarioOrderUpdateRequest(
 
-	@Schema(description = "Previous Scenario order", example = "1000")
+	@Schema(description = "Previous Scenario order", example = "101000")
 	@Min(value = 0, message = "prevOrder must be greater than or equal to 1")
 	Integer prevOrder,
 
-	@Schema(description = "Next Scenario order", example = "2000")
+	@Schema(description = "Next Scenario order", example = "102000")
 	@Min(value = 0, message = "nextOrder must be greater than or equal to 1")
 	Integer nextOrder
 
