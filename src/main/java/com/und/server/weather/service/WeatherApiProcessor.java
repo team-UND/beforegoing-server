@@ -1,9 +1,6 @@
 package com.und.server.weather.service;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.stereotype.Service;
@@ -17,10 +14,9 @@ import com.und.server.weather.constants.TimeSlot;
 import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.GridPoint;
+import com.und.server.weather.dto.WeatherApiResultDto;
 import com.und.server.weather.dto.api.KmaWeatherResponse;
 import com.und.server.weather.dto.api.OpenMeteoResponse;
-import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
-import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
 import com.und.server.weather.exception.WeatherErrorResult;
 import com.und.server.weather.util.GridConverter;
@@ -36,13 +32,9 @@ public class WeatherApiProcessor {
 	private final KmaWeatherClient kmaWeatherClient;
 	private final OpenMeteoClient openMeteoClient;
 	private final WeatherProperties weatherProperties;
-	private final KmaWeatherExtractor kmaWeatherExtractor;
-	private final FineDustExtractor fineDustExtractor;
-	private final UvIndexExtractor uvIndexExtractor;
-	private final FutureWeatherDecisionSelector futureWeatherDecisionSelector;
 
 
-	public TimeSlotWeatherCacheData fetchTodaySlotData(
+	public WeatherApiResultDto callTodayWeather(
 		WeatherRequest weatherRequest,
 		TimeSlot currentSlot,
 		LocalDate today
@@ -60,36 +52,17 @@ public class WeatherApiProcessor {
 			KmaWeatherResponse weatherData = weatherFuture.get();
 			OpenMeteoResponse dustUvData = openMeteoFuture.get();
 
-			List<Integer> slotHours = currentSlot.getForecastHours();
-
-			Map<Integer, WeatherType> weathersByHour =
-				kmaWeatherExtractor.extractWeatherForHours(weatherData, slotHours, today);
-			Map<Integer, FineDustType> dustByHour =
-				fineDustExtractor.extractDustForHours(dustUvData, slotHours, today);
-			Map<Integer, UvType> uvByHour =
-				uvIndexExtractor.extractUvForHours(dustUvData, slotHours, today);
-
-			Map<String, WeatherCacheData> hourlyData = processHourlyData(
-				weathersByHour, dustByHour, uvByHour, slotHours);
-
-
-			for (Map.Entry<String, WeatherCacheData> entry : hourlyData.entrySet()) {
-				System.out.println(entry.getKey() + ":" + entry.getValue());
-			}
-
-
-			return TimeSlotWeatherCacheData.builder()
-				.hours(hourlyData)
-				.build();
+			return WeatherApiResultDto.from(weatherData, dustUvData);
 
 		} catch (Exception e) {
 			log.error("오늘 슬롯 데이터 처리 중 오류 발생", e);
 			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
 		}
+
 	}
 
 
-	public WeatherCacheData fetchFutureDayData(
+	public WeatherApiResultDto callFutureWeather(
 		WeatherRequest weatherRequest,
 		TimeSlot timeSlot,
 		LocalDate today, LocalDate targetDate
@@ -107,27 +80,7 @@ public class WeatherApiProcessor {
 			KmaWeatherResponse weatherData = weatherFuture.get();
 			OpenMeteoResponse dustUvData = openMeteoFuture.get();
 
-			List<Integer> allHours = TimeSlot.getAllDayHours();
-
-			Map<Integer, WeatherType> weatherMap =
-				kmaWeatherExtractor.extractWeatherForHours(weatherData, allHours, targetDate);
-			Map<Integer, FineDustType> dustMap =
-				fineDustExtractor.extractDustForHours(dustUvData, allHours, targetDate);
-			Map<Integer, UvType> uvMap =
-				uvIndexExtractor.extractUvForHours(dustUvData, allHours, targetDate);
-
-			System.out.println(weatherMap);
-			System.out.println(dustMap);
-			System.out.println(uvMap);
-
-			WeatherType worstWeather =
-				futureWeatherDecisionSelector.calculateWorstWeather(weatherMap.values().stream().toList());
-			FineDustType worstFineDust =
-				futureWeatherDecisionSelector.calculateWorstFineDust(dustMap.values().stream().toList());
-			UvType worstUv =
-				futureWeatherDecisionSelector.calculateWorstUv(uvMap.values().stream().toList());
-
-			return WeatherCacheData.from(worstWeather, worstFineDust, worstUv);
+			return WeatherApiResultDto.from(weatherData, dustUvData);
 
 		} catch (Exception e) {
 			log.error("미래 하루 전체 데이터 처리 중 오류 발생", e);
@@ -135,30 +88,6 @@ public class WeatherApiProcessor {
 		}
 	}
 
-
-	private Map<String, WeatherCacheData> processHourlyData(
-		Map<Integer, WeatherType> weathersByHour,
-		Map<Integer, FineDustType> dustByHour,
-		Map<Integer, UvType> uvByHour,
-		List<Integer> targetHours
-	) {
-		Map<String, WeatherCacheData> hourlyData = new HashMap<>();
-
-		try {
-			for (int hour : targetHours) {
-				WeatherType weather = weathersByHour.getOrDefault(hour, WeatherType.DEFAULT);
-				FineDustType dust = dustByHour.getOrDefault(hour, FineDustType.DEFAULT);
-				UvType uv = uvByHour.getOrDefault(hour, UvType.DEFAULT);
-
-				WeatherCacheData weatherCacheData = WeatherCacheData.from(weather, dust, uv);
-
-				hourlyData.put(String.format("%02d", hour), weatherCacheData);
-			}
-		} catch (Exception e) {
-			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
-		}
-		return hourlyData;
-	}
 
 	private KmaWeatherResponse callKmaWeatherApi(GridPoint gridPoint, TimeSlot timeSlot, LocalDate date) {
 		try {
@@ -175,6 +104,7 @@ public class WeatherApiProcessor {
 				gridPoint.gridX(),
 				gridPoint.gridY()
 			);
+
 		} catch (Exception e) {
 			log.error("기상청 API 호출 실패", e);
 			throw new ServerException(WeatherErrorResult.KMA_API_ERROR, e);

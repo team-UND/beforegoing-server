@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.und.server.common.exception.ServerException;
 import com.und.server.weather.constants.TimeSlot;
+import com.und.server.weather.dto.WeatherApiResultDto;
 import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
@@ -29,6 +30,7 @@ public class WeatherCacheService {
 
 	private final RedisTemplate<String, String> redisTemplate;
 	private final WeatherApiProcessor weatherApiProcessor;
+	private final WeatherDecisionService weatherDecisionService;
 	private final WeatherKeyGenerator keyGenerator;
 	private final WeatherTtlCalculator ttlCalculator;
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -49,8 +51,11 @@ public class WeatherCacheService {
 		}
 
 		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
+		WeatherApiResultDto weatherApiResult =
+			weatherApiProcessor.callTodayWeather(weatherRequest, currentSlot, nowDate);
+
 		TimeSlotWeatherCacheData todayWeatherCacheData =
-			weatherApiProcessor.fetchTodaySlotData(weatherRequest, currentSlot, nowDate);
+			weatherDecisionService.getTodayWeatherCacheData(weatherApiResult, currentSlot, nowDate);
 
 		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
 		saveTodayCache(cacheKey, todayWeatherCacheData, ttl);
@@ -76,11 +81,13 @@ public class WeatherCacheService {
 		}
 
 		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
-		WeatherCacheData futureWeatherCacheData =
-			weatherApiProcessor.fetchFutureDayData(
+		WeatherApiResultDto weatherApiResult =
+			weatherApiProcessor.callFutureWeather(
 				weatherRequest, currentSlot, nowDateTime.toLocalDate(), targetDate);
 
-		// 동적 TTL 계산
+		WeatherCacheData futureWeatherCacheData =
+			weatherDecisionService.getFutureWeatherCacheData(weatherApiResult, targetDate);
+
 		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
 		saveFutureCache(cacheKey, futureWeatherCacheData, ttl);
 

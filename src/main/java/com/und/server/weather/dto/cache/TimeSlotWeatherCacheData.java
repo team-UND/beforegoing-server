@@ -21,27 +21,33 @@ import lombok.ToString;
 @ToString
 public class TimeSlotWeatherCacheData {
 
-	private Map<String, WeatherCacheData> hours;
+	private Map<String, WeatherCacheData> weatherByHour;
 
 	public WeatherCacheData getHourlyData(int hour) {
 		String hourKey = getFormatHour(hour);
-		return hours.get(hourKey);
+		return weatherByHour.get(hourKey);
 	}
 
 	public boolean hasValidDataForHour(int hour) {
 		String hourKey = getFormatHour(hour);
-		WeatherCacheData weatherCacheData = hours.get(hourKey);
+		WeatherCacheData weatherCacheData = weatherByHour.get(hourKey);
 
 		return weatherCacheData != null && weatherCacheData.isValid();
 	}
 
 	@JsonIgnore
 	public boolean isValid() {
-		return hours != null && !hours.isEmpty();
+		return weatherByHour != null && !weatherByHour.isEmpty();
 	}
 
 	private String getFormatHour(int hour) {
 		return String.format("%02d", hour);
+	}
+
+	public static TimeSlotWeatherCacheData from(Map<String, WeatherCacheData> weatherCacheDataByHour) {
+		return TimeSlotWeatherCacheData.builder()
+			.weatherByHour(weatherCacheDataByHour)
+			.build();
 	}
 
 }
