@@ -179,7 +179,7 @@ public class WeatherApiProcessor {
 			String baseTime = slot.getBaseTime();
 
 			return kmaWeatherClient.getVilageForecast(
-				weatherProperties.getKma().getServiceKey(),
+				weatherProperties.kma().serviceKey(),
 				1,
 				1000,
 				"JSON",
