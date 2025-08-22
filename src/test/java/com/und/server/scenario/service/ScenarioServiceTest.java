@@ -603,13 +603,13 @@ class ScenarioServiceTest {
 		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotificationType.TIME))
 			.willReturn(List.of());
 		Notification saved = Notification.builder().id(1L).notificationType(NotificationType.TIME).build();
-		given(notificationService.addWithoutNotification(notificationRequest)).willReturn(saved);
+		given(notificationService.addNotification(notificationRequest, null)).willReturn(saved);
 
 		// when
 		scenarioService.addScenario(memberId, request);
 
 		// then
-		verify(notificationService).addWithoutNotification(notificationRequest);
+		verify(notificationService).addNotification(notificationRequest, null);
 		verify(scenarioRepository).save(any(Scenario.class));
 		verify(missionService).addBasicMission(any(Scenario.class), eq(List.of()));
 	}
@@ -754,7 +754,7 @@ class ScenarioServiceTest {
 		// then
 		assertThat(oldScenario.getScenarioName()).isEqualTo("수정된 시나리오");
 		assertThat(oldScenario.getMemo()).isEqualTo("수정된 메모");
-		verify(notificationService).updateWithoutNotification(oldNotification);
+		verify(notificationService).updateNotification(oldNotification, notificationRequest, null);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
 	}
 
