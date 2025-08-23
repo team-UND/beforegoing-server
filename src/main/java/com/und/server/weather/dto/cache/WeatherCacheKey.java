@@ -6,47 +6,47 @@ import com.und.server.weather.constants.TimeSlot;
 import com.und.server.weather.dto.GridPoint;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 
-@Getter
 @Builder
-@ToString
-public class WeatherCacheKey {
+public record WeatherCacheKey(
 
-	private static final String TODAY_PREFIX = "wx:today";
-	private static final String FUTURE_PREFIX = "wx:future";
+	boolean isToday,
+	int gridX,
+	int gridY,
+	LocalDate date,
+	TimeSlot slot
+
+) {
+
+	private static final String PREFIX = "wx";
+	private static final String TODAY_PREFIX = "today";
+	private static final String FUTURE_PREFIX = "future";
 	private static final String DELIMITER = ":";
 
-	private final boolean isToday;
-	private final int gridX;
-	private final int gridY;
-	private final LocalDate date;
-	private final TimeSlot slot;
-
-	public static WeatherCacheKey forToday(GridPoint gridPoint, LocalDate today, TimeSlot slot) {
+	public static WeatherCacheKey forToday(GridPoint gridPoint, LocalDate today, TimeSlot timeSlot) {
 		return WeatherCacheKey.builder()
 			.isToday(true)
 			.gridX(gridPoint.gridX())
 			.gridY(gridPoint.gridY())
 			.date(today)
-			.slot(slot)
+			.slot(timeSlot)
 			.build();
 	}
 
-	public static WeatherCacheKey forFuture(GridPoint gridPoint, LocalDate future, TimeSlot slot) {
+	public static WeatherCacheKey forFuture(GridPoint gridPoint, LocalDate future, TimeSlot timeSlot) {
 		return WeatherCacheKey.builder()
 			.isToday(false)
 			.gridX(gridPoint.gridX())
 			.gridY(gridPoint.gridY())
 			.date(future)
-			.slot(slot)
+			.slot(timeSlot)
 			.build();
 	}
 
 	public String toRedisKey() {
 		if (isToday) {
 			return String.join(DELIMITER,
+				PREFIX,
 				TODAY_PREFIX,
 				String.valueOf(gridX),
 				String.valueOf(gridY),
@@ -55,6 +55,7 @@ public class WeatherCacheKey {
 			);
 		} else {
 			return String.join(DELIMITER,
+				PREFIX,
 				FUTURE_PREFIX,
 				String.valueOf(gridX),
 				String.valueOf(gridY),

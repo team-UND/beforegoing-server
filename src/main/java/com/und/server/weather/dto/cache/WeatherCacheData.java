@@ -8,38 +8,32 @@ import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.response.WeatherResponse;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ToString
-public class WeatherCacheData {
+public record WeatherCacheData(
 
-	private WeatherType weather;
-	private FineDustType dust;
-	private UvType uv;
+	WeatherType weather,
+	FineDustType findDust,
+	UvType uv
+
+) {
 
 	public WeatherResponse toWeatherResponse() {
-		return WeatherResponse.from(weather, dust, uv);
+		return WeatherResponse.from(weather, findDust, uv);
 	}
 
 	@JsonIgnore
 	public boolean isValid() {
-		return weather != null && dust != null && uv != null;
+		return weather != null && findDust != null && uv != null;
 	}
 
-	public static WeatherCacheData from(WeatherType weather, FineDustType dust, UvType uv) {
+	public static WeatherCacheData from(WeatherType weather, FineDustType findDust, UvType uv) {
 		return WeatherCacheData.builder()
 			.weather(weather)
-			.dust(dust)
+			.findDust(findDust)
 			.uv(uv)
 			.build();
 	}
@@ -47,7 +41,7 @@ public class WeatherCacheData {
 	public static WeatherCacheData getDefault() {
 		return WeatherCacheData.builder()
 			.weather(WeatherType.DEFAULT)
-			.dust(FineDustType.DEFAULT)
+			.findDust(FineDustType.DEFAULT)
 			.uv(UvType.DEFAULT)
 			.build();
 	}
