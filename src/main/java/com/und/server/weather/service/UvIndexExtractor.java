@@ -27,8 +27,8 @@ public class UvIndexExtractor {
 			return result;
 		}
 
-		List<String> times = openMeteoResponse.getHourly().getTime();
-		List<Double> uvIndexValues = openMeteoResponse.getHourly().getUvIndex();
+		List<String> times = openMeteoResponse.hourly().time();
+		List<Double> uvIndexValues = openMeteoResponse.hourly().uvIndex();
 
 		for (String str : times) {
 			System.out.println(str);
@@ -85,7 +85,7 @@ public class UvIndexExtractor {
 	}
 
 	private boolean isValidResponse(OpenMeteoResponse openMeteoResponse) {
-		return openMeteoResponse != null && openMeteoResponse.getHourly() != null;
+		return openMeteoResponse != null && openMeteoResponse.hourly() != null;
 	}
 
 	private boolean isValidData(List<String> times, List<Double> uvIndexValues) {

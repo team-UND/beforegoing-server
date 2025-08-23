@@ -27,9 +27,9 @@ public class FineDustExtractor {
 			return result;
 		}
 
-		List<String> times = openMeteoResponse.getHourly().getTime();
-		List<Double> pm10Values = openMeteoResponse.getHourly().getPm10();
-		List<Double> pm25Values = openMeteoResponse.getHourly().getPm25();
+		List<String> times = openMeteoResponse.hourly().time();
+		List<Double> pm10Values = openMeteoResponse.hourly().pm10();
+		List<Double> pm25Values = openMeteoResponse.hourly().pm25();
 
 		for (String time : times) {
 			System.out.println(time);
@@ -93,7 +93,7 @@ public class FineDustExtractor {
 	}
 
 	private boolean isValidResponse(OpenMeteoResponse openMeteoResponse) {
-		return openMeteoResponse != null && openMeteoResponse.getHourly() != null;
+		return openMeteoResponse != null && openMeteoResponse.hourly() != null;
 	}
 
 	private boolean isValidData(
