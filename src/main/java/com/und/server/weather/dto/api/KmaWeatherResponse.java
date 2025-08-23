@@ -5,100 +5,47 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-@Getter
-@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ToString
-public class KmaWeatherResponse {
+public record KmaWeatherResponse(
 
-	@JsonProperty("response")
-	private Response response;
+	@JsonProperty("response") Response response
 
-	@Getter
-	@Setter
+) {
+
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@ToString
-	public static class Response {
+	public record Response(
+		@JsonProperty("header") Header header,
+		@JsonProperty("body") Body body
+	) { }
 
-		@JsonProperty("header")
-		private Header header;
-
-		@JsonProperty("body")
-		private Body body;
-	}
-
-	@Getter
-	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@ToString
-	public static class Header {
+	public record Header(
+		@JsonProperty("resultCode") String resultCode,
+		@JsonProperty("resultMsg") String resultMsg
+	) { }
 
-		@JsonProperty("resultCode")
-		private String resultCode;
-
-		@JsonProperty("resultMsg")
-		private String resultMsg;
-	}
-
-	@Getter
-	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@ToString
-	public static class Body {
+	public record Body(
+		@JsonProperty("dataType") String dataType,
+		@JsonProperty("items") Items items,
+		@JsonProperty("totalCount") Integer totalCount
+	) { }
 
-		@JsonProperty("dataType")
-		private String dataType;
-
-		@JsonProperty("items")
-		private Items items;
-
-		@JsonProperty("totalCount")
-		private Integer totalCount;
-	}
-
-	@Getter
-	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@ToString
-	public static class Items {
+	public record Items(
+		@JsonProperty("item") List<WeatherItem> item
+	) { }
 
-		@JsonProperty("item")
-		private List<WeatherItem> item;
-	}
-
-	@Getter
-	@Setter
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@ToString
-	public static class WeatherItem {
-
-		@JsonProperty("baseDate")
-		private String baseDate;
-
-		@JsonProperty("baseTime")
-		private String baseTime;
-
-		@JsonProperty("category")
-		private String category;
-
-		@JsonProperty("fcstDate")
-		private String fcstDate;
-
-		@JsonProperty("fcstTime")
-		private String fcstTime;
-
-		@JsonProperty("fcstValue")
-		private String fcstValue;
-
-		@JsonProperty("nx")
-		private Integer nx;
-
-		@JsonProperty("ny")
-		private Integer ny;
-	}
+	public record WeatherItem(
+		@JsonProperty("baseDate") String baseDate,
+		@JsonProperty("baseTime") String baseTime,
+		@JsonProperty("category") String category,
+		@JsonProperty("fcstDate") String fcstDate,
+		@JsonProperty("fcstTime") String fcstTime,
+		@JsonProperty("fcstValue") String fcstValue,
+		@JsonProperty("nx") Integer nx,
+		@JsonProperty("ny") Integer ny
+	) { }
 
 }

@@ -27,10 +27,10 @@ public class KmaWeatherExtractor {
 			return result;
 		}
 
-		KmaWeatherResponse.Response responseObj = response.getResponse();
-		KmaWeatherResponse.Body body = responseObj.getBody();
-		KmaWeatherResponse.Items bodies = body.getItems();
-		List<KmaWeatherResponse.WeatherItem> weatherItems = bodies.getItem();
+		KmaWeatherResponse.Response responseObj = response.response();
+		KmaWeatherResponse.Body body = responseObj.body();
+		KmaWeatherResponse.Items bodies = body.items();
+		List<KmaWeatherResponse.WeatherItem> weatherItems = bodies.item();
 
 		if (weatherItems == null || weatherItems.isEmpty()) {
 			return result;
@@ -39,20 +39,20 @@ public class KmaWeatherExtractor {
 		String targetDateStr = date.format(WeatherType.KMA_DATE_FORMATTER);
 
 		for (KmaWeatherResponse.WeatherItem item : weatherItems) {
-			String category = item.getCategory();
+			String category = item.category();
 
 			if (!"PTY".equals(category) && !"SKY".equals(category)) {
 				continue;
 			}
-			if (!targetDateStr.equals(item.getFcstDate())) {
+			if (!targetDateStr.equals(item.fcstDate())) {
 				continue;
 			}
 
 			try {
-				int hour = Integer.parseInt(item.getFcstTime()) / 100;
+				int hour = Integer.parseInt(item.fcstTime()) / 100;
 				if (targetHours.contains(hour)) {
 					System.out.println(item);
-					WeatherType weather = convertToWeatherType(category, item.getFcstValue());
+					WeatherType weather = convertToWeatherType(category, item.fcstValue());
 
 					if (weather != null) {
 						if ("PTY".equals(category)) {
@@ -68,7 +68,7 @@ public class KmaWeatherExtractor {
 
 				}
 			} catch (NumberFormatException e) {
-				log.warn("시간 파싱 실패: {}", item.getFcstTime());
+				log.warn("시간 파싱 실패: {}", item.fcstTime());
 			}
 		}
 		log.debug("배치 날씨 추출 완료: {} (총 {}개 시간)", result.size(), targetHours.size());
@@ -93,9 +93,9 @@ public class KmaWeatherExtractor {
 
 	private boolean isValidResponse(KmaWeatherResponse response) {
 		return response != null
-			&& response.getResponse() != null
-			&& response.getResponse().getBody() != null
-			&& response.getResponse().getBody().getItems() != null;
+			&& response.response() != null
+			&& response.response().body() != null
+			&& response.response().body().items() != null;
 	}
 
 }
