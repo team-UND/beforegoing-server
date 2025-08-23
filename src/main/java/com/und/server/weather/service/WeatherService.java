@@ -50,6 +50,10 @@ public class WeatherService {
 
 		WeatherCacheData weatherCacheData = todayWeatherCacheData.getHourlyData(nowDateTime.getHour());
 
+		if (weatherCacheData == null || !weatherCacheData.isValid()) {
+			return WeatherCacheData.getDefault().toWeatherResponse();
+		}
+
 		return weatherCacheData.toWeatherResponse();
 	}
 
@@ -58,6 +62,10 @@ public class WeatherService {
 	) {
 		WeatherCacheData futureWeatherCacheData =
 			weatherCacheService.getFutureWeatherCache(weatherRequest, nowDateTime, targetDate);
+
+		if (futureWeatherCacheData == null || !futureWeatherCacheData.isValid()) {
+			return WeatherCacheData.getDefault().toWeatherResponse();
+		}
 
 		return futureWeatherCacheData.toWeatherResponse();
 	}
