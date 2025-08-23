@@ -44,4 +44,12 @@ public class WeatherCacheData {
 			.build();
 	}
 
+	public static WeatherCacheData getDefault() {
+		return WeatherCacheData.builder()
+			.weather(WeatherType.DEFAULT)
+			.dust(FineDustType.DEFAULT)
+			.uv(UvType.DEFAULT)
+			.build();
+	}
+
 }

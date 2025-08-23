@@ -1,5 +1,6 @@
 package com.und.server.weather.dto.cache;
 
+import java.util.Collections;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -47,6 +48,12 @@ public class TimeSlotWeatherCacheData {
 	public static TimeSlotWeatherCacheData from(Map<String, WeatherCacheData> weatherCacheDataByHour) {
 		return TimeSlotWeatherCacheData.builder()
 			.weatherByHour(weatherCacheDataByHour)
+			.build();
+	}
+
+	public static TimeSlotWeatherCacheData getEmpty() {
+		return TimeSlotWeatherCacheData.builder()
+			.weatherByHour(Collections.emptyMap())
 			.build();
 	}
 
