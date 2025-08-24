@@ -50,7 +50,7 @@ public enum UvType {
 			return 0.0;
 		}
 		if (maxUvIndex == Integer.MAX_VALUE) {
-			return minUvIndex + 5; // 매우높음의 경우 적절한 값 사용
+			return minUvIndex + 5;
 		}
 		return (double) (minUvIndex + maxUvIndex) / 2;
 	}

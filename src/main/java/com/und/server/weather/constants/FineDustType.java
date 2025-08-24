@@ -37,7 +37,7 @@ public enum FineDustType {
 	}
 
 	public static FineDustType fromPm25Concentration(double pm25Value) {
-		int pm25 = (int) Math.round(pm25Value); // 소수점 반올림
+		int pm25 = (int) Math.round(pm25Value);
 
 		for (FineDustType level : values()) {
 			if (pm25 >= level.minPm25 && pm25 <= level.maxPm25) {
@@ -57,22 +57,16 @@ public enum FineDustType {
 		return worst;
 	}
 
-	/**
-	 * 미세먼지 수치 평균값 계산용 중간값 반환
-	 */
 	public double getAverageValue() {
 		if (this == UNKNOWN) {
 			return 0.0;
 		}
 		if (maxPm25 == Integer.MAX_VALUE) {
-			return minPm25 + 50; // 매우나쁨의 경우 적절한 값 사용
+			return minPm25 + 50;
 		}
 		return (double) (minPm25 + maxPm25) / 2;
 	}
 
-	/**
-	 * 평균값으로부터 적절한 FineDustType 반환
-	 */
 	public static FineDustType fromAverageValue(double averageValue) {
 		return fromPm25Concentration(averageValue);
 	}

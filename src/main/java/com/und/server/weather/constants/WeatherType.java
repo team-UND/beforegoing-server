@@ -11,18 +11,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum WeatherType {
 
-	UNKNOWN(null, null, "없음", 0),
-	SUNNY(null, 1, "맑음", 1),
-	CLOUDY(null, 3, "구름많음", 2),
-	OVERCAST(null, 4, "흐림", 2),
-	RAIN(1, null, "비", 5),
-	SLEET(2, null, "진눈깨비", 3),
-	SNOW(3, null, "눈", 4),
-	SHOWER(4, null, "소나기", 6);
+	UNKNOWN("없음", null, null, 0),
+	SUNNY("맑음", null, 1, 1),
+	CLOUDY("구름많음", null, 3, 2),
+	OVERCAST("흐림", null, 4, 2),
+	RAIN("비", 1, null, 5),
+	SLEET("진눈깨비", 2, null, 3),
+	SNOW("눈", 3, null, 4),
+	SHOWER("소나기", 4, null, 6);
 
+	private final String description;
 	private final Integer ptyValue;
 	private final Integer skyValue;
-	private final String description;
 	private final int severity;
 
 	public static final WeatherType DEFAULT = WeatherType.UNKNOWN;
