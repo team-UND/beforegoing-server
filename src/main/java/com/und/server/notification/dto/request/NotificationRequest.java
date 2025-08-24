@@ -66,11 +66,16 @@ public record NotificationRequest(
 	}
 
 	public Notification toEntity() {
-		return Notification.builder()
+		Notification notification = Notification.builder()
 			.isActive(isActive)
 			.notificationType(notificationType)
 			.notificationMethodType(notificationMethodType)
 			.build();
+		if (isActive) {
+			notification.updateDaysOfWeekOrdinal(daysOfWeekOrdinal);
+		}
+
+		return notification;
 	}
 
 }

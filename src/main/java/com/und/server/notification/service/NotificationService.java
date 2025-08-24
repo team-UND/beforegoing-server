@@ -1,14 +1,12 @@
 package com.und.server.notification.service;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.notification.constants.NotificationType;
-import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
+import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.repository.NotificationRepository;
 
@@ -23,7 +21,7 @@ public class NotificationService {
 
 
 	@Transactional(readOnly = true)
-	public NotificationInfoDto findNotificationDetails(final Notification notification) {
+	public NotificationConditionResponse findNotificationDetails(final Notification notification) {
 		return notificationConditionSelector.findNotificationCondition(notification);
 	}
 
@@ -71,11 +69,10 @@ public class NotificationService {
 		final NotificationConditionRequest notificationConditionRequest
 	) {
 		Notification notification = notificationRequest.toEntity();
-		List<Integer> daysOfWeekOrdinal = notificationRequest.daysOfWeekOrdinal();
 
 		notificationRepository.save(notification);
 		notificationConditionSelector.addNotificationCondition(
-			notification, daysOfWeekOrdinal, notificationConditionRequest);
+			notification, notificationConditionRequest);
 
 		return notification;
 	}
@@ -92,8 +89,6 @@ public class NotificationService {
 		final NotificationRequest notificationRequest,
 		final NotificationConditionRequest notificationConditionRequest
 	) {
-		List<Integer> daysOfWeekOrdinal = notificationRequest.daysOfWeekOrdinal();
-
 		NotificationType oldNotificationType = notification.getNotificationType();
 		NotificationType newNotificationtype = notificationRequest.notificationType();
 		boolean isChangeNotificationType = oldNotificationType != newNotificationtype;
@@ -103,16 +98,17 @@ public class NotificationService {
 			notificationRequest.notificationMethodType()
 		);
 		notification.updateActiveStatus(true);
+		notification.updateDaysOfWeekOrdinal(notificationRequest.daysOfWeekOrdinal());
 
 		if (isChangeNotificationType) {
 			notificationConditionSelector.deleteNotificationCondition(oldNotificationType, notification.getId());
 			notificationConditionSelector.addNotificationCondition(
-				notification, daysOfWeekOrdinal, notificationConditionRequest);
+				notification, notificationConditionRequest);
 			return;
 		}
 
 		notificationConditionSelector.updateNotificationCondition(
-			notification, daysOfWeekOrdinal, notificationConditionRequest);
+			notification, notificationConditionRequest);
 	}
 
 	private void updateWithoutNotification(final Notification oldNotification) {
@@ -121,6 +117,7 @@ public class NotificationService {
 
 		oldNotification.updateActiveStatus(false);
 		oldNotification.deleteNotificationMethodType();
+		oldNotification.deleteDaysOfWeekOrdinal();
 	}
 
 }

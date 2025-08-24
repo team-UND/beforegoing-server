@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.notification.constants.NotificationType;
-import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.NotificationResponse;
@@ -69,9 +68,13 @@ public class ScenarioService {
 			missionTypeGroupSorter.groupAndSortByType(scenario.getMissions(), MissionType.BASIC);
 
 		Notification notification = scenario.getNotification();
-		NotificationInfoDto notificationInfo = notificationService.findNotificationDetails(notification);
 
-		return getScenarioDetailResponse(scenario, basicMissions, notificationInfo);
+		NotificationResponse notificationResponse = NotificationResponse.from(notification);
+		NotificationConditionResponse notificationConditionResponse =
+			notificationService.findNotificationDetails(notification);
+
+		return ScenarioDetailResponse.from(
+			scenario, basicMissions, notificationResponse, notificationConditionResponse);
 	}
 
 
@@ -182,32 +185,6 @@ public class ScenarioService {
 		scenarioRepository.delete(scenario);
 	}
 
-
-	private ScenarioDetailResponse getScenarioDetailResponse(
-		final Scenario scenario,
-		final List<Mission> basicMissions,
-		final NotificationInfoDto notificationInfo
-	) {
-		Notification notification = scenario.getNotification();
-
-		NotificationResponse notificationResponse;
-		NotificationConditionResponse notificationConditionResponse = null;
-
-		if (notificationInfo == null) {
-			notificationResponse = NotificationResponse.from(
-				notification, null, null);
-		} else {
-			notificationResponse = NotificationResponse.from(
-				notification,
-				notificationInfo.isEveryDay(),
-				notificationInfo.daysOfWeekOrdinal()
-			);
-			notificationConditionResponse = notificationInfo.notificationConditionResponse();
-		}
-
-		return ScenarioDetailResponse.from(
-			scenario, basicMissions, notificationResponse, notificationConditionResponse);
-	}
 
 	private int getValidScenarioOrder(
 		final int maxScenarioOrder,
