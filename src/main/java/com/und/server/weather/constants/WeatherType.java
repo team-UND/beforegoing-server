@@ -13,7 +13,7 @@ public enum WeatherType {
 
 	NOTHING(null, null, "없음", 0),
 	SUNNY(null, 1, "맑음", 1),
-	CLOUDY(null, 3, "흐림", 2),
+	CLOUDY(null, 3, "구름많음", 2),
 	OVERCAST(null, 4, "흐림", 2),
 	RAIN(1, null, "비", 5),
 	SLEET(2, null, "진눈깨비", 3),

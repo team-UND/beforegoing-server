@@ -12,21 +12,21 @@ import lombok.Builder;
 public record WeatherResponse(
 
 	@Schema(description = "Weather condition", example = "비")
-	String weather,
+	WeatherType weather,
 
 	@Schema(description = "FineDust condition", example = "나쁨")
-	String fineDust,
+	FineDustType fineDust,
 
 	@Schema(description = "UV condition", example = "낮음")
-	String uv
+	UvType uv
 
 ) {
 
 	public static WeatherResponse from(WeatherType weather, FineDustType fineDust, UvType uvIndex) {
 		return WeatherResponse.builder()
-			.weather(weather.getDescription())
-			.fineDust(fineDust.getDescription())
-			.uv(uvIndex.getDescription())
+			.weather(weather)
+			.fineDust(fineDust)
+			.uv(uvIndex)
 			.build();
 	}
 
