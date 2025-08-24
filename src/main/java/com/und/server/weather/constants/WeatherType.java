@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum WeatherType {
 
-	NOTHING(null, null, "없음", 0),
+	UNKNOWN(null, null, "없음", 0),
 	SUNNY(null, 1, "맑음", 1),
 	CLOUDY(null, 3, "구름많음", 2),
 	OVERCAST(null, 4, "흐림", 2),
@@ -25,7 +25,7 @@ public enum WeatherType {
 	private final String description;
 	private final int severity;
 
-	public static final WeatherType DEFAULT = WeatherType.NOTHING;
+	public static final WeatherType DEFAULT = WeatherType.UNKNOWN;
 	public static final DateTimeFormatter KMA_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 	public static WeatherType fromPtyValue(int ptyValue) {

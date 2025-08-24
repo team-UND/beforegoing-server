@@ -82,11 +82,11 @@ public class KmaWeatherExtractor {
 			return switch (category) {
 				case "PTY" -> WeatherType.fromPtyValue(value);
 				case "SKY" -> WeatherType.fromSkyValue(value);
-				default -> WeatherType.NOTHING;
+				default -> WeatherType.DEFAULT;
 			};
 
 		} catch (NumberFormatException e) {
-			return WeatherType.NOTHING;
+			return WeatherType.DEFAULT;
 		}
 	}
 

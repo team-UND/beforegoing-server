@@ -11,13 +11,13 @@ import lombok.Builder;
 @Schema(description = "Weather response")
 public record WeatherResponse(
 
-	@Schema(description = "Weather condition", example = "비")
+	@Schema(description = "Weather condition", example = "RAIN")
 	WeatherType weather,
 
-	@Schema(description = "FineDust condition", example = "나쁨")
+	@Schema(description = "FineDust condition", example = "BAD")
 	FineDustType fineDust,
 
-	@Schema(description = "UV condition", example = "낮음")
+	@Schema(description = "UV condition", example = "VERY_LOW")
 	UvType uv
 
 ) {
