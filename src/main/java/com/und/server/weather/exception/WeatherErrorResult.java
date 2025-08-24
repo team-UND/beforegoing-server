@@ -32,7 +32,7 @@ public enum WeatherErrorResult implements ErrorResult {
 	NO_WEATHER_DATA_AVAILABLE(HttpStatus.NOT_FOUND, "No weather data available for the specified location/time"),
 
 	// General errors
-	WEATHER_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing weather service");
+	WEATHER_SERVICE_ERROR(HttpStatus.BAD_REQUEST, "An error occurred while processing weather service");
 
 	private final HttpStatus httpStatus;
 	private final String message;

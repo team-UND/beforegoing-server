@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.und.server.common.exception.ServerException;
 import com.und.server.weather.constants.FineDustType;
 import com.und.server.weather.constants.TimeSlot;
 import com.und.server.weather.constants.UvType;
@@ -17,7 +16,6 @@ import com.und.server.weather.dto.api.KmaWeatherResponse;
 import com.und.server.weather.dto.api.OpenMeteoResponse;
 import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
-import com.und.server.weather.exception.WeatherErrorResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,19 +96,16 @@ public class WeatherDecisionService {
 	) {
 		Map<String, WeatherCacheData> hourlyData = new HashMap<>();
 
-		try {
-			for (int hour : targetHours) {
-				WeatherType weather = weathersByHour.getOrDefault(hour, WeatherType.DEFAULT);
-				FineDustType dust = dustByHour.getOrDefault(hour, FineDustType.DEFAULT);
-				UvType uv = uvByHour.getOrDefault(hour, UvType.DEFAULT);
+		for (int hour : targetHours) {
+			WeatherType weather = weathersByHour.getOrDefault(hour, WeatherType.DEFAULT);
+			FineDustType dust = dustByHour.getOrDefault(hour, FineDustType.DEFAULT);
+			UvType uv = uvByHour.getOrDefault(hour, UvType.DEFAULT);
 
-				WeatherCacheData weatherCacheData = WeatherCacheData.from(weather, dust, uv);
+			WeatherCacheData weatherCacheData = WeatherCacheData.from(weather, dust, uv);
 
-				hourlyData.put(String.format("%02d", hour), weatherCacheData);
-			}
-		} catch (Exception e) {
-			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
+			hourlyData.put(String.format("%02d", hour), weatherCacheData);
 		}
+
 		return hourlyData;
 	}
 
