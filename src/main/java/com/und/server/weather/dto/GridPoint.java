@@ -10,7 +10,7 @@ public record GridPoint(
 
 ) {
 
-	public static GridPoint from(int gridX, int gridY) {
+	public static GridPoint from(final int gridX, final int gridY) {
 		return new GridPoint(gridX, gridY);
 	}
 

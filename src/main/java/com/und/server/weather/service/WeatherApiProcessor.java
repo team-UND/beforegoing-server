@@ -35,9 +35,9 @@ public class WeatherApiProcessor {
 
 
 	public WeatherApiResultDto callTodayWeather(
-		WeatherRequest weatherRequest,
-		TimeSlot currentSlot,
-		LocalDate today
+		final WeatherRequest weatherRequest,
+		final TimeSlot currentSlot,
+		final LocalDate today
 	) {
 		Double latitude = weatherRequest.latitude();
 		Double longitude = weatherRequest.longitude();
@@ -63,9 +63,9 @@ public class WeatherApiProcessor {
 
 
 	public WeatherApiResultDto callFutureWeather(
-		WeatherRequest weatherRequest,
-		TimeSlot timeSlot,
-		LocalDate today, LocalDate targetDate
+		final WeatherRequest weatherRequest,
+		final TimeSlot timeSlot,
+		final LocalDate today, final LocalDate targetDate
 	) {
 		Double latitude = weatherRequest.latitude();
 		Double longitude = weatherRequest.longitude();
@@ -89,7 +89,11 @@ public class WeatherApiProcessor {
 	}
 
 
-	private KmaWeatherResponse callKmaWeatherApi(GridPoint gridPoint, TimeSlot timeSlot, LocalDate date) {
+	private KmaWeatherResponse callKmaWeatherApi(
+		final GridPoint gridPoint,
+		final TimeSlot timeSlot,
+		final LocalDate date
+	) {
 		try {
 			String baseDate = timeSlot.getBaseDate(date).format(WeatherType.KMA_DATE_FORMATTER);
 			String baseTime = timeSlot.getBaseTime();
@@ -111,7 +115,10 @@ public class WeatherApiProcessor {
 		}
 	}
 
-	private OpenMeteoResponse callOpenMeteoApi(Double latitude, Double longitude, LocalDate date) {
+	private OpenMeteoResponse callOpenMeteoApi(
+		final Double latitude, final Double longitude,
+		final LocalDate date
+	) {
 		String variables = String.join(",",
 			FineDustType.OPEN_METEO_VARIABLES,
 			UvType.OPEN_METEO_VARIABLES

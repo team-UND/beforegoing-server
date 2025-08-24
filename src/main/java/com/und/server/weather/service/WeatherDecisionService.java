@@ -32,9 +32,9 @@ public class WeatherDecisionService {
 
 
 	public TimeSlotWeatherCacheData getTodayWeatherCacheData(
-		WeatherApiResultDto weatherApiResult,
-		TimeSlot currentSlot,
-		LocalDate today
+		final WeatherApiResultDto weatherApiResult,
+		final TimeSlot currentSlot,
+		final LocalDate today
 	) {
 		KmaWeatherResponse kmaWeatherResponse = weatherApiResult.kmaWeatherResponse();
 		OpenMeteoResponse openMeteoResponse = weatherApiResult.openMeteoResponse();
@@ -60,7 +60,9 @@ public class WeatherDecisionService {
 	}
 
 
-	public WeatherCacheData getFutureWeatherCacheData(WeatherApiResultDto weatherApiResult, LocalDate targetDate) {
+	public WeatherCacheData getFutureWeatherCacheData(
+		final WeatherApiResultDto weatherApiResult, final LocalDate targetDate
+	) {
 		KmaWeatherResponse kmaWeatherResponse = weatherApiResult.kmaWeatherResponse();
 		OpenMeteoResponse openMeteoResponse = weatherApiResult.openMeteoResponse();
 
@@ -89,10 +91,10 @@ public class WeatherDecisionService {
 
 
 	private Map<String, WeatherCacheData> processHourlyData(
-		Map<Integer, WeatherType> weathersByHour,
-		Map<Integer, FineDustType> dustByHour,
-		Map<Integer, UvType> uvByHour,
-		List<Integer> targetHours
+		final Map<Integer, WeatherType> weathersByHour,
+		final Map<Integer, FineDustType> dustByHour,
+		final Map<Integer, UvType> uvByHour,
+		final List<Integer> targetHours
 	) {
 		Map<String, WeatherCacheData> hourlyData = new HashMap<>();
 

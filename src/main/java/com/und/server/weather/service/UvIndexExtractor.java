@@ -17,9 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 public class UvIndexExtractor {
 
 	public Map<Integer, UvType> extractUvForHours(
-		OpenMeteoResponse openMeteoResponse,
-		List<Integer> targetHours,
-		LocalDate date
+		final OpenMeteoResponse openMeteoResponse,
+		final List<Integer> targetHours,
+		final LocalDate date
 	) {
 		Map<Integer, UvType> result = new HashMap<>();
 
@@ -70,7 +70,7 @@ public class UvIndexExtractor {
 	}
 
 
-	private UvType convertToUvType(int index, List<Double> uvIndexValues) {
+	private UvType convertToUvType(final int index, final List<Double> uvIndexValues) {
 		if (index >= uvIndexValues.size()) {
 			return null;
 		}
@@ -84,11 +84,11 @@ public class UvIndexExtractor {
 		return UvType.fromUvIndex(uvIndex);
 	}
 
-	private boolean isValidResponse(OpenMeteoResponse openMeteoResponse) {
+	private boolean isValidResponse(final OpenMeteoResponse openMeteoResponse) {
 		return openMeteoResponse != null && openMeteoResponse.hourly() != null;
 	}
 
-	private boolean isValidData(List<String> times, List<Double> uvIndexValues) {
+	private boolean isValidData(final List<String> times, final List<Double> uvIndexValues) {
 		return times != null && uvIndexValues != null;
 	}
 

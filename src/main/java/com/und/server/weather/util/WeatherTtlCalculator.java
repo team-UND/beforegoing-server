@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class WeatherTtlCalculator {
 
-	public Duration calculateTtl(TimeSlot timeSlot) {
+	public Duration calculateTtl(final TimeSlot timeSlot) {
 		LocalDateTime now = LocalDateTime.now();
 		LocalTime currentTime = now.toLocalTime();
 

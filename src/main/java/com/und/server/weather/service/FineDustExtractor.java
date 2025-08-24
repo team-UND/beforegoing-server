@@ -17,9 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 public class FineDustExtractor {
 
 	public Map<Integer, FineDustType> extractDustForHours(
-		OpenMeteoResponse openMeteoResponse,
-		List<Integer> targetHours,
-		LocalDate date
+		final OpenMeteoResponse openMeteoResponse,
+		final List<Integer> targetHours,
+		final LocalDate date
 	) {
 		Map<Integer, FineDustType> result = new HashMap<>();
 
@@ -74,7 +74,8 @@ public class FineDustExtractor {
 	}
 
 
-	private FineDustType convertToFineDustType(int index, List<Double> pm10Values, List<Double> pm25Values) {
+	private FineDustType convertToFineDustType(final int index, final List<Double> pm10Values,
+											   final List<Double> pm25Values) {
 		if (index >= pm10Values.size() || index >= pm25Values.size()) {
 			return null;
 		}
@@ -92,12 +93,12 @@ public class FineDustExtractor {
 		return FineDustType.getWorst(List.of(pm10Level, pm25Level));
 	}
 
-	private boolean isValidResponse(OpenMeteoResponse openMeteoResponse) {
+	private boolean isValidResponse(final OpenMeteoResponse openMeteoResponse) {
 		return openMeteoResponse != null && openMeteoResponse.hourly() != null;
 	}
 
 	private boolean isValidData(
-		List<String> times, List<Double> pm10Values, List<Double> pm25Values) {
+		final List<String> times, final List<Double> pm10Values, final List<Double> pm25Values) {
 		return times != null && pm10Values != null && pm25Values != null;
 	}
 

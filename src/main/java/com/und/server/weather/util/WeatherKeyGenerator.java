@@ -14,29 +14,30 @@ public class WeatherKeyGenerator {
 
 	private static final double CACHE_GRID = 10.0;
 
-	public String generateTodayKey(Double latitude, Double longitude, LocalDate today, TimeSlot slot) {
+	public String generateTodayKey(
+		final Double latitude, final Double longitude,
+		final LocalDate today,
+		final TimeSlot slot
+	) {
 		GridPoint gridPoint = convertToGrid(latitude, longitude);
 		WeatherCacheKey cacheKey = WeatherCacheKey.forToday(gridPoint, today, slot);
 
 		return cacheKey.toRedisKey();
 	}
 
-	public String generateFutureKey(Double latitude, Double longitude, LocalDate requestDate, TimeSlot slot) {
+	public String generateFutureKey(
+		final Double latitude, final Double longitude,
+		final LocalDate requestDate,
+		final TimeSlot slot
+	) {
 		GridPoint gridPoint = convertToGrid(latitude, longitude);
 		WeatherCacheKey cacheKey = WeatherCacheKey.forFuture(gridPoint, requestDate, slot);
 
 		return cacheKey.toRedisKey();
 	}
 
-	private GridPoint convertToGrid(Double latitude, Double longitude) {
+	private GridPoint convertToGrid(final Double latitude, final Double longitude) {
 		return GridConverter.convertToCacheGrid(latitude, longitude, CACHE_GRID);
 	}
-
-//	/**
-//	 * Redis 키에서 WeatherCacheKey 객체 파싱
-//	 */
-//	public WeatherCacheKey parseKey(String redisKey) {
-//		return WeatherCacheKey.fromRedisKey(redisKey);
-//	}
 
 }

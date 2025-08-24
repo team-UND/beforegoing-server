@@ -30,7 +30,11 @@ public record WeatherCacheData(
 		return weather != null && findDust != null && uv != null;
 	}
 
-	public static WeatherCacheData from(WeatherType weather, FineDustType findDust, UvType uv) {
+	public static WeatherCacheData from(
+		final WeatherType weather,
+		final FineDustType findDust,
+		final UvType uv
+	) {
 		return WeatherCacheData.builder()
 			.weather(weather)
 			.findDust(findDust)

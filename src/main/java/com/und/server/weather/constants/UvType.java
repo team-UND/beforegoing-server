@@ -24,7 +24,7 @@ public enum UvType {
 	public static final UvType DEFAULT = UvType.UNKNOWN;
 	public static final String OPEN_METEO_VARIABLES = "uv_index";
 
-	public static UvType fromUvIndex(double uvIndexValue) {
+	public static UvType fromUvIndex(final double uvIndexValue) {
 		int uvIndex = (int) Math.round(uvIndexValue);
 
 		for (UvType level : values()) {
@@ -35,7 +35,7 @@ public enum UvType {
 		return DEFAULT;
 	}
 
-	public static UvType getWorst(List<UvType> levels) {
+	public static UvType getWorst(final List<UvType> levels) {
 		UvType worst = DEFAULT;
 		for (UvType level : levels) {
 			if (level.severity > worst.severity) {
@@ -55,7 +55,7 @@ public enum UvType {
 		return (double) (minUvIndex + maxUvIndex) / 2;
 	}
 
-	public static UvType fromAverageValue(double averageValue) {
+	public static UvType fromAverageValue(final double averageValue) {
 		return fromUvIndex(averageValue);
 	}
 

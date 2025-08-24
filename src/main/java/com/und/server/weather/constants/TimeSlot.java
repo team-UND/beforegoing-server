@@ -23,11 +23,11 @@ public enum TimeSlot {
 	private final int startHour;
 	private final int endHour;
 
-	public static TimeSlot getCurrentSlot(LocalDateTime dateTime) {
+	public static TimeSlot getCurrentSlot(final LocalDateTime dateTime) {
 		return from(dateTime.toLocalTime());
 	}
 
-	public static TimeSlot from(LocalTime localTime) {
+	public static TimeSlot from(final LocalTime localTime) {
 		int hour = localTime.getHour();
 
 		for (TimeSlot slot : values()) {
@@ -50,7 +50,7 @@ public enum TimeSlot {
 		};
 	}
 
-	public LocalDate getBaseDate(LocalDate currentDate) {
+	public LocalDate getBaseDate(final LocalDate currentDate) {
 		if (this == SLOT_00_04) {
 			return currentDate.minusDays(1);
 		}

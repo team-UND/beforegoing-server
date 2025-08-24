@@ -20,7 +20,7 @@ public class CacheSerializer {
 		this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 	}
 
-	public String serializeWeatherCacheData(WeatherCacheData data) {
+	public String serializeWeatherCacheData(final WeatherCacheData data) {
 		try {
 			return objectMapper.writeValueAsString(data);
 		} catch (JsonProcessingException e) {
@@ -29,7 +29,7 @@ public class CacheSerializer {
 		}
 	}
 
-	public String serializeTimeSlotWeatherCacheData(TimeSlotWeatherCacheData data) {
+	public String serializeTimeSlotWeatherCacheData(final TimeSlotWeatherCacheData data) {
 		try {
 			return objectMapper.writeValueAsString(data);
 		} catch (JsonProcessingException e) {
@@ -38,7 +38,7 @@ public class CacheSerializer {
 		}
 	}
 
-	public WeatherCacheData deserializeWeatherCacheData(String json) {
+	public WeatherCacheData deserializeWeatherCacheData(final String json) {
 		try {
 			return objectMapper.readValue(json, WeatherCacheData.class);
 		} catch (JsonProcessingException e) {
@@ -47,7 +47,7 @@ public class CacheSerializer {
 		}
 	}
 
-	public TimeSlotWeatherCacheData deserializeTimeSlotWeatherCacheData(String json) {
+	public TimeSlotWeatherCacheData deserializeTimeSlotWeatherCacheData(final String json) {
 		try {
 			return objectMapper.readValue(json, TimeSlotWeatherCacheData.class);
 		} catch (JsonProcessingException e) {

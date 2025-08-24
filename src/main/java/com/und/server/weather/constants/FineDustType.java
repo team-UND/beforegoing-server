@@ -25,7 +25,7 @@ public enum FineDustType {
 	public static final FineDustType DEFAULT = FineDustType.UNKNOWN;
 	public static final String OPEN_METEO_VARIABLES = "pm2_5,pm10";
 
-	public static FineDustType fromPm10Concentration(double pm10Value) {
+	public static FineDustType fromPm10Concentration(final double pm10Value) {
 		int pm10 = (int) Math.round(pm10Value);
 
 		for (FineDustType level : values()) {
@@ -36,7 +36,7 @@ public enum FineDustType {
 		return DEFAULT;
 	}
 
-	public static FineDustType fromPm25Concentration(double pm25Value) {
+	public static FineDustType fromPm25Concentration(final double pm25Value) {
 		int pm25 = (int) Math.round(pm25Value);
 
 		for (FineDustType level : values()) {
@@ -47,7 +47,7 @@ public enum FineDustType {
 		return DEFAULT;
 	}
 
-	public static FineDustType getWorst(List<FineDustType> levels) {
+	public static FineDustType getWorst(final List<FineDustType> levels) {
 		FineDustType worst = DEFAULT;
 		for (FineDustType level : levels) {
 			if (level.severity > worst.severity) {
@@ -67,7 +67,7 @@ public enum FineDustType {
 		return (double) (minPm25 + maxPm25) / 2;
 	}
 
-	public static FineDustType fromAverageValue(double averageValue) {
+	public static FineDustType fromAverageValue(final double averageValue) {
 		return fromPm25Concentration(averageValue);
 	}
 

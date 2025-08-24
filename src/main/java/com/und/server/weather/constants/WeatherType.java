@@ -28,7 +28,7 @@ public enum WeatherType {
 	public static final WeatherType DEFAULT = WeatherType.UNKNOWN;
 	public static final DateTimeFormatter KMA_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-	public static WeatherType fromPtyValue(int ptyValue) {
+	public static WeatherType fromPtyValue(final int ptyValue) {
 		for (WeatherType type : values()) {
 			if (Objects.equals(type.ptyValue, ptyValue)) {
 				return type;
@@ -37,7 +37,7 @@ public enum WeatherType {
 		return DEFAULT;
 	}
 
-	public static WeatherType fromSkyValue(int skyValue) {
+	public static WeatherType fromSkyValue(final int skyValue) {
 		for (WeatherType type : values()) {
 			if (Objects.equals(type.skyValue, skyValue)) {
 				return type;
@@ -46,7 +46,7 @@ public enum WeatherType {
 		return DEFAULT;
 	}
 
-	public static WeatherType getWorst(List<WeatherType> types) {
+	public static WeatherType getWorst(final List<WeatherType> types) {
 		WeatherType worst = DEFAULT;
 		for (WeatherType type : types) {
 			if (type != null) {

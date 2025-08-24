@@ -22,7 +22,11 @@ public record WeatherResponse(
 
 ) {
 
-	public static WeatherResponse from(WeatherType weather, FineDustType fineDust, UvType uvIndex) {
+	public static WeatherResponse from(
+		final WeatherType weather,
+		final FineDustType fineDust,
+		final UvType uvIndex
+	) {
 		return WeatherResponse.builder()
 			.weather(weather)
 			.fineDust(fineDust)

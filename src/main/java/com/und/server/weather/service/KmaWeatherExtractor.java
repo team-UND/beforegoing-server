@@ -17,9 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 public class KmaWeatherExtractor {
 
 	public Map<Integer, WeatherType> extractWeatherForHours(
-		KmaWeatherResponse response,
-		List<Integer> targetHours,
-		LocalDate date
+		final KmaWeatherResponse response,
+		final List<Integer> targetHours,
+		final LocalDate date
 	) {
 		Map<Integer, WeatherType> result = new HashMap<>();
 
@@ -75,7 +75,7 @@ public class KmaWeatherExtractor {
 		return result;
 	}
 
-	private WeatherType convertToWeatherType(String category, String fcstValue) {
+	private WeatherType convertToWeatherType(final String category, final String fcstValue) {
 		try {
 			int value = Integer.parseInt(fcstValue);
 
@@ -91,7 +91,7 @@ public class KmaWeatherExtractor {
 	}
 
 
-	private boolean isValidResponse(KmaWeatherResponse response) {
+	private boolean isValidResponse(final KmaWeatherResponse response) {
 		return response != null
 			&& response.response() != null
 			&& response.response().body() != null
