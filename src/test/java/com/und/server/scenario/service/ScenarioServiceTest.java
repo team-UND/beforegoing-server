@@ -173,7 +173,7 @@ class ScenarioServiceTest {
 		// mock
 		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
-		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(notifInfoDto);
+		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(notifDetail);
 		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
 			.thenReturn(List.of());
 
