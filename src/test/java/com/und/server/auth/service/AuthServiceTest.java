@@ -116,21 +116,21 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Throws an exception on handshake with an invalid provider")
-	void Given_InvalidProvider_When_Handshake_Then_ThrowsException() {
+	@DisplayName("Throws an exception on nonce generation with an invalid provider")
+	void Given_InvalidProvider_When_GenerateNonce_Then_ThrowsException() {
 		// given
 		final NonceRequest nonceRequest = new NonceRequest("facebook");
 
 		// when & then
 		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.handshake(nonceRequest));
+			() -> authService.generateNonce(nonceRequest));
 
 		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
-	@DisplayName("Returns a nonce on a successful handshake for Kakao")
-	void Given_KakaoProvider_When_Handshake_Then_ReturnsNonce() {
+	@DisplayName("Returns a nonce on a successful generation for Kakao")
+	void Given_KakaoProvider_When_GenerateNonce_Then_ReturnsNonce() {
 		// given
 		final String nonce = "generated-nonce";
 		final String providerName = "kakao";
@@ -140,7 +140,7 @@ class AuthServiceTest {
 		doNothing().when(nonceService).saveNonce(nonce, Provider.KAKAO);
 
 		// when
-		final NonceResponse response = authService.handshake(nonceRequest);
+		final NonceResponse response = authService.generateNonce(nonceRequest);
 
 		// then
 		verify(nonceService).generateNonceValue();
@@ -149,8 +149,8 @@ class AuthServiceTest {
 	}
 
 	@Test
-	@DisplayName("Returns a nonce on a successful handshake for Apple")
-	void Given_AppleProvider_When_Handshake_Then_ReturnsNonce() {
+	@DisplayName("Returns a nonce on a successful generation for Apple")
+	void Given_AppleProvider_When_GenerateNonce_Then_ReturnsNonce() {
 		// given
 		final String nonce = "generated-nonce";
 		final String providerName = "apple";
@@ -160,7 +160,7 @@ class AuthServiceTest {
 		doNothing().when(nonceService).saveNonce(nonce, Provider.APPLE);
 
 		// when
-		final NonceResponse response = authService.handshake(nonceRequest);
+		final NonceResponse response = authService.generateNonce(nonceRequest);
 
 		// then
 		verify(nonceService).generateNonceValue();

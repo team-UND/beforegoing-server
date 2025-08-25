@@ -60,8 +60,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fails handshake with bad request when provider is null")
-	void Given_HandshakeRequestWithNullProvider_When_Handshake_Then_ReturnsBadRequest() throws Exception {
+	@DisplayName("Fails to generate nonce with bad request when provider is null")
+	void Given_NonceRequestWithNullProvider_When_GenerateNonce_Then_ReturnsBadRequest() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest(null);
@@ -81,8 +81,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fails handshake when provider is unknown")
-	void Given_HandshakeRequestWithUnknownProvider_When_Handshake_Then_ReturnsErrorResponse() throws Exception {
+	@DisplayName("Fails to generate nonce when provider is unknown")
+	void Given_NonceRequestWithUnknownProvider_When_GenerateNonce_Then_ReturnsErrorResponse() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("facebook");
@@ -90,7 +90,7 @@ class AuthControllerTest {
 		final AuthErrorResult errorResult = AuthErrorResult.INVALID_PROVIDER;
 
 		doThrow(new ServerException(errorResult))
-			.when(authService).handshake(request);
+			.when(authService).generateNonce(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -106,14 +106,14 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Succeeds handshake and returns nonce for a valid Kakao request")
-	void Given_ValidKakaoHandshakeRequest_When_Handshake_Then_ReturnsCreatedWithNonce() throws Exception {
+	@DisplayName("Succeeds in generating nonce and returns nonce for a valid Kakao request")
+	void Given_ValidKakaoNonceRequest_When_GenerateNonce_Then_ReturnsCreatedWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("kakao");
 		final NonceResponse response = new NonceResponse("generated-nonce");
 
-		doReturn(response).when(authService).handshake(request);
+		doReturn(response).when(authService).generateNonce(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -128,14 +128,14 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Succeeds handshake and returns nonce for a valid Apple request")
-	void Given_ValidAppleHandshakeRequest_When_Handshake_Then_ReturnsCreatedWithNonce() throws Exception {
+	@DisplayName("Succeeds in generating nonce and returns nonce for a valid Apple request")
+	void Given_ValidAppleNonceRequest_When_GenerateNonce_Then_ReturnsCreatedWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("apple");
 		final NonceResponse response = new NonceResponse("generated-nonce-for-apple");
 
-		doReturn(response).when(authService).handshake(request);
+		doReturn(response).when(authService).generateNonce(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(

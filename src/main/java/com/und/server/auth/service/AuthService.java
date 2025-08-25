@@ -50,7 +50,7 @@ public class AuthService {
 	}
 
 	@Transactional
-	public NonceResponse handshake(final NonceRequest nonceRequest) {
+	public NonceResponse generateNonce(final NonceRequest nonceRequest) {
 		final String nonce = nonceService.generateNonceValue();
 		final Provider provider = convertToProvider(nonceRequest.provider());
 

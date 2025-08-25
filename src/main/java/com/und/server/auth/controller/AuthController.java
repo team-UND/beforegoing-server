@@ -30,8 +30,8 @@ public class AuthController {
 
 	@PostMapping("/nonce")
 	@ApiResponse(responseCode = "201", description = "Nonce created")
-	public ResponseEntity<NonceResponse> handshake(@RequestBody @Valid final NonceRequest nonceRequest) {
-		final NonceResponse nonceResponse = authService.handshake(nonceRequest);
+	public ResponseEntity<NonceResponse> generateNonce(@RequestBody @Valid final NonceRequest nonceRequest) {
+		final NonceResponse nonceResponse = authService.generateNonce(nonceRequest);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(nonceResponse);
 	}
