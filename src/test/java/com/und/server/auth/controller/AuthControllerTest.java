@@ -24,11 +24,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.auth.dto.AuthRequest;
-import com.und.server.auth.dto.AuthResponse;
-import com.und.server.auth.dto.NonceRequest;
-import com.und.server.auth.dto.NonceResponse;
-import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.dto.request.AuthRequest;
+import com.und.server.auth.dto.request.NonceRequest;
+import com.und.server.auth.dto.request.RefreshTokenRequest;
+import com.und.server.auth.dto.response.AuthResponse;
+import com.und.server.auth.dto.response.NonceResponse;
 import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;

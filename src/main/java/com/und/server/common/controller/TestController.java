@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.und.server.auth.dto.AuthResponse;
+import com.und.server.auth.dto.response.AuthResponse;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.auth.service.AuthService;
-import com.und.server.common.dto.TestAuthRequest;
-import com.und.server.common.dto.TestHelloResponse;
-import com.und.server.member.dto.MemberResponse;
+import com.und.server.common.dto.request.TestAuthRequest;
+import com.und.server.common.dto.response.TestHelloResponse;
+import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.service.MemberService;
 

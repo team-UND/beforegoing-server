@@ -24,14 +24,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.auth.dto.AuthResponse;
+import com.und.server.auth.dto.response.AuthResponse;
 import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;
-import com.und.server.common.dto.TestAuthRequest;
+import com.und.server.common.dto.request.TestAuthRequest;
 import com.und.server.common.exception.GlobalExceptionHandler;
 import com.und.server.common.exception.ServerException;
-import com.und.server.member.dto.MemberResponse;
+import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;

@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.common.dto.ErrorResponse;
+import com.und.server.common.dto.response.ErrorResponse;
 import com.und.server.common.exception.ErrorResult;
 
 import jakarta.servlet.http.HttpServletResponse;

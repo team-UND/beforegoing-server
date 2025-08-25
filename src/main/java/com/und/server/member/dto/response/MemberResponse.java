@@ -1,4 +1,4 @@
-package com.und.server.member.dto;
+package com.und.server.member.dto.response;
 
 import java.time.LocalDateTime;
 

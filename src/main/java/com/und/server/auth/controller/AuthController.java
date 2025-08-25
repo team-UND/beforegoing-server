@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.und.server.auth.dto.AuthRequest;
-import com.und.server.auth.dto.AuthResponse;
-import com.und.server.auth.dto.NonceRequest;
-import com.und.server.auth.dto.NonceResponse;
-import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.dto.request.AuthRequest;
+import com.und.server.auth.dto.request.NonceRequest;
+import com.und.server.auth.dto.request.RefreshTokenRequest;
+import com.und.server.auth.dto.response.AuthResponse;
+import com.und.server.auth.dto.response.NonceResponse;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.auth.service.AuthService;
 
