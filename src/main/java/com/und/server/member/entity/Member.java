@@ -1,12 +1,18 @@
 package com.und.server.member.entity;
 
-import com.und.server.common.entity.BaseTimeEntity;
+import java.util.List;
 
+import com.und.server.common.entity.BaseTimeEntity;
+import com.und.server.terms.entity.Terms;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,6 +41,9 @@ public class Member extends BaseTimeEntity {
 
 	@Column(nullable = true, unique = true)
 	private String appleId;
+
+	@OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Terms> terms;
 
 	public void updateNickname(final String nickname) {
 		this.nickname = nickname;
