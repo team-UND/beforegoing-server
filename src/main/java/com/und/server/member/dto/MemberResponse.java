@@ -20,10 +20,10 @@ public record MemberResponse(
 	@Schema(description = "Apple ID", example = "1234567890")
 	String appleId,
 
-	@Schema(description = "Creation timestamp of the member", example = "2025-07-31T22:27:36.037717")
+	@Schema(description = "Creation timestamp of the member", example = "2025-07-31T22:27:36Z")
 	LocalDateTime createdAt,
 
-	@Schema(description = "Last update timestamp of the member", example = "2025-07-31T22:27:36.037744")
+	@Schema(description = "Last update timestamp of the member", example = "2025-07-31T22:27:36Z")
 	LocalDateTime updatedAt
 ) {
 	public static MemberResponse from(final Member member) {
