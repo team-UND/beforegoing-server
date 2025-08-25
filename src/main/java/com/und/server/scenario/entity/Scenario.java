@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
-@Table
+@Table(name = "scenario")
 public class Scenario extends BaseTimeEntity {
 
 	@Id

@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
-@Table
+@Table(name = "time_notification")
 public class TimeNotification extends BaseTimeEntity {
 
 	@Id

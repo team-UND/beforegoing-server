@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
-@Table
+@Table(name = "location_notification")
 public class LocationNotification extends BaseTimeEntity {
 
 	@Id
