@@ -1,5 +1,6 @@
 package com.und.server.terms.entity;
 
+import com.und.server.common.entity.BaseTimeEntity;
 import com.und.server.member.entity.Member;
 
 import jakarta.persistence.Column;
@@ -23,7 +24,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Terms {
+public class Terms extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
