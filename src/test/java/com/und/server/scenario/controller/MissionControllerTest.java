@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
@@ -41,9 +42,11 @@ class MissionControllerTest {
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 
-		MissionGroupResponse expectedResponse = new MissionGroupResponse(
-			List.of(), List.of()
-		);
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(List.of())
+			.todayMissions(List.of())
+			.build();
 
 		when(missionService.findMissionsByScenarioId(memberId, scenarioId, date))
 			.thenReturn(expectedResponse);
@@ -60,58 +63,88 @@ class MissionControllerTest {
 
 
 	@Test
-	void Given_ValidRequest_When_AddTodayMissionToScenario_Then_ReturnNoContent() {
+	void Given_ValidRequest_When_AddTodayMissionToScenario_Then_ReturnCreated() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 		TodayMissionRequest missionAddRequest = new TodayMissionRequest("오늘 미션");
 
+		MissionResponse expectedResponse = MissionResponse.builder()
+			.missionId(1L)
+			.content("오늘 미션")
+			.isChecked(false)
+			.missionType(MissionType.TODAY)
+			.build();
+
+		when(scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date))
+			.thenReturn(expectedResponse);
+
 		// when
 		ResponseEntity<MissionResponse> response =
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
 
 
 	@Test
-	void Given_EmptyContentRequest_When_AddTodayMissionToScenario_Then_ReturnNoContent() {
+	void Given_EmptyContentRequest_When_AddTodayMissionToScenario_Then_ReturnCreated() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 		TodayMissionRequest missionAddRequest = new TodayMissionRequest("");
 
+		MissionResponse expectedResponse = MissionResponse.builder()
+			.missionId(1L)
+			.content("")
+			.isChecked(false)
+			.missionType(MissionType.TODAY)
+			.build();
+
+		when(scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date))
+			.thenReturn(expectedResponse);
+
 		// when
 		ResponseEntity<MissionResponse> response =
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
 
 
 	@Test
-	void Given_LongContentRequest_When_AddTodayMissionToScenario_Then_ReturnNoContent() {
+	void Given_LongContentRequest_When_AddTodayMissionToScenario_Then_ReturnCreated() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 		TodayMissionRequest missionAddRequest = new TodayMissionRequest("매우 긴 미션 내용입니다");
 
+		MissionResponse expectedResponse = MissionResponse.builder()
+			.missionId(1L)
+			.content("매우 긴 미션 내용입니다")
+			.isChecked(false)
+			.missionType(MissionType.TODAY)
+			.build();
+
+		when(scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date))
+			.thenReturn(expectedResponse);
+
 		// when
 		ResponseEntity<MissionResponse> response =
 			missionController.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
 	}
 

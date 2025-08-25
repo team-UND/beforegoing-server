@@ -1,7 +1,5 @@
 package com.und.server.notification.dto.request;
 
-import java.time.DayOfWeek;
-
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.entity.TimeNotification;
@@ -46,10 +44,9 @@ public record TimeNotificationRequest(
 		}
 	}
 
-	public TimeNotification toEntity(final Notification notification, final DayOfWeek dayOfWeek) {
+	public TimeNotification toEntity(final Notification notification) {
 		return TimeNotification.builder()
 			.notification(notification)
-			.dayOfWeek(dayOfWeek)
 			.startHour(startHour)
 			.startMinute(startMinute)
 			.build();

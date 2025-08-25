@@ -11,7 +11,7 @@ import com.und.server.scenario.exception.ReorderRequiredException;
 @Component
 public class OrderCalculator {
 
-	public static final int START_ORDER = 1000;
+	public static final int START_ORDER = 100000;
 	public static final int DEFAULT_ORDER = 1000;
 	private static final int MIN_ORDER = 0;
 	private static final int MAX_ORDER = 10_000_000;

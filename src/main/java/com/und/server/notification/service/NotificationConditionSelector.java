@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.notification.constants.NotificationType;
-import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
+import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.exception.NotificationErrorResult;
 
@@ -20,7 +20,7 @@ public class NotificationConditionSelector {
 	private final List<NotificationConditionService> services;
 
 
-	public NotificationInfoDto findNotificationCondition(final Notification notification) {
+	public NotificationConditionResponse findNotificationCondition(final Notification notification) {
 		NotificationConditionService service = findServiceByNotificationType(notification.getNotificationType());
 
 		return service.findNotificationInfoByType(notification);
@@ -29,21 +29,19 @@ public class NotificationConditionSelector {
 
 	public void addNotificationCondition(
 		final Notification notification,
-		final List<Integer> daysOfWeekOrdinal,
 		final NotificationConditionRequest notificationConditionRequest
 	) {
 		NotificationConditionService service = findServiceByNotificationType(notification.getNotificationType());
-		service.addNotificationCondition(notification, daysOfWeekOrdinal, notificationConditionRequest);
+		service.addNotificationCondition(notification, notificationConditionRequest);
 	}
 
 
 	public void updateNotificationCondition(
 		final Notification notification,
-		final List<Integer> daysOfWeekOrdinal,
 		final NotificationConditionRequest notificationConditionRequest
 	) {
 		NotificationConditionService service = findServiceByNotificationType(notification.getNotificationType());
-		service.updateNotificationCondition(notification, daysOfWeekOrdinal, notificationConditionRequest);
+		service.updateNotificationCondition(notification, notificationConditionRequest);
 	}
 
 
