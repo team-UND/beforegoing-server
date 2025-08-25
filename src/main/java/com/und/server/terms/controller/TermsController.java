@@ -16,6 +16,7 @@ import com.und.server.terms.dto.response.TermsAgreementResponse;
 import com.und.server.terms.service.TermsService;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -35,8 +36,8 @@ public class TermsController {
 		return ResponseEntity.status(HttpStatus.OK).body(termsAgreementResponse);
 	}
 
-
 	@PostMapping("")
+	@ApiResponse(responseCode = "201", description = "Terms agreement created")
 	public ResponseEntity<TermsAgreementResponse> addTermsAgreement(
 		@Parameter(hidden = true) @AuthMember final Long memberId,
 		@RequestBody @Valid final TermsAgreementRequest termsAgreementRequest
@@ -44,7 +45,7 @@ public class TermsController {
 		final TermsAgreementResponse termsAgreementResponse
 			= termsService.addTermsAgreement(memberId, termsAgreementRequest);
 
-		return ResponseEntity.status(HttpStatus.OK).body(termsAgreementResponse);
+		return ResponseEntity.status(HttpStatus.CREATED).body(termsAgreementResponse);
 	}
 
 	@PatchMapping("")

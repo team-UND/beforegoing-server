@@ -24,6 +24,7 @@ import com.und.server.terms.dto.response.TermsAgreementResponse;
 import com.und.server.terms.service.TermsService;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -39,9 +40,10 @@ public class TestController {
 	private final TermsService termsService;
 
 	@PostMapping("/access")
-	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid final TestAuthRequest request) {
+	@ApiResponse(responseCode = "201", description = "Access token created")
+	public ResponseEntity<AuthResponse> loginWithoutProviderId(@RequestBody @Valid final TestAuthRequest request) {
 		final AuthResponse response = authService.issueTokensForTest(request);
-		return ResponseEntity.status(HttpStatus.OK).body(response);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	@GetMapping("/hello")

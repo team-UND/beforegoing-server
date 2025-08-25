@@ -29,10 +29,11 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/nonce")
+	@ApiResponse(responseCode = "201", description = "Nonce created")
 	public ResponseEntity<NonceResponse> handshake(@RequestBody @Valid final NonceRequest nonceRequest) {
 		final NonceResponse nonceResponse = authService.handshake(nonceRequest);
 
-		return ResponseEntity.status(HttpStatus.OK).body(nonceResponse);
+		return ResponseEntity.status(HttpStatus.CREATED).body(nonceResponse);
 	}
 
 	@PostMapping("/login")
@@ -43,12 +44,13 @@ public class AuthController {
 	}
 
 	@PostMapping("/tokens")
+	@ApiResponse(responseCode = "201", description = "Tokens reissued")
 	public ResponseEntity<AuthResponse> reissueTokens(
 		@RequestBody @Valid final RefreshTokenRequest refreshTokenRequest
 	) {
 		final AuthResponse authResponse = authService.reissueTokens(refreshTokenRequest);
 
-		return ResponseEntity.status(HttpStatus.OK).body(authResponse);
+		return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
 	}
 
 	@DeleteMapping("/logout")

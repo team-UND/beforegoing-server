@@ -69,7 +69,7 @@ class TestControllerTest {
 
 	@Test
 	@DisplayName("Issues tokens for an existing member")
-	void Given_ExistingMember_When_RequestAccessToken_Then_ReturnsOkWithTokens() throws Exception {
+	void Given_ExistingMember_When_LoginWithoutProviderId_Then_ReturnsCreatedWithTokens() throws Exception {
 		// given
 		final String url = "/v1/test/access";
 		final TestAuthRequest request = new TestAuthRequest("kakao", "dummy.provider.id");
@@ -97,13 +97,13 @@ class TestControllerTest {
 				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
 		);
 
-		resultActions.andExpect(status().isOk());
+		resultActions.andExpect(status().isCreated());
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
 	}
 
 	@Test
 	@DisplayName("Creates a new member and issues tokens when member does not exist")
-	void Given_NonExistingMember_When_RequestAccessToken_Then_CreatesMemberAndReturnsOkWithTokens() throws Exception {
+	void Given_NonExistingMember_When_LoginWithoutProviderId_Then_CreatesMemberAndReturns()throws Exception {
 		// given
 		final String url = "/v1/test/access";
 		final TestAuthRequest request = new TestAuthRequest("kakao", "provider-id-456");
@@ -132,7 +132,7 @@ class TestControllerTest {
 				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
 		);
 
-		resultActions.andExpect(status().isOk());
+		resultActions.andExpect(status().isCreated());
 		assertThat(actualResponse).usingRecursiveComparison().isEqualTo(expectedResponse);
 	}
 

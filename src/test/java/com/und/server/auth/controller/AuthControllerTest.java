@@ -107,7 +107,7 @@ class AuthControllerTest {
 
 	@Test
 	@DisplayName("Succeeds handshake and returns nonce for a valid Kakao request")
-	void Given_ValidKakaoHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+	void Given_ValidKakaoHandshakeRequest_When_Handshake_Then_ReturnsCreatedWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("kakao");
@@ -123,13 +123,13 @@ class AuthControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk())
+		resultActions.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.nonce").value("generated-nonce"));
 	}
 
 	@Test
 	@DisplayName("Succeeds handshake and returns nonce for a valid Apple request")
-	void Given_ValidAppleHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+	void Given_ValidAppleHandshakeRequest_When_Handshake_Then_ReturnsCreatedWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("apple");
@@ -145,7 +145,7 @@ class AuthControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk())
+		resultActions.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.nonce").value("generated-nonce-for-apple"));
 	}
 
@@ -361,7 +361,7 @@ class AuthControllerTest {
 
 	@Test
 	@DisplayName("Succeeds token refresh for a valid request")
-	void Given_ValidRefreshTokenRequest_When_ReissueTokens_Then_ReturnsOkWithNewTokens() throws Exception {
+	void Given_ValidRefreshTokenRequest_When_ReissueTokens_Then_ReturnsCreatedWithNewTokens() throws Exception {
 		// given
 		final String url = "/v1/auth/tokens";
 		final RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
@@ -392,7 +392,7 @@ class AuthControllerTest {
 				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
 		);
 
-		resultActions.andExpect(status().isOk());
+		resultActions.andExpect(status().isCreated());
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("new.access.token");
 		assertThat(response.refreshToken()).isEqualTo("new.refresh.token");

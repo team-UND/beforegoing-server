@@ -117,7 +117,7 @@ class TermsControllerTest {
 
 	@Test
 	@DisplayName("Successfully adds a new terms agreement")
-	void Given_NoAgreement_When_AddTermsAgreement_Then_ReturnsOkWithResponse() throws Exception {
+	void Given_NoAgreement_When_AddTermsAgreement_Then_ReturnsCreatedWithResponse() throws Exception {
 		// given
 		final String url = "/v1/terms";
 		final TermsAgreementRequest request = new TermsAgreementRequest(true, true, true, true);
@@ -134,7 +134,7 @@ class TermsControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk())
+		resultActions.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.id").value(1L))
 			.andExpect(jsonPath("$.eventPushAgreed").value(true));
 	}
