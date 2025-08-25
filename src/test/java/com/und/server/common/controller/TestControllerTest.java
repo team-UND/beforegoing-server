@@ -35,6 +35,8 @@ import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;
+import com.und.server.terms.dto.response.TermsAgreementResponse;
+import com.und.server.terms.service.TermsService;
 
 @ExtendWith(MockitoExtension.class)
 class TestControllerTest {
@@ -47,6 +49,9 @@ class TestControllerTest {
 
 	@Mock
 	private AuthService authService;
+
+	@Mock
+	private TermsService termsService;
 
 	@Mock
 	private AuthMemberArgumentResolver authMemberArgumentResolver;
@@ -221,5 +226,33 @@ class TestControllerTest {
 			.andExpect(jsonPath("$[0].nickname").value("user1"))
 			.andExpect(jsonPath("$[1].id").value(2L))
 			.andExpect(jsonPath("$[1].nickname").value("user2"));
+	}
+
+	@Test
+	@DisplayName("Returns a list of terms agreements when terms exist")
+	void Given_TermsExist_When_GetTermsList_Then_ReturnsOkWithTermsList() throws Exception {
+		// given
+		final String url = "/v1/test/terms";
+		final List<TermsAgreementResponse> expectedResponse = List.of(
+			new TermsAgreementResponse(1L, 101L, true, true, true, false),
+			new TermsAgreementResponse(2L, 102L, true, true, true, true)
+		);
+		doReturn(expectedResponse).when(termsService).getTermsList();
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get(url)
+		);
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$").isArray())
+			.andExpect(jsonPath("$.length()").value(2))
+			.andExpect(jsonPath("$[0].id").value(1L))
+			.andExpect(jsonPath("$[0].memberId").value(101L))
+			.andExpect(jsonPath("$[0].termsOfServiceAgreed").value(true))
+			.andExpect(jsonPath("$[1].id").value(2L))
+			.andExpect(jsonPath("$[1].memberId").value(102L))
+			.andExpect(jsonPath("$[1].eventPushAgreed").value(true));
 	}
 }

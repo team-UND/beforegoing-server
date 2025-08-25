@@ -20,6 +20,8 @@ import com.und.server.common.dto.response.TestHelloResponse;
 import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.entity.Member;
 import com.und.server.member.service.MemberService;
+import com.und.server.terms.dto.response.TermsAgreementResponse;
+import com.und.server.terms.service.TermsService;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -34,6 +36,7 @@ public class TestController {
 
 	private final AuthService authService;
 	private final MemberService memberService;
+	private final TermsService termsService;
 
 	@PostMapping("/access")
 	public ResponseEntity<AuthResponse> requireAccessToken(@RequestBody @Valid final TestAuthRequest request) {
@@ -55,6 +58,13 @@ public class TestController {
 		final List<MemberResponse> members = memberService.getMemberList();
 
 		return ResponseEntity.status(HttpStatus.OK).body(members);
+	}
+
+	@GetMapping("/terms")
+	public ResponseEntity<List<TermsAgreementResponse>> getTermsList() {
+		final List<TermsAgreementResponse> terms = termsService.getTermsList();
+
+		return ResponseEntity.status(HttpStatus.OK).body(terms);
 	}
 
 }
