@@ -132,7 +132,6 @@ class TermsServiceTest {
 	void Given_ExistingTerms_When_AddTermsAgreement_Then_ThrowsException() {
 		// given
 		final TermsAgreementRequest request = new TermsAgreementRequest(true, true, true, false);
-		doReturn(member).when(memberService).findMemberById(memberId);
 		doReturn(true).when(termsRepository).existsByMemberId(memberId);
 
 		// when & then

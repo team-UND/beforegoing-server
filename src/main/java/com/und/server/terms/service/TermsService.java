@@ -42,12 +42,11 @@ public class TermsService {
 		final Long memberId,
 		final TermsAgreementRequest termsAgreementRequest
 	) {
-		final Member member =  memberService.findMemberById(memberId);
-
 		if (hasAgreedTerms(memberId)) {
 			throw new ServerException(TermsErrorResult.TERMS_ALREADY_EXISTS);
 		}
 
+		final Member member =  memberService.findMemberById(memberId);
 		final Terms terms = Terms.builder()
 			.member(member)
 			.termsOfServiceAgreed(termsAgreementRequest.termsOfServiceAgreed())
