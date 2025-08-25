@@ -39,9 +39,11 @@ import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
+import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ReorderRequiredException;
 import com.und.server.scenario.exception.ScenarioErrorResult;
@@ -319,13 +321,34 @@ class ScenarioServiceTest {
 
 		ArgumentCaptor<Scenario> scenarioCaptor = ArgumentCaptor.forClass(Scenario.class);
 
+		Mission savedMission1 = Mission.builder()
+			.id(1L)
+			.content("Run")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Mission savedMission2 = Mission.builder()
+			.id(2L)
+			.content("Read")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<Mission> savedMissions = List.of(savedMission1, savedMission2);
+		List<Mission> groupedBasicMissions = List.of(savedMission1, savedMission2);
+
+		given(missionService.addBasicMission(any(Scenario.class), eq(missionList)))
+			.willReturn(savedMissions);
+		given(missionTypeGrouper.groupAndSortByType(savedMissions, MissionType.BASIC))
+			.willReturn(groupedBasicMissions);
+
 		// when
-		scenarioService.addScenario(memberId, scenarioRequest);
+		MissionGroupResponse result = scenarioService.addScenario(memberId, scenarioRequest);
 
 		// then
 		verify(notificationService).addNotification(notifRequest, condition);
 		verify(missionService).addBasicMission(any(Scenario.class), eq(missionList));
 		verify(scenarioRepository).save(scenarioCaptor.capture());
+		verify(missionTypeGrouper).groupAndSortByType(savedMissions, MissionType.BASIC);
 
 		Scenario saved = scenarioCaptor.getValue();
 
@@ -334,6 +357,11 @@ class ScenarioServiceTest {
 		assertThat(saved.getScenarioOrder()).isEqualTo(calculatedOrder);
 		assertThat(saved.getNotification()).isEqualTo(savedNotification);
 		assertThat(saved.getMember().getId()).isEqualTo(member.getId());
+
+		assertThat(result).isNotNull();
+		assertThat(result.scenarioId()).isEqualTo(saved.getId());
+		assertThat(result.basicMissions()).hasSize(2);
+		assertThat(result.todayMissions()).isEmpty();
 	}
 
 
@@ -390,14 +418,24 @@ class ScenarioServiceTest {
 
 		ArgumentCaptor<Scenario> captor = ArgumentCaptor.forClass(Scenario.class);
 
+		given(missionService.addBasicMission(any(Scenario.class), eq(List.of())))
+			.willReturn(List.of());
+		given(missionTypeGrouper.groupAndSortByType(List.of(), MissionType.BASIC))
+			.willReturn(List.of());
+
 		// when
-		scenarioService.addScenario(memberId, scenarioRequest);
+		MissionGroupResponse result = scenarioService.addScenario(memberId, scenarioRequest);
 
 		// then
 		verify(scenarioRepository).save(captor.capture());
+		verify(missionTypeGrouper).groupAndSortByType(List.of(), MissionType.BASIC);
 
 		Scenario saved = captor.getValue();
 		assertThat(saved.getScenarioOrder()).isEqualTo(reorderedOrder);
+		assertThat(result).isNotNull();
+		assertThat(result.scenarioId()).isEqualTo(saved.getId());
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isEmpty();
 	}
 
 	@Test
@@ -477,8 +515,17 @@ class ScenarioServiceTest {
 			return null;
 		}).when(notificationService).updateNotification(oldNotification, notifRequest, condition);
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(List.of())
+			.todayMissions(List.of())
+			.build();
+
+		given(missionService.findMissionsByScenarioId(eq(memberId), eq(scenarioId), any(LocalDate.class)))
+			.willReturn(expectedResponse);
+
 		// when
-		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+		MissionGroupResponse result = scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
 		assertThat(oldScenario.getScenarioName()).isEqualTo("수정된 시나리오");
@@ -489,6 +536,11 @@ class ScenarioServiceTest {
 		assertThat(oldScenario.getNotification().isActive()).isTrue();
 		verify(notificationService).updateNotification(oldNotification, notifRequest, condition);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
+
+		assertThat(result).isNotNull();
+		assertThat(result.scenarioId()).isEqualTo(scenarioId);
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isEmpty();
 	}
 
 
@@ -748,14 +800,28 @@ class ScenarioServiceTest {
 		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(oldScenario));
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(List.of())
+			.todayMissions(List.of())
+			.build();
+
+		given(missionService.findMissionsByScenarioId(eq(memberId), eq(scenarioId), any(LocalDate.class)))
+			.willReturn(expectedResponse);
+
 		// when
-		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+		MissionGroupResponse result = scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
 		assertThat(oldScenario.getScenarioName()).isEqualTo("수정된 시나리오");
 		assertThat(oldScenario.getMemo()).isEqualTo("수정된 메모");
 		verify(notificationService).updateNotification(oldNotification, notificationRequest, null);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
+
+		assertThat(result).isNotNull();
+		assertThat(result.scenarioId()).isEqualTo(scenarioId);
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isEmpty();
 	}
 
 
