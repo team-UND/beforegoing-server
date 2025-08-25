@@ -18,9 +18,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.notification.constants.NotificationType;
-import com.und.server.notification.dto.NotificationInfoDto;
 import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.TimeNotificationRequest;
+import com.und.server.notification.dto.response.NotificationConditionResponse;
+import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.exception.NotificationErrorResult;
 
@@ -56,15 +57,17 @@ class NotificationConditionSelectorTest {
 	void Given_SupportedNotificationType_When_FindNotificationInfoByType_Then_ReturnNotificationInfoDto() {
 		// given
 		NotificationType notifType = NotificationType.TIME;
-		NotificationInfoDto expectedDto =
-			new NotificationInfoDto(true, List.of(0, 1, 2), null);
+		NotificationConditionResponse expectedDto = TimeNotificationResponse.builder()
+			.startHour(9)
+			.startMinute(0)
+			.build();
 
 		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 		when(timeNotificationService.findNotificationInfoByType(notification)).thenReturn(expectedDto);
 
 		// when
-		NotificationInfoDto result = selector.findNotificationCondition(notification);
+		NotificationConditionResponse result = selector.findNotificationCondition(notification);
 
 		// then
 		assertThat(result).isEqualTo(expectedDto);
@@ -93,7 +96,6 @@ class NotificationConditionSelectorTest {
 	void Given_SupportedNotificationType_When_AddNotificationCondition_Then_InvokeService() {
 		// given
 		NotificationType notifType = NotificationType.TIME;
-		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 		TimeNotificationRequest timeRequest = TimeNotificationRequest.builder()
 			.startHour(9)
 			.startMinute(0)
@@ -103,11 +105,11 @@ class NotificationConditionSelectorTest {
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 
 		// when
-		selector.addNotificationCondition(notification, dayOfWeekList, timeRequest);
+		selector.addNotificationCondition(notification, timeRequest);
 
 		// then
 		verify(timeNotificationService).supports(notifType);
-		verify(timeNotificationService).addNotificationCondition(notification, dayOfWeekList, timeRequest);
+		verify(timeNotificationService).addNotificationCondition(notification, timeRequest);
 	}
 
 
@@ -115,14 +117,13 @@ class NotificationConditionSelectorTest {
 	void Given_UnsupportedNotificationType_When_AddNotificationCondition_Then_ThrowServerException() {
 		// given
 		NotificationType notifType = NotificationType.LOCATION;
-		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 
 		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
 		when(locationNotificationService.supports(notifType)).thenReturn(false);
 
 		// when & then
-		assertThatThrownBy(() -> selector.addNotificationCondition(notification, dayOfWeekList, conditionRequest))
+		assertThatThrownBy(() -> selector.addNotificationCondition(notification, conditionRequest))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", NotificationErrorResult.UNSUPPORTED_NOTIFICATION);
 	}
@@ -165,7 +166,6 @@ class NotificationConditionSelectorTest {
 	void Given_SupportedNotificationType_When_UpdateNotificationCondition_Then_InvokeService() {
 		// given
 		NotificationType notifType = NotificationType.TIME;
-		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 		TimeNotificationRequest timeRequest = TimeNotificationRequest.builder()
 			.startHour(9)
 			.startMinute(0)
@@ -175,11 +175,11 @@ class NotificationConditionSelectorTest {
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 
 		// when
-		selector.updateNotificationCondition(notification, dayOfWeekList, timeRequest);
+		selector.updateNotificationCondition(notification, timeRequest);
 
 		// then
 		verify(timeNotificationService).supports(notifType);
-		verify(timeNotificationService).updateNotificationCondition(notification, dayOfWeekList, timeRequest);
+		verify(timeNotificationService).updateNotificationCondition(notification, timeRequest);
 	}
 
 
@@ -187,14 +187,13 @@ class NotificationConditionSelectorTest {
 	void Given_UnsupportedNotificationType_When_UpdateNotificationCondition_Then_ThrowServerException() {
 		// given
 		NotificationType notifType = NotificationType.LOCATION;
-		List<Integer> dayOfWeekList = List.of(0, 1, 2);
 
 		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
 		when(locationNotificationService.supports(notifType)).thenReturn(false);
 
 		// when & then
-		assertThatThrownBy(() -> selector.updateNotificationCondition(notification, dayOfWeekList, conditionRequest))
+		assertThatThrownBy(() -> selector.updateNotificationCondition(notification, conditionRequest))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", NotificationErrorResult.UNSUPPORTED_NOTIFICATION);
 	}
@@ -204,15 +203,17 @@ class NotificationConditionSelectorTest {
 	void Given_MultipleServices_When_FirstServiceSupports_Then_UseFirstService() {
 		// given
 		NotificationType notifType = NotificationType.TIME;
-		NotificationInfoDto expectedDto =
-			new NotificationInfoDto(true, List.of(0, 1, 2), null);
+		NotificationConditionResponse expectedDto = TimeNotificationResponse.builder()
+			.startHour(9)
+			.startMinute(0)
+			.build();
 
 		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(true);
 		when(timeNotificationService.findNotificationInfoByType(notification)).thenReturn(expectedDto);
 
 		// when
-		NotificationInfoDto result = selector.findNotificationCondition(notification);
+		NotificationConditionResponse result = selector.findNotificationCondition(notification);
 
 		// then
 		assertThat(result).isEqualTo(expectedDto);
@@ -226,8 +227,10 @@ class NotificationConditionSelectorTest {
 	void Given_MultipleServices_When_FirstServiceNotSupports_Then_UseSecondService() {
 		// given
 		NotificationType notifType = NotificationType.LOCATION;
-		NotificationInfoDto expectedDto =
-			new NotificationInfoDto(false, List.of(0, 1), null);
+		NotificationConditionResponse expectedDto = TimeNotificationResponse.builder()
+			.startHour(9)
+			.startMinute(0)
+			.build();
 
 		when(notification.getNotificationType()).thenReturn(notifType);
 		when(timeNotificationService.supports(notifType)).thenReturn(false);
@@ -235,7 +238,7 @@ class NotificationConditionSelectorTest {
 		when(locationNotificationService.findNotificationInfoByType(notification)).thenReturn(expectedDto);
 
 		// when
-		NotificationInfoDto result = selector.findNotificationCondition(notification);
+		NotificationConditionResponse result = selector.findNotificationCondition(notification);
 
 		// then
 		assertThat(result).isEqualTo(expectedDto);

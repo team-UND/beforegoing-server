@@ -42,19 +42,23 @@ public record NotificationResponse(
 
 ) {
 
-	public static NotificationResponse from(
-		final Notification notification,
-		final Boolean isEveryDay,
-		final List<Integer> daysOfWeekOrdinal
-	) {
-		return NotificationResponse.builder()
-			.notificationId(notification.getId())
-			.isActive(notification.isActive())
-			.notificationType(notification.getNotificationType())
-			.notificationMethodType(notification.getNotificationMethodType())
-			.isEveryDay(isEveryDay)
-			.daysOfWeekOrdinal(daysOfWeekOrdinal)
-			.build();
+	public static NotificationResponse from(final Notification notification) {
+		if (notification.isActive()) {
+			return NotificationResponse.builder()
+				.notificationId(notification.getId())
+				.isActive(true)
+				.notificationType(notification.getNotificationType())
+				.notificationMethodType(notification.getNotificationMethodType())
+				.isEveryDay(notification.isEveryDay())
+				.daysOfWeekOrdinal(notification.getDaysOfWeekOrdinalList())
+				.build();
+		} else {
+			return NotificationResponse.builder()
+				.notificationId(notification.getId())
+				.isActive(false)
+				.notificationType(notification.getNotificationType())
+				.build();
+		}
 	}
 
 }

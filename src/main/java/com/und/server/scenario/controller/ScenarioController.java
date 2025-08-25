@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
-import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -78,29 +78,14 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "201", description = "Create Scenario successful"),
 		@ApiResponse(responseCode = "400", description = "Invalid parameter")
 	})
-	public ResponseEntity<Long> addScenario(
+	public ResponseEntity<MissionGroupResponse> addScenario(
 		@AuthMember final Long memberId,
 		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
 	) {
-		final Long scenarioId = scenarioService.addScenario(memberId, scenarioRequest);
+		final MissionGroupResponse missionGroupResponse =
+			scenarioService.addScenario(memberId, scenarioRequest);
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(scenarioId);
-	}
-
-
-	@PostMapping("/scenarios/without-notification")
-	@ApiResponses({
-		@ApiResponse(responseCode = "201", description = "Create Scenario without notification successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter")
-	})
-	public ResponseEntity<Long> addScenarioWithoutNotification(
-		@AuthMember final Long memberId,
-		@RequestBody @Valid final ScenarioNoNotificationRequest scenarioNoNotificationResponse
-	) {
-		final Long scenarioId =
-			scenarioService.addScenarioWithoutNotification(memberId, scenarioNoNotificationResponse);
-
-		return ResponseEntity.status(HttpStatus.CREATED).body(scenarioId);
+		return ResponseEntity.status(HttpStatus.CREATED).body(missionGroupResponse);
 	}
 
 
@@ -110,31 +95,15 @@ public class ScenarioController {
 		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
 		@ApiResponse(responseCode = "404", description = "Scenario not found")
 	})
-	public ResponseEntity<Void> updateScenario(
+	public ResponseEntity<MissionGroupResponse> updateScenario(
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId,
 		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
 	) {
-		scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+		MissionGroupResponse missionGroupResponse =
+			scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
 
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-	}
-
-
-	@PutMapping("/scenarios/{scenarioId}/without-notification")
-	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Update Scenario without notification successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
-		@ApiResponse(responseCode = "404", description = "Scenario not found")
-	})
-	public ResponseEntity<Void> updateScenarioWithoutNotification(
-		@AuthMember final Long memberId,
-		@PathVariable final Long scenarioId,
-		@RequestBody @Valid final ScenarioNoNotificationRequest scenarioNoNotificationRequest
-	) {
-		scenarioService.updateScenarioWithoutNotification(memberId, scenarioId, scenarioNoNotificationRequest);
-
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		return ResponseEntity.ok().body(missionGroupResponse);
 	}
 
 

@@ -55,14 +55,14 @@ public class MissionService {
 		List<Mission> groupedTodayMissions =
 			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.TODAY);
 
-		return MissionGroupResponse.from(groupedBasicMissions, groupedTodayMissions);
+		return MissionGroupResponse.from(scenarioId, groupedBasicMissions, groupedTodayMissions);
 	}
 
 
 	@Transactional
-	public void addBasicMission(final Scenario scenario, final List<BasicMissionRequest> missionRequests) {
+	public List<Mission> addBasicMission(final Scenario scenario, final List<BasicMissionRequest> missionRequests) {
 		if (missionRequests.isEmpty()) {
-			return;
+			return List.of();
 		}
 
 		List<Mission> missions = new ArrayList<>();
@@ -74,7 +74,7 @@ public class MissionService {
 		}
 		missionValidator.validateMaxBasicMissionCount(missions);
 
-		missionRepository.saveAll(missions);
+		return missionRepository.saveAll(missions);
 	}
 
 

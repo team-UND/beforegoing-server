@@ -16,9 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.und.server.notification.constants.NotificationType;
+import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
-import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -100,15 +101,21 @@ class ScenarioControllerTest {
 			.memo("새 시나리오 설명")
 			.build();
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(expectedScenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
 		when(scenarioService.addScenario(memberId, scenarioRequest))
-			.thenReturn(expectedScenarioId);
+			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<Long> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).addScenario(memberId, scenarioRequest);
 	}
 
@@ -117,44 +124,74 @@ class ScenarioControllerTest {
 		// given
 		Long memberId = 1L;
 		Long expectedScenarioId = 456L;
-		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
-			"새 시나리오",
-			"메모",
-			null,
-			NotificationType.TIME
-		);
 
-		when(scenarioService.addScenarioWithoutNotification(memberId, request))
-			.thenReturn(expectedScenarioId);
+		NotificationRequest notification = NotificationRequest.builder()
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.build();
+
+		ScenarioDetailRequest request = ScenarioDetailRequest.builder()
+			.scenarioName("새 시나리오")
+			.memo("메모")
+			.basicMissions(List.of())
+			.notification(notification)
+			.notificationCondition(null)
+			.build();
+
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(expectedScenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
+		when(scenarioService.addScenario(memberId, request))
+			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<Long> response = scenarioController.addScenarioWithoutNotification(memberId, request);
+		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, request);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
-		verify(scenarioService).addScenarioWithoutNotification(memberId, request);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
+		verify(scenarioService).addScenario(memberId, request);
 	}
 
 	@Test
-	void Given_ValidMemberIdAndScenarioId_When_UpdateScenarioWithoutNotification_Then_ReturnNoContent() {
+	void Given_ValidMemberIdAndScenarioId_When_UpdateScenarioWithoutNotification_Then_ReturnOk() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 2L;
-		ScenarioNoNotificationRequest request = new ScenarioNoNotificationRequest(
-			"수정 시나리오",
-			"메모",
-			null,
-			NotificationType.LOCATION
-		);
+
+		NotificationRequest notification = NotificationRequest.builder()
+			.isActive(false)
+			.notificationType(NotificationType.LOCATION)
+			.build();
+
+		ScenarioDetailRequest request = ScenarioDetailRequest.builder()
+			.scenarioName("수정 시나리오")
+			.memo("메모")
+			.basicMissions(List.of())
+			.notification(notification)
+			.notificationCondition(null)
+			.build();
+
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
+		when(scenarioService.updateScenario(memberId, scenarioId, request))
+			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<Void> response = scenarioController
-			.updateScenarioWithoutNotification(memberId, scenarioId, request);
+		ResponseEntity<MissionGroupResponse> response = scenarioController
+			.updateScenario(memberId, scenarioId, request);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		verify(scenarioService).updateScenarioWithoutNotification(memberId, scenarioId, request);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
+		verify(scenarioService).updateScenario(memberId, scenarioId, request);
 	}
 
 
@@ -168,21 +205,27 @@ class ScenarioControllerTest {
 			.memo("빈 제목 시나리오")
 			.build();
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(expectedScenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
 		when(scenarioService.addScenario(memberId, scenarioRequest))
-			.thenReturn(expectedScenarioId);
+			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<Long> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).addScenario(memberId, scenarioRequest);
 	}
 
 
 	@Test
-	void Given_ValidMemberIdAndScenarioIdAndRequest_When_UpdateScenario_Then_ReturnNoContent() {
+	void Given_ValidMemberIdAndScenarioIdAndRequest_When_UpdateScenario_Then_ReturnOk() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
@@ -191,18 +234,28 @@ class ScenarioControllerTest {
 			.memo("수정된 시나리오 설명")
 			.build();
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
+		when(scenarioService.updateScenario(memberId, scenarioId, scenarioRequest))
+			.thenReturn(expectedResponse);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
+		ResponseEntity<MissionGroupResponse> response =
+			scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).updateScenario(memberId, scenarioId, scenarioRequest);
 	}
 
 
 	@Test
-	void Given_EmptyTitleRequest_When_UpdateScenario_Then_ReturnNoContent() {
+	void Given_EmptyTitleRequest_When_UpdateScenario_Then_ReturnOk() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
@@ -211,12 +264,22 @@ class ScenarioControllerTest {
 			.memo("수정된 빈 제목 시나리오")
 			.build();
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
+		when(scenarioService.updateScenario(memberId, scenarioId, scenarioRequest))
+			.thenReturn(expectedResponse);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
+		ResponseEntity<MissionGroupResponse> response =
+			scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).updateScenario(memberId, scenarioId, scenarioRequest);
 	}
 
@@ -231,21 +294,27 @@ class ScenarioControllerTest {
 			.memo("긴 제목 시나리오")
 			.build();
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(expectedScenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
 		when(scenarioService.addScenario(memberId, scenarioRequest))
-			.thenReturn(expectedScenarioId);
+			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<Long> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(response.getBody()).isEqualTo(expectedScenarioId);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).addScenario(memberId, scenarioRequest);
 	}
 
 
 	@Test
-	void Given_LongTitleRequest_When_UpdateScenario_Then_ReturnNoContent() {
+	void Given_LongTitleRequest_When_UpdateScenario_Then_ReturnOk() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
@@ -254,12 +323,22 @@ class ScenarioControllerTest {
 			.memo("긴 제목 수정 시나리오")
 			.build();
 
+		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(List.of())
+			.todayMissions(null)
+			.build();
+
+		when(scenarioService.updateScenario(memberId, scenarioId, scenarioRequest))
+			.thenReturn(expectedResponse);
+
 		// when
-		ResponseEntity<Void> response = scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
+		ResponseEntity<MissionGroupResponse> response =
+			scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getBody()).isNull();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo(expectedResponse);
 		verify(scenarioService).updateScenario(memberId, scenarioId, scenarioRequest);
 	}
 

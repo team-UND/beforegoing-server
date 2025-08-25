@@ -3,8 +3,6 @@ package com.und.server.scenario.service;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,17 +10,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
 import com.und.server.notification.constants.NotificationType;
-import com.und.server.notification.dto.NotificationInfoDto;
+import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
-import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
-import com.und.server.scenario.dto.request.ScenarioNoNotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -72,9 +69,13 @@ public class ScenarioService {
 			missionTypeGroupSorter.groupAndSortByType(scenario.getMissions(), MissionType.BASIC);
 
 		Notification notification = scenario.getNotification();
-		NotificationInfoDto notificationInfo = notificationService.findNotificationDetails(notification);
 
-		return getScenarioDetailResponse(scenario, basicMissions, notificationInfo);
+		NotificationResponse notificationResponse = NotificationResponse.from(notification);
+		NotificationConditionResponse notificationConditionResponse =
+			notificationService.findNotificationDetails(notification);
+
+		return ScenarioDetailResponse.from(
+			scenario, basicMissions, notificationResponse, notificationConditionResponse);
 	}
 
 
@@ -93,71 +94,61 @@ public class ScenarioService {
 
 
 	@Transactional
-	public Long addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
-		return addScenarioInternal(
-			memberId,
-			scenarioDetailRequest.scenarioName(),
-			scenarioDetailRequest.memo(),
-			scenarioDetailRequest.basicMissions(),
-			scenarioDetailRequest.notification().notificationType(),
-			() -> notificationService.addNotification(
-				scenarioDetailRequest.notification(),
-				scenarioDetailRequest.notificationCondition()
-			)
-		);
+	public MissionGroupResponse addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
+		Member member = em.getReference(Member.class, memberId);
+
+		NotificationRequest notificationRequest = scenarioDetailRequest.notification();
+		NotificationType notificationType = notificationRequest.notificationType();
+
+		List<Integer> orders =
+			scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, notificationType);
+		scenarioValidator.validateMaxScenarioCount(orders);
+
+		int order = orders.isEmpty()
+			? OrderCalculator.START_ORDER
+			: getValidScenarioOrder(Collections.max(orders), memberId, notificationType);
+
+		Notification notification = notificationService.addNotification(
+			notificationRequest, scenarioDetailRequest.notificationCondition());
+
+		Scenario scenario = Scenario.builder()
+			.member(member)
+			.scenarioName(scenarioDetailRequest.scenarioName())
+			.memo(scenarioDetailRequest.memo())
+			.scenarioOrder(order)
+			.notification(notification)
+			.build();
+
+		scenarioRepository.save(scenario);
+		List<Mission> missions = missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
+
+		List<Mission> basicMissions = missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
+
+		return MissionGroupResponse.from(scenario.getId(), basicMissions, null);
 	}
 
 
 	@Transactional
-	public Long addScenarioWithoutNotification(
-		final Long memberId, final ScenarioNoNotificationRequest scenarioNoNotificationRequest
-	) {
-		return addScenarioInternal(
-			memberId,
-			scenarioNoNotificationRequest.scenarioName(),
-			scenarioNoNotificationRequest.memo(),
-			scenarioNoNotificationRequest.basicMissions(),
-			scenarioNoNotificationRequest.notificationType(),
-			() -> notificationService.addWithoutNotification(scenarioNoNotificationRequest.notificationType())
-		);
-	}
-
-
-	@Transactional
-	public void updateScenario(
+	public MissionGroupResponse updateScenario(
 		final Long memberId,
 		final Long scenarioId,
 		final ScenarioDetailRequest scenarioDetailRequest
 	) {
-		updateScenarioInternal(
-			memberId,
-			scenarioId,
-			scenarioDetailRequest.scenarioName(),
-			scenarioDetailRequest.memo(),
-			scenarioDetailRequest.basicMissions(),
-			notification -> notificationService.updateNotification(
-				notification,
-				scenarioDetailRequest.notification(),
-				scenarioDetailRequest.notificationCondition()
-			)
-		);
-	}
+		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
-
-	@Transactional
-	public void updateScenarioWithoutNotification(
-		final Long memberId,
-		final Long scenarioId,
-		final ScenarioNoNotificationRequest scenarioNoNotificationRequest
-	) {
-		updateScenarioInternal(
-			memberId,
-			scenarioId,
-			scenarioNoNotificationRequest.scenarioName(),
-			scenarioNoNotificationRequest.memo(),
-			scenarioNoNotificationRequest.basicMissions(),
-			notificationService::updateWithoutNotification
+		notificationService.updateNotification(
+			oldScenario.getNotification(),
+			scenarioDetailRequest.notification(),
+			scenarioDetailRequest.notificationCondition()
 		);
+
+		missionService.updateBasicMission(oldScenario, scenarioDetailRequest.basicMissions());
+
+		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
+		oldScenario.updateMemo(scenarioDetailRequest.memo());
+
+		return missionService.findMissionsByScenarioId(memberId, scenarioId, LocalDate.now());
 	}
 
 
@@ -199,85 +190,6 @@ public class ScenarioService {
 		scenarioRepository.delete(scenario);
 	}
 
-
-	private Long addScenarioInternal(
-		final Long memberId,
-		final String scenarioName,
-		final String memo,
-		final List<BasicMissionRequest> missions,
-		final NotificationType notificationType,
-		final Supplier<Notification> notificationSupplier
-	) {
-		Member member = em.getReference(Member.class, memberId);
-
-		List<Integer> orders =
-			scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, notificationType);
-		scenarioValidator.validateMaxScenarioCount(orders);
-
-		int order = orders.isEmpty()
-			? OrderCalculator.START_ORDER
-			: getValidScenarioOrder(Collections.max(orders), memberId, notificationType);
-
-		Notification notification = notificationSupplier.get();
-
-		Scenario scenario = Scenario.builder()
-			.member(member)
-			.scenarioName(scenarioName)
-			.memo(memo)
-			.scenarioOrder(order)
-			.notification(notification)
-			.build();
-
-		scenarioRepository.save(scenario);
-		missionService.addBasicMission(scenario, missions);
-
-		return scenario.getId();
-	}
-
-	private void updateScenarioInternal(
-		final Long memberId,
-		final Long scenarioId,
-		final String scenarioName,
-		final String memo,
-		final List<BasicMissionRequest> newBasicMissions,
-		final Consumer<Notification> notificationUpdater
-	) {
-		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-
-		notificationUpdater.accept(oldScenario.getNotification());
-
-		missionService.updateBasicMission(oldScenario, newBasicMissions);
-
-		oldScenario.updateScenarioName(scenarioName);
-		oldScenario.updateMemo(memo);
-	}
-
-	private ScenarioDetailResponse getScenarioDetailResponse(
-		final Scenario scenario,
-		final List<Mission> basicMissions,
-		final NotificationInfoDto notificationInfo
-	) {
-		Notification notification = scenario.getNotification();
-
-		NotificationResponse notificationResponse;
-		NotificationConditionResponse notificationConditionResponse = null;
-
-		if (notificationInfo == null) {
-			notificationResponse = NotificationResponse.from(
-				notification, null, null);
-		} else {
-			notificationResponse = NotificationResponse.from(
-				notification,
-				notificationInfo.isEveryDay(),
-				notificationInfo.daysOfWeekOrdinal()
-			);
-			notificationConditionResponse = notificationInfo.notificationConditionResponse();
-		}
-
-		return ScenarioDetailResponse.from(
-			scenario, basicMissions, notificationResponse, notificationConditionResponse);
-	}
 
 	private int getValidScenarioOrder(
 		final int maxScenarioOrder,
