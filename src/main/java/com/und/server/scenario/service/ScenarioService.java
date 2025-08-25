@@ -19,6 +19,7 @@ import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
+import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -93,7 +94,7 @@ public class ScenarioService {
 
 
 	@Transactional
-	public Long addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
+	public MissionGroupResponse addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
 		Member member = em.getReference(Member.class, memberId);
 
 		NotificationRequest notificationRequest = scenarioDetailRequest.notification();
@@ -119,14 +120,16 @@ public class ScenarioService {
 			.build();
 
 		scenarioRepository.save(scenario);
-		missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
+		List<Mission> missions = missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
 
-		return scenario.getId();
+		List<Mission> basicMissions = missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
+
+		return MissionGroupResponse.from(scenario.getId(), basicMissions, null);
 	}
 
 
 	@Transactional
-	public void updateScenario(
+	public MissionGroupResponse updateScenario(
 		final Long memberId,
 		final Long scenarioId,
 		final ScenarioDetailRequest scenarioDetailRequest
@@ -144,6 +147,8 @@ public class ScenarioService {
 
 		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
+
+		return missionService.findMissionsByScenarioId(memberId, scenarioId, LocalDate.now());
 	}
 
 
