@@ -3,13 +3,14 @@ package com.und.server.notification.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.dto.response.ScenarioNotificationListResponse;
+import com.und.server.notification.dto.response.ScenarioNotificationResponse;
 import com.und.server.notification.service.NotificationCacheService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +35,8 @@ public class NotificationController {
 		@Parameter(description = "클라이언트 캐싱용 ETag")
 		@RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch
 	) {
-		ScenarioNotificationListResponse response = notificationCacheService.getNotificationCache(memberId);
+		ScenarioNotificationListResponse response =
+			notificationCacheService.getScenariosNotificationCache(memberId);
 
 		if (ifNoneMatch != null && ifNoneMatch.equals(response.etag())) {
 			return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
@@ -45,19 +47,19 @@ public class NotificationController {
 			.body(response);
 	}
 
-//	@GetMapping("/scenarios/{scenarioId")
-//	public ResponseEntity<ScenarioNotificationListResponse> getScenarioNotification(
-//		@AuthMember Long memberId,
-//		@RequestParam Long scenarioId,
-//		@RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch
-//	) {
-//		/**
-//		 * 시나리오 추가, 수정, 삭제 후 getScenarioNotifications로 전체 목록을 바당오는 것은 비효율적일수도 있기 때문에
-//		 * 시나리오를 추가, 수정, 삭제하면  memberID +scenarioId로 redis에 해당 시나리오의 데이터만 반환한다.
-//		 * 삭제는 클라이언트에서 그냥 바로 삭제하면 된다.
-//		 *
-//		 * redis에
-//		 */
-//	}
+	@Operation(summary = "특정 시나리오 알림 조회", description = "특정 시나리오의 알림 데이터만 조회합니다. 시나리오가 존재하지 않으면 null을 반환합니다.")
+	@GetMapping("/scenarios/{scenarioId}")
+	public ResponseEntity<ScenarioNotificationResponse> getSingleScenarioNotification(
+		@AuthMember Long memberId,
+		@PathVariable Long scenarioId
+	) {
+		ScenarioNotificationResponse response =
+			notificationCacheService.getSingleScenarioNotificationCache(memberId, scenarioId);
+
+		if (response == null) {
+			return ResponseEntity.ok().body(null);
+		}
+		return ResponseEntity.ok().body(response);
+	}
 
 }

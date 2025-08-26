@@ -9,10 +9,12 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.und.server.common.exception.ServerException;
 import com.und.server.notification.dto.cache.NotificationCacheData;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.ScenarioNotificationListResponse;
 import com.und.server.notification.dto.response.ScenarioNotificationResponse;
+import com.und.server.notification.exception.NotificationCacheErrorResult;
 import com.und.server.notification.util.NotificationCacheKeyGenerator;
 import com.und.server.notification.util.NotificationCacheSerializer;
 import com.und.server.scenario.entity.Scenario;
@@ -34,7 +36,7 @@ public class NotificationCacheService {
 	private final ScenarioNotificationService scenarioNotificationService;
 
 
-	public ScenarioNotificationListResponse getNotificationCache(Long memberId) {
+	public ScenarioNotificationListResponse getScenariosNotificationCache(Long memberId) {
 		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 		String etagKey = keyGenerator.generateEtagKey(memberId);
 
@@ -64,6 +66,27 @@ public class NotificationCacheService {
 	}
 
 
+	public ScenarioNotificationResponse getSingleScenarioNotificationCache(Long memberId, Long scenarioId) {
+		try {
+			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
+			String fieldKey = scenarioId.toString();
+
+			Object cachedValue = redisTemplate.opsForHash().get(cacheKey, fieldKey);
+			if (cachedValue == null) {
+				return null;
+			}
+
+			NotificationCacheData cacheData = serializer.deserialize((String) cachedValue);
+			return convertToResponse(cacheData);
+
+		} catch (Exception e) {
+			log.error("Failed to get scenario notification cache for memberId={}, scenarioId={}",
+				memberId, scenarioId, e);
+			return null;
+		}
+	}
+
+
 	public void updateCache(Long memberId, Scenario scenario) {
 		try {
 			NotificationCacheData cacheData = createCacheData(scenario);
@@ -78,9 +101,7 @@ public class NotificationCacheService {
 			updateEtag(memberId);
 
 		} catch (Exception e) {
-			log.error("Failed to update notification cache for memberId={}, scenarioId={}", memberId, scenario.getId(),
-				e);
-			throw new RuntimeException("Failed to update cache", e);
+			throw new ServerException(NotificationCacheErrorResult.CACHE_UPDATE_FAILED);
 		}
 	}
 
@@ -94,8 +115,7 @@ public class NotificationCacheService {
 
 			updateEtag(memberId);
 		} catch (Exception e) {
-			log.error("Failed to delete notification cache for memberId={}, scenarioId={}", memberId, scenarioId, e);
-			throw new RuntimeException("Failed to delete from cache", e);
+			throw new ServerException(NotificationCacheErrorResult.CACHE_DELETE_FAILED);
 		}
 	}
 
@@ -109,8 +129,7 @@ public class NotificationCacheService {
 			redisTemplate.delete(etagKey);
 
 		} catch (Exception e) {
-			log.error("Failed to delete notification cache for memberId={}", memberId, e);
-			throw new RuntimeException("Failed to delete cache", e);
+			log.error("Failed to process scenario fetch delete event memberId={}", memberId, e);
 		}
 	}
 
