@@ -7,5 +7,6 @@ CREATE TABLE terms (
     event_push_agreed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
-    CONSTRAINT fk_terms_member FOREIGN KEY (member_id) REFERENCES member(id) ON DELETE CASCADE
+    CONSTRAINT fk_terms_member FOREIGN KEY (member_id) REFERENCES member(id) ON DELETE CASCADE,
+    CONSTRAINT uk_terms_member_id UNIQUE (member_id)
 );
