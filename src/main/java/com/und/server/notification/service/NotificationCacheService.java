@@ -42,14 +42,13 @@ public class NotificationCacheService {
 		// ETag 조회
 		String etag = (String) redisTemplate.opsForValue().get(etagKey);
 		if (etag == null) {
-			// 캐시 미스 - DB에서 조회하여 캐시 생성
-			log.info("Cache miss for memberId={}, building cache from database", memberId);
 			List<ScenarioNotificationResponse> scenarioNotifications =
 				scenarioNotificationService.getScenarioNotifications(memberId);
-			ScenarioNotificationListResponse scenarioNotificationListResponse =
-				ScenarioNotificationListResponse.from(null, scenarioNotifications);
-			saveToCache(memberId, scenarioNotificationListResponse);
-			return scenarioNotificationListResponse;
+
+			String newEtag = updateEtagAndGet(memberId);
+			saveToCache(memberId, scenarioNotifications);
+
+			return ScenarioNotificationListResponse.from(newEtag, scenarioNotifications);
 		}
 
 		// 캐시 데이터 조회
@@ -135,14 +134,11 @@ public class NotificationCacheService {
 		}
 	}
 
-	/**
-	 * ScenarioNotificationListResponse를 캐시에 저장
-	 */
-	private void saveToCache(Long memberId, ScenarioNotificationListResponse response) {
+
+	private void saveToCache(Long memberId, List<ScenarioNotificationResponse> scenarioNotifications) {
 		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 
-		// 각 시나리오를 NotificationCacheData로 변환하여 Redis에 저장
-		for (ScenarioNotificationResponse scenario : response.scenarios()) {
+		for (ScenarioNotificationResponse scenario : scenarioNotifications) {
 			NotificationCacheData cacheData = NotificationCacheData.from(
 				scenario,
 				serializer.serializeCondition(scenario.notificationCondition())
@@ -152,26 +148,9 @@ public class NotificationCacheService {
 			String jsonValue = serializer.serialize(cacheData);
 			redisTemplate.opsForHash().put(cacheKey, fieldKey, jsonValue);
 		}
-
-		// TTL 설정
 		redisTemplate.expire(cacheKey, CACHE_TTL_DAYS, TimeUnit.DAYS);
-
-		// ETag 업데이트
-		updateEtag(memberId);
 	}
 
-
-	/**
-	 * ETag 조회
-	 */
-	private String getEtag(Long memberId) {
-		String etagKey = keyGenerator.generateEtagKey(memberId);
-		return (String) redisTemplate.opsForValue().get(etagKey);
-	}
-
-	/**
-	 * ETag 업데이트 및 반환
-	 */
 	private String updateEtagAndGet(Long memberId) {
 		String etagKey = keyGenerator.generateEtagKey(memberId);
 		String etag = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -193,38 +172,19 @@ public class NotificationCacheService {
 	 * 시나리오를 NotificationCacheData로 변환
 	 */
 	private NotificationCacheData createCacheData(Scenario scenario) {
-		// 조건을 JSON으로 직렬화
 		NotificationConditionResponse condition =
 			notificationConditionSelector.findNotificationCondition(scenario.getNotification());
 
-		return new NotificationCacheData(
-			scenario.getId(),
-			scenario.getScenarioName(),
-			scenario.getMemo(),
-			scenario.getNotification().getId(),
-			scenario.getNotification().getNotificationType(),
-			scenario.getNotification().getNotificationMethodType(),
-			scenario.getNotification().getDaysOfWeekOrdinalList(),
-			serializer.serializeCondition(condition)
-		);
+		return NotificationCacheData.from(scenario, serializer.serializeCondition(condition));
 	}
 
 	/**
 	 * NotificationCacheData를 ScenarioNotificationResponse로 변환
 	 */
-	private ScenarioNotificationResponse convertToResponse(NotificationCacheData cacheData) {
-		// 조건 역직렬화
-		NotificationConditionResponse condition = serializer.parseCondition(cacheData);
+	private ScenarioNotificationResponse convertToResponse(NotificationCacheData notificationCacheData) {
+		NotificationConditionResponse condition = serializer.parseCondition(notificationCacheData);
 
-		return new ScenarioNotificationResponse(
-			cacheData.scenarioId(),
-			cacheData.scenarioName(),
-			cacheData.scenarioMemo(),
-			cacheData.notificationId(),
-			cacheData.notificationType(),
-			cacheData.notificationMethodType(),
-			cacheData.daysOfWeek(),
-			condition
-		);
+		return ScenarioNotificationResponse.from(notificationCacheData, condition);
 	}
+
 }

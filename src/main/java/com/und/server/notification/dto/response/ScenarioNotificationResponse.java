@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.und.server.notification.constants.NotificationMethodType;
 import com.und.server.notification.constants.NotificationType;
+import com.und.server.notification.dto.cache.NotificationCacheData;
 import com.und.server.notification.entity.Notification;
 import com.und.server.scenario.entity.Scenario;
 
@@ -39,6 +40,22 @@ public record ScenarioNotificationResponse(
 	NotificationConditionResponse notificationCondition
 
 ) {
+
+	public static ScenarioNotificationResponse from(
+		final NotificationCacheData notificationCacheData,
+		final NotificationConditionResponse notificationConditionResponse
+	) {
+		return ScenarioNotificationResponse.builder()
+			.scenarioId(notificationCacheData.scenarioId())
+			.scenarioName(notificationCacheData.scenarioName())
+			.memo(notificationCacheData.scenarioMemo())
+			.notificationId(notificationCacheData.notificationId())
+			.notificationType(notificationCacheData.notificationType())
+			.notificationMethodType(notificationCacheData.notificationMethodType())
+			.daysOfWeek(notificationCacheData.daysOfWeek())
+			.notificationCondition(notificationConditionResponse)
+			.build();
+	}
 
 	public static ScenarioNotificationResponse from(
 		final Scenario scenario, final NotificationConditionResponse notificationConditionResponse
