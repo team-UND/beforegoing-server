@@ -2,6 +2,7 @@ package com.und.server.terms.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -84,6 +85,25 @@ class TermsRepositoryTest {
 
 		// then
 		assertThat(exists).isFalse();
+	}
+
+	@Test
+	@DisplayName("Finds all terms with members using EntityGraph to avoid N+1 problem")
+	void Given_MultipleTerms_When_FindAll_Then_ReturnsTermsWithFetchedMembers() {
+		// given
+		final Member member2 = memberRepository.save(Member.builder().nickname("test-user-2").build());
+
+		final Terms terms1 = Terms.builder().member(member).build();
+		final Terms terms2 = Terms.builder().member(member2).build();
+		termsRepository.saveAll(List.of(terms1, terms2));
+
+		// when
+		final List<Terms> allTerms = termsRepository.findAll();
+
+		// then
+		assertThat(allTerms).hasSize(2);
+		assertThat(allTerms.stream().map(t -> t.getMember().getNickname()))
+			.containsExactlyInAnyOrder("test-user", "test-user-2");
 	}
 
 }
