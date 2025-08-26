@@ -1,8 +1,7 @@
 package com.und.server.notification.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -94,8 +93,6 @@ public class NotificationCacheService {
 			redisTemplate.opsForHash().delete(cacheKey, fieldKey);
 
 			updateEtag(memberId);
-
-			log.info("Deleted notification cache for memberId={}, scenarioId={}", memberId, scenarioId);
 		} catch (Exception e) {
 			log.error("Failed to delete notification cache for memberId={}, scenarioId={}", memberId, scenarioId, e);
 			throw new RuntimeException("Failed to delete from cache", e);
@@ -119,7 +116,11 @@ public class NotificationCacheService {
 
 
 	private void saveToCache(Long memberId, List<ScenarioNotificationResponse> scenarioNotifications) {
+		if (scenarioNotifications == null || scenarioNotifications.isEmpty()) {
+			return;
+		}
 		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
+		Map<String, String> values = new HashMap<>();
 
 		for (ScenarioNotificationResponse scenario : scenarioNotifications) {
 			NotificationCacheData cacheData = NotificationCacheData.from(
@@ -129,14 +130,16 @@ public class NotificationCacheService {
 
 			String fieldKey = scenario.scenarioId().toString();
 			String jsonValue = serializer.serialize(cacheData);
-			redisTemplate.opsForHash().put(cacheKey, fieldKey, jsonValue);
+			values.put(fieldKey, jsonValue);
 		}
+
+		redisTemplate.opsForHash().putAll(cacheKey, values);
 		redisTemplate.expire(cacheKey, CACHE_TTL_DAYS, TimeUnit.DAYS);
 	}
 
 	private String updateEtag(Long memberId) {
 		String etagKey = keyGenerator.generateEtagKey(memberId);
-		String etag = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+		String etag = String.valueOf(System.currentTimeMillis());
 
 		redisTemplate.opsForValue().set(etagKey, etag);
 		redisTemplate.expire(etagKey, CACHE_TTL_DAYS, TimeUnit.DAYS);
