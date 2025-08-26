@@ -12,12 +12,9 @@ import com.und.server.scenario.entity.Scenario;
 
 import jakarta.validation.constraints.NotNull;
 
-public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
+public interface ScenarioRepository extends JpaRepository<Scenario, Long>, ScenarioRepositoryCustom {
 
 	Optional<Scenario> findByIdAndMemberId(@NotNull Long id, @NotNull Long memberId);
-
-	@EntityGraph(attributePaths = {"notification", "missions"})
-	List<Scenario> findByMemberId(@NotNull Long memberId);
 
 	@Query("""
 		SELECT s FROM Scenario s

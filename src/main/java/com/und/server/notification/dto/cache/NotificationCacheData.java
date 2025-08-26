@@ -12,6 +12,7 @@ import lombok.Builder;
 
 @Builder
 public record NotificationCacheData(
+
 	Long scenarioId,
 	String scenarioName,
 	String scenarioMemo,
@@ -20,6 +21,7 @@ public record NotificationCacheData(
 	NotificationMethodType notificationMethodType,
 	List<Integer> daysOfWeek,
 	String conditionJson
+
 ) {
 
 	public static NotificationCacheData from(
