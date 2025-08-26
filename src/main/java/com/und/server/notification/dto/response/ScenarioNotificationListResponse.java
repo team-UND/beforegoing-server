@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "사용자의 시나리오 알림 목록 응답")
+@Schema(description = "ETag and Scenario notification list response with notification active")
 public record ScenarioNotificationListResponse(
 
 	@Schema(description = "ETag (클라이언트 캐싱용)")
