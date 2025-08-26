@@ -39,25 +39,22 @@ public class NotificationCacheService {
 		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 		String etagKey = keyGenerator.generateEtagKey(memberId);
 
-		// ETag 조회
 		String etag = (String) redisTemplate.opsForValue().get(etagKey);
 		if (etag == null) {
 			List<ScenarioNotificationResponse> scenarioNotifications =
 				scenarioNotificationService.getScenarioNotifications(memberId);
 
-			String newEtag = updateEtagAndGet(memberId);
 			saveToCache(memberId, scenarioNotifications);
+			String newEtag = updateEtag(memberId);
 
 			return ScenarioNotificationListResponse.from(newEtag, scenarioNotifications);
 		}
 
-		// 캐시 데이터 조회
-		Map<Object, Object> cacheData = redisTemplate.opsForHash().entries(cacheKey); //todo 왜 Object인지
+		Map<Object, Object> cacheData = redisTemplate.opsForHash().entries(cacheKey);
 		if (cacheData.isEmpty()) {
 			return new ScenarioNotificationListResponse(etag, new ArrayList<>());
 		}
 
-		// 캐시 데이터를 응답 형태로 변환
 		List<ScenarioNotificationResponse> scenarios = new ArrayList<>();
 		for (Object value : cacheData.values()) {
 			NotificationCacheData cacheDto = serializer.deserialize((String) value);
@@ -67,28 +64,20 @@ public class NotificationCacheService {
 		return new ScenarioNotificationListResponse(etag, scenarios);
 	}
 
-	/**
-	 * 캐시 업데이트 (시나리오 단위)
-	 */
+
 	public void updateCache(Long memberId, Scenario scenario) {
 		try {
-			// NotificationCacheData 생성
 			NotificationCacheData cacheData = createCacheData(scenario);
 
-			// Redis에 저장
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String fieldKey = scenario.getId().toString();
 			String jsonValue = serializer.serialize(cacheData);
 
 			redisTemplate.opsForHash().put(cacheKey, fieldKey, jsonValue);
-
-			// TTL 갱신
 			redisTemplate.expire(cacheKey, CACHE_TTL_DAYS, TimeUnit.DAYS);
 
-			// ETag 업데이트
 			updateEtag(memberId);
 
-			log.info("Updated notification cache for memberId={}, scenarioId={}", memberId, scenario.getId());
 		} catch (Exception e) {
 			log.error("Failed to update notification cache for memberId={}, scenarioId={}", memberId, scenario.getId(),
 				e);
@@ -96,17 +85,14 @@ public class NotificationCacheService {
 		}
 	}
 
-	/**
-	 * 캐시에서 특정 시나리오 삭제
-	 */
-	public void deleteFromCache(Long memberId, Long scenarioId) {
+
+	public void deleteCache(Long memberId, Long scenarioId) {
 		try {
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String fieldKey = scenarioId.toString();
 
 			redisTemplate.opsForHash().delete(cacheKey, fieldKey);
 
-			// ETag 업데이트
 			updateEtag(memberId);
 
 			log.info("Deleted notification cache for memberId={}, scenarioId={}", memberId, scenarioId);
@@ -116,10 +102,8 @@ public class NotificationCacheService {
 		}
 	}
 
-	/**
-	 * 사용자 캐시 전체 삭제 (동기화 실패 대비)
-	 */
-	public void deleteCache(Long memberId) {
+
+	public void deleteMemberAllCache(Long memberId) {
 		try {
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String etagKey = keyGenerator.generateEtagKey(memberId);
@@ -127,7 +111,6 @@ public class NotificationCacheService {
 			redisTemplate.delete(cacheKey);
 			redisTemplate.delete(etagKey);
 
-			log.info("Deleted all notification cache for memberId={}", memberId);
 		} catch (Exception e) {
 			log.error("Failed to delete notification cache for memberId={}", memberId, e);
 			throw new RuntimeException("Failed to delete cache", e);
@@ -151,7 +134,7 @@ public class NotificationCacheService {
 		redisTemplate.expire(cacheKey, CACHE_TTL_DAYS, TimeUnit.DAYS);
 	}
 
-	private String updateEtagAndGet(Long memberId) {
+	private String updateEtag(Long memberId) {
 		String etagKey = keyGenerator.generateEtagKey(memberId);
 		String etag = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
@@ -161,16 +144,6 @@ public class NotificationCacheService {
 		return etag;
 	}
 
-	/**
-	 * ETag 업데이트
-	 */
-	private void updateEtag(Long memberId) {
-		updateEtagAndGet(memberId);
-	}
-
-	/**
-	 * 시나리오를 NotificationCacheData로 변환
-	 */
 	private NotificationCacheData createCacheData(Scenario scenario) {
 		NotificationConditionResponse condition =
 			notificationConditionSelector.findNotificationCondition(scenario.getNotification());
@@ -178,9 +151,6 @@ public class NotificationCacheService {
 		return NotificationCacheData.from(scenario, serializer.serializeCondition(condition));
 	}
 
-	/**
-	 * NotificationCacheData를 ScenarioNotificationResponse로 변환
-	 */
 	private ScenarioNotificationResponse convertToResponse(NotificationCacheData notificationCacheData) {
 		NotificationConditionResponse condition = serializer.parseCondition(notificationCacheData);
 
