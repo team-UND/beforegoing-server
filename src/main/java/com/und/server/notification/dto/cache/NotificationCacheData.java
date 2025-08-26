@@ -19,7 +19,7 @@ public record NotificationCacheData(
 	Long notificationId,
 	NotificationType notificationType,
 	NotificationMethodType notificationMethodType,
-	List<Integer> daysOfWeek,
+	List<Integer> daysOfWeekOrdinal,
 	String conditionJson
 
 ) {
@@ -35,7 +35,7 @@ public record NotificationCacheData(
 			.notificationId(scenarioNotificationResponse.notificationId())
 			.notificationType(scenarioNotificationResponse.notificationType())
 			.notificationMethodType(scenarioNotificationResponse.notificationMethodType())
-			.daysOfWeek(scenarioNotificationResponse.daysOfWeek())
+			.daysOfWeekOrdinal(scenarioNotificationResponse.daysOfWeekOrdinal())
 			.conditionJson(serializedCondition)
 			.build();
 	}
@@ -53,7 +53,7 @@ public record NotificationCacheData(
 			.notificationId(notification.getId())
 			.notificationType(notification.getNotificationType())
 			.notificationMethodType(notification.getNotificationMethodType())
-			.daysOfWeek(notification.getDaysOfWeekOrdinalList())
+			.daysOfWeekOrdinal(notification.getDaysOfWeekOrdinalList())
 			.conditionJson(serializedCondition)
 			.build();
 	}

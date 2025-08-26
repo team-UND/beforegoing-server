@@ -88,7 +88,7 @@ public class ScenarioRepositoryCustomImpl implements ScenarioRepositoryCustom {
 				.notificationId(notificationId)
 				.notificationType(notificationType)
 				.notificationMethodType(notificationMethodType)
-				.daysOfWeek(days)
+				.daysOfWeekOrdinal(days)
 				.notificationCondition(timeNotificationResponse)
 				.build();
 		}

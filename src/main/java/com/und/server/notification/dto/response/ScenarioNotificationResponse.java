@@ -41,7 +41,7 @@ public record ScenarioNotificationResponse(
 		schema = @Schema(type = "integer", minimum = "0", maximum = "6")
 	)
 	@Schema(example = "[0,1,2,3,4,5,6]")
-	List<Integer> daysOfWeek,
+	List<Integer> daysOfWeekOrdinal,
 
 	@Schema(description = "Notification condition, present only when active")
 	NotificationConditionResponse notificationCondition
@@ -59,7 +59,7 @@ public record ScenarioNotificationResponse(
 			.notificationId(notificationCacheData.notificationId())
 			.notificationType(notificationCacheData.notificationType())
 			.notificationMethodType(notificationCacheData.notificationMethodType())
-			.daysOfWeek(notificationCacheData.daysOfWeek())
+			.daysOfWeekOrdinal(notificationCacheData.daysOfWeekOrdinal())
 			.notificationCondition(notificationConditionResponse)
 			.build();
 	}
@@ -76,7 +76,7 @@ public record ScenarioNotificationResponse(
 			.notificationId(notification.getId())
 			.notificationType(notification.getNotificationType())
 			.notificationMethodType(notification.getNotificationMethodType())
-			.daysOfWeek(notification.getDaysOfWeekOrdinalList())
+			.daysOfWeekOrdinal(notification.getDaysOfWeekOrdinalList())
 			.notificationCondition(notificationConditionResponse)
 			.build();
 	}
