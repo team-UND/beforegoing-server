@@ -15,11 +15,15 @@ import com.und.server.notification.service.NotificationCacheService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Tag(name = "Notification", description = "알림 관련 API")
+@Tag(name = "Scenario Notification", description = "Notification related APIs")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -28,11 +32,24 @@ public class NotificationController {
 
 	private final NotificationCacheService notificationCacheService;
 
-	@Operation(summary = "시나리오 알림 목록 조회", description = "사용자의 시나리오별 알림 목록을 조회합니다.")
+
+	@Operation(
+		summary = "Get scenario notification list",
+		description = "Retrieve the list of scenario notifications for the user."
+	)
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200", description = "Successfully retrieved scenario notification list",
+			content = @Content(schema = @Schema(implementation = ScenarioNotificationListResponse.class))),
+		@ApiResponse(responseCode = "304", description = "Not modified - data has not changed since last request"),
+		@ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
+		@ApiResponse(
+			responseCode = "500", description = "Internal server error - failed to retrieve notification cache")
+	})
 	@GetMapping("/scenarios")
 	public ResponseEntity<ScenarioNotificationListResponse> getScenarioNotifications(
 		@AuthMember Long memberId,
-		@Parameter(description = "클라이언트 캐싱용 ETag")
+		@Parameter(description = "ETag for client caching")
 		@RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch
 	) {
 		ScenarioNotificationListResponse response =
@@ -47,7 +64,19 @@ public class NotificationController {
 			.body(response);
 	}
 
-	@Operation(summary = "특정 시나리오 알림 조회", description = "특정 시나리오의 알림 데이터만 조회합니다. 시나리오가 존재하지 않으면 null을 반환합니다.")
+
+	@Operation(
+		summary = "Get single scenario notification",
+		description = "Retrieve notification data for a specific scenario. Returns null if the scenario does not exist."
+	)
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200", description = "Successfully retrieved scenario notification data",
+			content = @Content(schema = @Schema(implementation = ScenarioNotificationResponse.class))),
+		@ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
+		@ApiResponse(
+			responseCode = "500", description = "Internal server error - failed to retrieve notification cache")
+	})
 	@GetMapping("/scenarios/{scenarioId}")
 	public ResponseEntity<ScenarioNotificationResponse> getSingleScenarioNotification(
 		@AuthMember Long memberId,
