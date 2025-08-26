@@ -141,9 +141,12 @@ public class ScenarioService {
 	) {
 		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+		Notification oldNotification = oldScenario.getNotification();
+
+		Boolean isOldScenarioNotificationActive = oldNotification.isActive();
 
 		notificationService.updateNotification(
-			oldScenario.getNotification(),
+			oldNotification,
 			scenarioDetailRequest.notification(),
 			scenarioDetailRequest.notificationCondition()
 		);
@@ -154,7 +157,7 @@ public class ScenarioService {
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
 
 		// 알림 캐시 업데이트 이벤트 발행
-		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario);
+		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
 
 		return missionService.findMissionsByScenarioId(memberId, scenarioId, LocalDate.now());
 	}

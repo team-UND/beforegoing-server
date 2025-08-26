@@ -22,29 +22,33 @@ public class ScenarioUpdateEventListener {
 	@TransactionalEventListener
 	public void handleUpdate(ScenarioUpdateEvent event) {
 		Long memberId = event.memberId();
-		Scenario scenario = event.scenario();
-		Notification notification = scenario.getNotification();
+		Boolean isOldScenarioNotificationActive = event.isOldScenarioNotificationActive();
+		Scenario updatedScenario = event.updatedScenario();
+		Notification notification = updatedScenario.getNotification();
 
 		try {
 			if (notification == null || !notification.isActive()) {
-				processWithoutNotification(memberId, scenario);
+				if (!isOldScenarioNotificationActive) {
+					return;
+				}
+				processWithoutNotification(memberId, updatedScenario);
 				return;
 			}
-			processWithNotification(memberId, scenario);
+			processWithNotification(memberId, updatedScenario);
 		} catch (Exception e) {
 			log.error("Failed to process scenario update event: {}", event, e);
 			// 실패 시 캐시 삭제 (동기화 실패 대비)
-			notificationCacheService.deleteCache(memberId);
+			notificationCacheService.deleteMemberAllCache(memberId);
 		}
 	}
 
 	private void processWithNotification(Long memberId, Scenario scenario) {
-		notificationCacheService.deleteFromCache(memberId, scenario.getId());
+		notificationCacheService.deleteCache(memberId, scenario.getId());
 		notificationCacheService.updateCache(memberId, scenario);
 	}
 
 	private void processWithoutNotification(Long memberId, Scenario scenario) {
-		notificationCacheService.deleteFromCache(memberId, scenario.getId());
+		notificationCacheService.deleteCache(memberId, scenario.getId());
 	}
 
 }
