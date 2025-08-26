@@ -30,11 +30,10 @@ public class ScenarioCreateEventListener {
 				return;
 			}
 			processWithNotification(memberId, scenario);
-			log.info("Added notification cache for scenarioId={}", scenario.getId());
+
 		} catch (Exception e) {
 			log.error("Failed to process scenario create event: {}", event, e);
-			// 실패 시 캐시 삭제 (동기화 실패 대비)
-			notificationCacheService.deleteCache(memberId);
+			notificationCacheService.deleteMemberAllCache(memberId);
 		}
 	}
 

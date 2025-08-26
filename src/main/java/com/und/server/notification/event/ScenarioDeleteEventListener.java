@@ -28,16 +28,15 @@ public class ScenarioDeleteEventListener {
 				return;
 			}
 			processWithNotification(memberId, scenarioId);
-			log.info("Deleted notification cache for scenarioId={}", scenarioId);
+
 		} catch (Exception e) {
 			log.error("Failed to process scenario delete event: {}", event, e);
-			// 실패 시 캐시 삭제 (동기화 실패 대비)
-			notificationCacheService.deleteCache(memberId);
+			notificationCacheService.deleteMemberAllCache(memberId);
 		}
 	}
 
 	private void processWithNotification(Long memberId, Long scenarioId) {
-		notificationCacheService.deleteFromCache(memberId, scenarioId);
+		notificationCacheService.deleteCache(memberId, scenarioId);
 	}
 
 }

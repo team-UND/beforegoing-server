@@ -35,9 +35,9 @@ public class ScenarioUpdateEventListener {
 				return;
 			}
 			processWithNotification(memberId, updatedScenario);
+
 		} catch (Exception e) {
 			log.error("Failed to process scenario update event: {}", event, e);
-			// 실패 시 캐시 삭제 (동기화 실패 대비)
 			notificationCacheService.deleteMemberAllCache(memberId);
 		}
 	}
