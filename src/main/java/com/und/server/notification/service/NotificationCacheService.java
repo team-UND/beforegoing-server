@@ -9,12 +9,12 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.und.server.common.exception.ServerException;
 import com.und.server.notification.dto.cache.NotificationCacheData;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.ScenarioNotificationListResponse;
 import com.und.server.notification.dto.response.ScenarioNotificationResponse;
 import com.und.server.notification.exception.NotificationCacheErrorResult;
+import com.und.server.notification.exception.NotificationCacheException;
 import com.und.server.notification.util.NotificationCacheKeyGenerator;
 import com.und.server.notification.util.NotificationCacheSerializer;
 import com.und.server.scenario.entity.Scenario;
@@ -37,32 +37,37 @@ public class NotificationCacheService {
 
 
 	public ScenarioNotificationListResponse getScenariosNotificationCache(Long memberId) {
-		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
-		String etagKey = keyGenerator.generateEtagKey(memberId);
+		try {
+			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
+			String etagKey = keyGenerator.generateEtagKey(memberId);
 
-		String etag = (String) redisTemplate.opsForValue().get(etagKey);
-		if (etag == null) {
-			List<ScenarioNotificationResponse> scenarioNotifications =
-				scenarioNotificationService.getScenarioNotifications(memberId);
+			String etag = (String) redisTemplate.opsForValue().get(etagKey);
+			if (etag == null) {
+				List<ScenarioNotificationResponse> scenarioNotifications =
+					scenarioNotificationService.getScenarioNotifications(memberId);
 
-			saveToCache(memberId, scenarioNotifications);
-			String newEtag = updateEtag(memberId);
+				saveToCache(memberId, scenarioNotifications);
+				String newEtag = updateEtag(memberId);
 
-			return ScenarioNotificationListResponse.from(newEtag, scenarioNotifications);
+				return ScenarioNotificationListResponse.from(newEtag, scenarioNotifications);
+			}
+
+			Map<Object, Object> cacheData = redisTemplate.opsForHash().entries(cacheKey);
+			if (cacheData.isEmpty()) {
+				return new ScenarioNotificationListResponse(etag, new ArrayList<>());
+			}
+
+			List<ScenarioNotificationResponse> scenarios = new ArrayList<>();
+			for (Object value : cacheData.values()) {
+				NotificationCacheData cacheDto = serializer.deserialize((String) value);
+				scenarios.add(convertToResponse(cacheDto));
+			}
+
+			return new ScenarioNotificationListResponse(etag, scenarios);
+
+		} catch (Exception e) {
+			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_FETCH_ALL_FAILED);
 		}
-
-		Map<Object, Object> cacheData = redisTemplate.opsForHash().entries(cacheKey);
-		if (cacheData.isEmpty()) {
-			return new ScenarioNotificationListResponse(etag, new ArrayList<>());
-		}
-
-		List<ScenarioNotificationResponse> scenarios = new ArrayList<>();
-		for (Object value : cacheData.values()) {
-			NotificationCacheData cacheDto = serializer.deserialize((String) value);
-			scenarios.add(convertToResponse(cacheDto));
-		}
-
-		return new ScenarioNotificationListResponse(etag, scenarios);
 	}
 
 
@@ -80,9 +85,7 @@ public class NotificationCacheService {
 			return convertToResponse(cacheData);
 
 		} catch (Exception e) {
-			log.error("Failed to get scenario notification cache for memberId={}, scenarioId={}",
-				memberId, scenarioId, e);
-			return null;
+			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_FETCH_SINGLE_FAILED);
 		}
 	}
 
@@ -101,7 +104,7 @@ public class NotificationCacheService {
 			updateEtag(memberId);
 
 		} catch (Exception e) {
-			throw new ServerException(NotificationCacheErrorResult.CACHE_UPDATE_FAILED);
+			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_UPDATE_FAILED);
 		}
 	}
 
@@ -115,7 +118,7 @@ public class NotificationCacheService {
 
 			updateEtag(memberId);
 		} catch (Exception e) {
-			throw new ServerException(NotificationCacheErrorResult.CACHE_DELETE_FAILED);
+			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_DELETE_FAILED);
 		}
 	}
 

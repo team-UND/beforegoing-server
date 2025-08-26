@@ -26,7 +26,6 @@ public class ScenarioNotificationService {
 					scenarioRepository.findTimeScenarioNotifications(memberId));
 			}
 		}
-		System.out.println("db 다시 조회함");
 		return scenarioNotifications;
 	}
 
