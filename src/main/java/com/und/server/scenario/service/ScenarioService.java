@@ -14,7 +14,7 @@ import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
-import com.und.server.notification.service.NotificationEventPublisher;
+import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
@@ -126,7 +126,6 @@ public class ScenarioService {
 
 		List<Mission> basicMissions = missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
 
-		// 알림 캐시 업데이트 이벤트 발행
 		notificationEventPublisher.publishCreateEvent(memberId, scenario);
 
 		return MissionGroupResponse.from(scenario.getId(), basicMissions, null);
@@ -156,7 +155,6 @@ public class ScenarioService {
 		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
 
-		// 알림 캐시 업데이트 이벤트 발행
 		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
 
 		return missionService.findMissionsByScenarioId(memberId, scenarioId, LocalDate.now());
@@ -203,7 +201,6 @@ public class ScenarioService {
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);
 
-		// 알림 캐시 업데이트 이벤트 발행
 		notificationEventPublisher.publishDeleteEvent(memberId, scenarioId, isNotificationActive);
 	}
 

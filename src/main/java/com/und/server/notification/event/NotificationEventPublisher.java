@@ -1,11 +1,8 @@
-package com.und.server.notification.service;
+package com.und.server.notification.event;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import com.und.server.notification.event.ScenarioCreateEvent;
-import com.und.server.notification.event.ScenarioDeleteEvent;
-import com.und.server.notification.event.ScenarioUpdateEvent;
 import com.und.server.scenario.entity.Scenario;
 
 import lombok.RequiredArgsConstructor;
