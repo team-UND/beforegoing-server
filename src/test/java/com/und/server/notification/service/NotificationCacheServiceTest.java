@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -33,6 +34,7 @@ import com.und.server.notification.dto.response.ScenarioNotificationListResponse
 import com.und.server.notification.dto.response.ScenarioNotificationResponse;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.notification.exception.NotificationCacheErrorResult;
 import com.und.server.notification.exception.NotificationCacheException;
 import com.und.server.notification.util.NotificationCacheKeyGenerator;
 import com.und.server.notification.util.NotificationCacheSerializer;
@@ -165,19 +167,19 @@ class NotificationCacheServiceTest {
 
 
 	@Test
-	void Given_NonExistentScenario_When_GetSingleScenarioNotificationCache_Then_ReturnNull() {
+	void Given_NonExistentScenario_When_GetSingleScenarioNotificationCache_Then_ThrowNotFoundException() {
 		// given
 		given(keyGenerator.generateNotificationCacheKey(memberId)).willReturn(cacheKey);
 		given(keyGenerator.generateEtagKey(memberId)).willReturn(etagKey);
 		given(valueOperations.get(etagKey)).willReturn("1234567890");
 		given(hashOperations.get(cacheKey, scenarioId.toString())).willReturn(null);
 
-		// when
-		ScenarioNotificationResponse result =
-			notificationCacheService.getSingleScenarioNotificationCache(memberId, scenarioId);
-
-		// then
-		assertThat(result).isNull();
+		// when & then
+		assertThatThrownBy(() ->
+			notificationCacheService.getSingleScenarioNotificationCache(memberId, scenarioId)
+		).isInstanceOf(NotificationCacheException.class)
+			.hasFieldOrPropertyWithValue("errorResult",
+				NotificationCacheErrorResult.CACHE_NOT_FOUND_SCENARIO_NOTIFICATION);
 	}
 
 
@@ -284,7 +286,7 @@ class NotificationCacheServiceTest {
 
 
 	@Test
-	void Given_RedisException_When_GetScenariosNotificationCache_Then_ThrowNotificationCacheException() {
+	void Given_RedisException_When_GetScenariosNotificationCache_Then_ThrowRuntimeException() {
 		// given
 		given(keyGenerator.generateNotificationCacheKey(memberId)).willReturn(cacheKey);
 		given(keyGenerator.generateEtagKey(memberId)).willReturn(etagKey);
@@ -292,23 +294,27 @@ class NotificationCacheServiceTest {
 
 		// when & then
 		assertThatThrownBy(() -> notificationCacheService.getScenariosNotificationCache(memberId))
-			.isInstanceOf(NotificationCacheException.class);
+			.isInstanceOf(RuntimeException.class)
+			.hasMessage("Redis connection failed");
 	}
 
 
 	@Test
 	void Given_RedisException_When_GetSingleScenarioNotificationCache_Then_ThrowNotificationCacheException() {
 		// given
-		doThrow(new RuntimeException("Redis connection failed")).when(valueOperations).get(anyString());
+		given(keyGenerator.generateEtagKey(memberId)).willReturn(etagKey);
+		doThrow(new RedisSystemException("Redis connection failed", new RuntimeException())).when(valueOperations)
+			.get(etagKey);
 
 		// when & then
 		assertThatThrownBy(() -> notificationCacheService.getSingleScenarioNotificationCache(memberId, scenarioId))
-			.isInstanceOf(NotificationCacheException.class);
+			.isInstanceOf(NotificationCacheException.class)
+			.hasFieldOrPropertyWithValue("errorResult", NotificationCacheErrorResult.CACHE_FETCH_SINGLE_FAILED);
 	}
 
 
 	@Test
-	void Given_RedisException_When_UpdateCache_Then_ThrowNotificationCacheException() {
+	void Given_RedisException_When_UpdateCache_Then_ThrowRuntimeException() {
 		// given
 		Notification notification = Notification.builder()
 			.id(1L)
@@ -333,12 +339,13 @@ class NotificationCacheServiceTest {
 
 		// when & then
 		assertThatThrownBy(() -> notificationCacheService.updateCache(memberId, scenario))
-			.isInstanceOf(NotificationCacheException.class);
+			.isInstanceOf(RuntimeException.class)
+			.hasMessage("Redis connection failed");
 	}
 
 
 	@Test
-	void Given_RedisException_When_DeleteCache_Then_ThrowNotificationCacheException() {
+	void Given_RedisException_When_DeleteCache_Then_ThrowRuntimeException() {
 		// given
 		given(keyGenerator.generateNotificationCacheKey(memberId)).willReturn(cacheKey);
 		given(keyGenerator.generateEtagKey(memberId)).willReturn(etagKey);
@@ -347,7 +354,8 @@ class NotificationCacheServiceTest {
 
 		// when & then
 		assertThatThrownBy(() -> notificationCacheService.deleteCache(memberId, scenarioId))
-			.isInstanceOf(NotificationCacheException.class);
+			.isInstanceOf(RuntimeException.class)
+			.hasMessage("Redis connection failed");
 	}
 
 
@@ -356,7 +364,8 @@ class NotificationCacheServiceTest {
 		// given
 		given(keyGenerator.generateNotificationCacheKey(memberId)).willReturn(cacheKey);
 		given(keyGenerator.generateEtagKey(memberId)).willReturn(etagKey);
-		doThrow(new RuntimeException("Redis connection failed")).when(redisTemplate).delete(anyString());
+		doThrow(new RedisSystemException("Redis connection failed", new RuntimeException())).when(redisTemplate)
+			.delete(anyString());
 
 		// when & then
 		notificationCacheService.deleteMemberAllCache(memberId);
