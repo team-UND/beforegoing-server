@@ -36,7 +36,7 @@ public class NotificationCacheService {
 	private final ScenarioNotificationService scenarioNotificationService;
 
 
-	public ScenarioNotificationListResponse getScenariosNotificationCache(Long memberId) {
+	public ScenarioNotificationListResponse getScenariosNotificationCache(final Long memberId) {
 		try {
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String etagKey = keyGenerator.generateEtagKey(memberId);
@@ -71,7 +71,9 @@ public class NotificationCacheService {
 	}
 
 
-	public ScenarioNotificationResponse getSingleScenarioNotificationCache(Long memberId, Long scenarioId) {
+	public ScenarioNotificationResponse getSingleScenarioNotificationCache(
+		final Long memberId, final Long scenarioId
+	) {
 		try {
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String fieldKey = scenarioId.toString();
@@ -90,7 +92,7 @@ public class NotificationCacheService {
 	}
 
 
-	public void updateCache(Long memberId, Scenario scenario) {
+	public void updateCache(final Long memberId, final Scenario scenario) {
 		try {
 			NotificationCacheData cacheData = createCacheData(scenario);
 
@@ -109,7 +111,7 @@ public class NotificationCacheService {
 	}
 
 
-	public void deleteCache(Long memberId, Long scenarioId) {
+	public void deleteCache(final Long memberId, final Long scenarioId) {
 		try {
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String fieldKey = scenarioId.toString();
@@ -123,7 +125,7 @@ public class NotificationCacheService {
 	}
 
 
-	public void deleteMemberAllCache(Long memberId) {
+	public void deleteMemberAllCache(final Long memberId) {
 		try {
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String etagKey = keyGenerator.generateEtagKey(memberId);
@@ -137,7 +139,9 @@ public class NotificationCacheService {
 	}
 
 
-	private void saveToCache(Long memberId, List<ScenarioNotificationResponse> scenarioNotifications) {
+	private void saveToCache(
+		final Long memberId, final List<ScenarioNotificationResponse> scenarioNotifications
+	) {
 		if (scenarioNotifications == null || scenarioNotifications.isEmpty()) {
 			return;
 		}
@@ -169,14 +173,14 @@ public class NotificationCacheService {
 		return etag;
 	}
 
-	private NotificationCacheData createCacheData(Scenario scenario) {
+	private NotificationCacheData createCacheData(final Scenario scenario) {
 		NotificationConditionResponse condition =
 			notificationConditionSelector.findNotificationCondition(scenario.getNotification());
 
 		return NotificationCacheData.from(scenario, serializer.serializeCondition(condition));
 	}
 
-	private ScenarioNotificationResponse convertToResponse(NotificationCacheData notificationCacheData) {
+	private ScenarioNotificationResponse convertToResponse(final NotificationCacheData notificationCacheData) {
 		NotificationConditionResponse condition = serializer.parseCondition(notificationCacheData);
 
 		return ScenarioNotificationResponse.from(notificationCacheData, condition);

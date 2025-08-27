@@ -17,7 +17,7 @@ public class ScenarioNotificationService {
 
 	private final ScenarioRepository scenarioRepository;
 
-	public List<ScenarioNotificationResponse> getScenarioNotifications(Long memberId) {
+	public List<ScenarioNotificationResponse> getScenarioNotifications(final Long memberId) {
 		List<ScenarioNotificationResponse> scenarioNotifications = new ArrayList<>();
 
 		for (NotificationType type : NotificationType.values()) {

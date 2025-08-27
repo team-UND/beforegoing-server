@@ -18,10 +18,10 @@ public class ScenarioDeleteEventListener {
 
 	@Async
 	@TransactionalEventListener
-	public void handleDelete(ScenarioDeleteEvent event) {
-		Long memberId = event.memberId();
-		Long scenarioId = event.scenarioId();
-		Boolean isNotificationActive = event.isNotificationActive();
+	public void handleDelete(final ScenarioDeleteEvent event) {
+		final Long memberId = event.memberId();
+		final Long scenarioId = event.scenarioId();
+		final Boolean isNotificationActive = event.isNotificationActive();
 
 		try {
 			if (!isNotificationActive) {
@@ -35,7 +35,7 @@ public class ScenarioDeleteEventListener {
 		}
 	}
 
-	private void processWithNotification(Long memberId, Long scenarioId) {
+	private void processWithNotification(final Long memberId, final Long scenarioId) {
 		notificationCacheService.deleteCache(memberId, scenarioId);
 	}
 

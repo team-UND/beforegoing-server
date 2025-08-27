@@ -15,14 +15,14 @@ public class NotificationEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	public void publishCreateEvent(Long memberId, Scenario scenario) {
+	public void publishCreateEvent(final Long memberId, final Scenario scenario) {
 		ScenarioCreateEvent event = new ScenarioCreateEvent(memberId, scenario);
 
 		eventPublisher.publishEvent(event);
 	}
 
 	public void publishUpdateEvent(
-		Long memberId, Scenario scenario, Boolean isOldScenarioNotificationActive
+		final Long memberId, final Scenario scenario, final Boolean isOldScenarioNotificationActive
 	) {
 		ScenarioUpdateEvent event =
 			new ScenarioUpdateEvent(memberId, scenario, isOldScenarioNotificationActive);
@@ -30,7 +30,9 @@ public class NotificationEventPublisher {
 		eventPublisher.publishEvent(event);
 	}
 
-	public void publishDeleteEvent(Long memberId, Long scenarioId, Boolean isNotificationActive) {
+	public void publishDeleteEvent(
+		final Long memberId, final Long scenarioId, final Boolean isNotificationActive
+	) {
 		ScenarioDeleteEvent event = new ScenarioDeleteEvent(memberId, scenarioId, isNotificationActive);
 
 		eventPublisher.publishEvent(event);

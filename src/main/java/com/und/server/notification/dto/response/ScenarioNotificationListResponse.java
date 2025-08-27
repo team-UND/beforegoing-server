@@ -7,10 +7,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "ETag and Scenario notification list response with notification active")
 public record ScenarioNotificationListResponse(
 
-	@Schema(description = "ETag (클라이언트 캐싱용)")
+	@Schema(description = "ETag (for client caching)")
 	String etag,
 
-	@Schema(description = "시나리오별 알림 목록")
+	@Schema(description = "Notification list by scenario")
 	List<ScenarioNotificationResponse> scenarios
 
 ) {

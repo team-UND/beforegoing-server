@@ -19,15 +19,15 @@ public class NotificationCacheSerializer {
 
 	private final ObjectMapper objectMapper;
 
-	public String serialize(NotificationCacheData data) {
+	public String serialize(final NotificationCacheData notificationCacheData) {
 		try {
-			return objectMapper.writeValueAsString(data);
+			return objectMapper.writeValueAsString(notificationCacheData);
 		} catch (JsonProcessingException e) {
 			throw new NotificationCacheException(NotificationCacheErrorResult.SERIALIZE_FAILED);
 		}
 	}
 
-	public NotificationCacheData deserialize(String json) {
+	public NotificationCacheData deserialize(final String json) {
 		try {
 			return objectMapper.readValue(json, NotificationCacheData.class);
 		} catch (JsonProcessingException e) {
@@ -35,17 +35,18 @@ public class NotificationCacheSerializer {
 		}
 	}
 
-	public NotificationConditionResponse parseCondition(NotificationCacheData data) {
+	public NotificationConditionResponse parseCondition(final NotificationCacheData notificationCacheData) {
 		try {
-			return objectMapper.readValue(data.conditionJson(), NotificationConditionResponse.class);
+			return objectMapper.readValue(
+				notificationCacheData.conditionJson(), NotificationConditionResponse.class);
 		} catch (JsonProcessingException e) {
 			throw new NotificationCacheException(NotificationCacheErrorResult.CONDITION_PARSE_FAILED);
 		}
 	}
 
-	public String serializeCondition(NotificationConditionResponse condition) {
+	public String serializeCondition(final NotificationConditionResponse notificationConditionResponse) {
 		try {
-			return objectMapper.writeValueAsString(condition);
+			return objectMapper.writeValueAsString(notificationConditionResponse);
 		} catch (JsonProcessingException e) {
 			throw new NotificationCacheException(NotificationCacheErrorResult.CONDITION_SERIALIZE_FAILED);
 		}

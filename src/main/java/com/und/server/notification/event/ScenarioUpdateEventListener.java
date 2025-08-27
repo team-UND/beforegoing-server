@@ -20,11 +20,11 @@ public class ScenarioUpdateEventListener {
 
 	@Async
 	@TransactionalEventListener
-	public void handleUpdate(ScenarioUpdateEvent event) {
-		Long memberId = event.memberId();
-		Boolean isOldScenarioNotificationActive = event.isOldScenarioNotificationActive();
-		Scenario updatedScenario = event.updatedScenario();
-		Notification notification = updatedScenario.getNotification();
+	public void handleUpdate(final ScenarioUpdateEvent event) {
+		final Long memberId = event.memberId();
+		final Boolean isOldScenarioNotificationActive = event.isOldScenarioNotificationActive();
+		final Scenario updatedScenario = event.updatedScenario();
+		final Notification notification = updatedScenario.getNotification();
 
 		try {
 			if (notification == null || !notification.isActive()) {
@@ -42,12 +42,12 @@ public class ScenarioUpdateEventListener {
 		}
 	}
 
-	private void processWithNotification(Long memberId, Scenario scenario) {
+	private void processWithNotification(final Long memberId, final Scenario scenario) {
 		notificationCacheService.deleteCache(memberId, scenario.getId());
 		notificationCacheService.updateCache(memberId, scenario);
 	}
 
-	private void processWithoutNotification(Long memberId, Scenario scenario) {
+	private void processWithoutNotification(final Long memberId, final Scenario scenario) {
 		notificationCacheService.deleteCache(memberId, scenario.getId());
 	}
 

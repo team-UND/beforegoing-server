@@ -20,10 +20,10 @@ public class ScenarioCreateEventListener {
 
 	@Async
 	@TransactionalEventListener
-	public void handleCreate(ScenarioCreateEvent event) {
-		Long memberId = event.memberId();
-		Scenario scenario = event.scenario();
-		Notification notification = scenario.getNotification();
+	public void handleCreate(final ScenarioCreateEvent event) {
+		final Long memberId = event.memberId();
+		final Scenario scenario = event.scenario();
+		final Notification notification = scenario.getNotification();
 
 		try {
 			if (notification == null || !notification.isActive()) {
@@ -37,7 +37,7 @@ public class ScenarioCreateEventListener {
 		}
 	}
 
-	private void processWithNotification(Long memberId, Scenario scenario) {
+	private void processWithNotification(final Long memberId, final Scenario scenario) {
 		notificationCacheService.updateCache(memberId, scenario);
 	}
 
