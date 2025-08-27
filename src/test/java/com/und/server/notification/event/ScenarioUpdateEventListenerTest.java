@@ -32,7 +32,7 @@ class ScenarioUpdateEventListenerTest {
 
 
 	@Test
-	void Given_ValidScenarioWithActiveNotification_When_HandleUpdate_Then_DeleteAndUpdateCache() {
+	void Given_ValidScenarioWithActiveNotification_When_HandleUpdate_Then_UpdateCache() {
 		// given
 		Notification notification = Notification.builder()
 			.id(1L)
@@ -52,7 +52,7 @@ class ScenarioUpdateEventListenerTest {
 		scenarioUpdateEventListener.handleUpdate(event);
 
 		// then
-		verify(notificationCacheService).deleteCache(eq(memberId), eq(scenarioId));
+		verify(notificationCacheService, never()).deleteCache(anyLong(), anyLong());
 		verify(notificationCacheService).updateCache(eq(memberId), eq(scenario));
 	}
 
@@ -169,13 +169,14 @@ class ScenarioUpdateEventListenerTest {
 		ScenarioUpdateEvent event = new ScenarioUpdateEvent(memberId, scenario, false);
 
 		doThrow(new RuntimeException("Cache operation failed"))
-			.when(notificationCacheService).deleteCache(anyLong(), anyLong());
+			.when(notificationCacheService).updateCache(anyLong(), any());
 
 		// when
 		scenarioUpdateEventListener.handleUpdate(event);
 
 		// then
-		verify(notificationCacheService).deleteCache(eq(memberId), eq(scenarioId));
+		verify(notificationCacheService, never()).deleteCache(anyLong(), anyLong());
+		verify(notificationCacheService).updateCache(eq(memberId), eq(scenario));
 		verify(notificationCacheService).deleteMemberAllCache(eq(memberId));
 	}
 
@@ -201,7 +202,7 @@ class ScenarioUpdateEventListenerTest {
 		scenarioUpdateEventListener.handleUpdate(event);
 
 		// then
-		verify(notificationCacheService).deleteCache(eq(memberId), eq(scenarioId));
+		verify(notificationCacheService, never()).deleteCache(anyLong(), anyLong());
 		verify(notificationCacheService).updateCache(eq(memberId), eq(scenario));
 	}
 
