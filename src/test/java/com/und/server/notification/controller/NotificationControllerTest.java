@@ -1,6 +1,7 @@
 package com.und.server.notification.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -16,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 
 import com.und.server.notification.dto.response.ScenarioNotificationListResponse;
 import com.und.server.notification.dto.response.ScenarioNotificationResponse;
+import com.und.server.notification.exception.NotificationCacheErrorResult;
+import com.und.server.notification.exception.NotificationCacheException;
 import com.und.server.notification.service.NotificationCacheService;
 
 @ExtendWith(MockitoExtension.class)
@@ -169,18 +172,19 @@ class NotificationControllerTest {
 
 
 	@Test
-	void Given_NonExistentScenario_When_GetSingleScenarioNotification_Then_ReturnNull() {
+	void Given_NonExistentScenario_When_GetSingleScenarioNotification_Then_ThrowNotFoundException() {
 		// given
 		given(notificationCacheService.getSingleScenarioNotificationCache(memberId, scenarioId))
-			.willReturn(null);
+			.willThrow(
+				new NotificationCacheException(NotificationCacheErrorResult.CACHE_NOT_FOUND_SCENARIO_NOTIFICATION));
 
-		// when
-		ResponseEntity<ScenarioNotificationResponse> response =
-			notificationController.getSingleScenarioNotification(memberId, scenarioId);
+		// when & then
+		assertThatThrownBy(() ->
+			notificationController.getSingleScenarioNotification(memberId, scenarioId)
+		).isInstanceOf(NotificationCacheException.class)
+			.hasFieldOrPropertyWithValue("errorResult",
+				NotificationCacheErrorResult.CACHE_NOT_FOUND_SCENARIO_NOTIFICATION);
 
-		// then
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody()).isNull();
 		verify(notificationCacheService).getSingleScenarioNotificationCache(memberId, scenarioId);
 	}
 
