@@ -20,15 +20,15 @@ public class ScenarioNotificationService {
 	private final ScenarioRepository scenarioRepository;
 
 	public List<ScenarioNotificationResponse> getScenarioNotifications(final Long memberId) {
-		List<ScenarioNotificationResponse> scenarioNotifications = new ArrayList<>();
+		List<ScenarioNotificationResponse> scenarioNotificationResponses = new ArrayList<>();
 
 		for (NotificationType type : NotificationType.values()) {
 			switch (type) {
-				case TIME -> scenarioNotifications.addAll(
+				case TIME -> scenarioNotificationResponses.addAll(
 					scenarioRepository.findTimeScenarioNotifications(memberId));
 			}
 		}
-		return scenarioNotifications;
+		return scenarioNotificationResponses;
 	}
 
 }

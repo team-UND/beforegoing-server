@@ -20,12 +20,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestController
-@RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/notifications")
 public class NotificationController {
 
 	private final NotificationCacheService notificationCacheService;
@@ -50,16 +48,16 @@ public class NotificationController {
 		@Parameter(description = "ETag for client caching")
 		@RequestHeader(value = "If-None-Match", required = false) final String ifNoneMatch
 	) {
-		final ScenarioNotificationListResponse response =
+		final ScenarioNotificationListResponse scenarioNotificationListResponse =
 			notificationCacheService.getScenariosNotificationCache(memberId);
 
-		if (ifNoneMatch != null && ifNoneMatch.equals(response.etag())) {
+		if (ifNoneMatch != null && ifNoneMatch.equals(scenarioNotificationListResponse.etag())) {
 			return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
 		}
 
 		return ResponseEntity.ok()
-			.header("ETag", response.etag())
-			.body(response);
+			.header("ETag", scenarioNotificationListResponse.etag())
+			.body(scenarioNotificationListResponse);
 	}
 
 
@@ -80,13 +78,13 @@ public class NotificationController {
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId
 	) {
-		final ScenarioNotificationResponse response =
+		final ScenarioNotificationResponse scenarioNotificationResponse =
 			notificationCacheService.getSingleScenarioNotificationCache(memberId, scenarioId);
 
-		if (response == null) {
+		if (scenarioNotificationResponse == null) {
 			return ResponseEntity.ok().body(null);
 		}
-		return ResponseEntity.ok().body(response);
+		return ResponseEntity.ok().body(scenarioNotificationResponse);
 	}
 
 }

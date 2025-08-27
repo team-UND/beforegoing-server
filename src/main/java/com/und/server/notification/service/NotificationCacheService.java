@@ -170,15 +170,15 @@ public class NotificationCacheService {
 	}
 
 	private void saveToCache(
-		final Long memberId, final List<ScenarioNotificationResponse> scenarioNotifications
+		final Long memberId, final List<ScenarioNotificationResponse> scenarioNotificationResponses
 	) {
-		if (scenarioNotifications == null || scenarioNotifications.isEmpty()) {
+		if (scenarioNotificationResponses == null || scenarioNotificationResponses.isEmpty()) {
 			return;
 		}
 		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 		Map<String, String> values = new HashMap<>();
 
-		for (ScenarioNotificationResponse scenario : scenarioNotifications) {
+		for (ScenarioNotificationResponse scenario : scenarioNotificationResponses) {
 			NotificationCacheData cacheData = NotificationCacheData.from(
 				scenario,
 				serializer.serializeCondition(scenario.notificationCondition())
