@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.notification.dto.cache.NotificationCacheData;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
@@ -23,9 +24,10 @@ import com.und.server.scenario.service.ScenarioNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
+@Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class NotificationCacheService {
 
 	private static final int CACHE_TTL_DAYS = 30;
