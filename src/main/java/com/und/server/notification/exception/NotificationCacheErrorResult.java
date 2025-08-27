@@ -15,6 +15,8 @@ public enum NotificationCacheErrorResult implements ErrorResult {
 		HttpStatus.INTERNAL_SERVER_ERROR, "Failed to fetch all scenarios notification cache"),
 	CACHE_FETCH_SINGLE_FAILED(
 		HttpStatus.INTERNAL_SERVER_ERROR, "Failed to fetch single scenario notification cache"),
+	CACHE_NOT_FOUND_SCENARIO_NOTIFICATION(
+		HttpStatus.NOT_FOUND, "Not found scenario notification cache"),
 	CACHE_UPDATE_FAILED(
 		HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update notification cache"),
 	CACHE_DELETE_FAILED(

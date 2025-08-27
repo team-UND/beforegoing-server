@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +69,7 @@ public class NotificationCacheService {
 
 			return new ScenarioNotificationListResponse(etag, scenarios);
 
-		} catch (Exception e) {
+		} catch (RedisSystemException | RedisConnectionFailureException e) {
 			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_FETCH_ALL_FAILED);
 		}
 	}
@@ -83,57 +85,48 @@ public class NotificationCacheService {
 			String fieldKey = scenarioId.toString();
 			Object cachedValue = redisTemplate.opsForHash().get(cacheKey, fieldKey);
 			if (cachedValue == null) {
-				return null;
+				throw new NotificationCacheException(
+					NotificationCacheErrorResult.CACHE_NOT_FOUND_SCENARIO_NOTIFICATION);
 			}
 			NotificationCacheData cacheData = serializer.deserialize((String) cachedValue);
 
 			return convertToResponse(cacheData);
 
-		} catch (Exception e) {
+		} catch (RedisSystemException | RedisConnectionFailureException e) {
 			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_FETCH_SINGLE_FAILED);
 		}
 	}
 
 
 	public void updateCache(final Long memberId, final Scenario scenario) {
-		try {
-			if (handleRefreshCacheFromDatabase(memberId)) {
-				return;
-			}
-
-			NotificationCacheData cacheData = createCacheData(scenario);
-
-			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
-			String fieldKey = scenario.getId().toString();
-			String jsonValue = serializer.serialize(cacheData);
-
-			redisTemplate.opsForHash().put(cacheKey, fieldKey, jsonValue);
-			redisTemplate.expire(cacheKey, CACHE_TTL_DAYS, TimeUnit.DAYS);
-
-			updateEtag(memberId);
-
-		} catch (Exception e) {
-			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_UPDATE_FAILED);
+		if (handleRefreshCacheFromDatabase(memberId)) {
+			return;
 		}
+
+		NotificationCacheData cacheData = createCacheData(scenario);
+
+		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
+		String fieldKey = scenario.getId().toString();
+		String jsonValue = serializer.serialize(cacheData);
+
+		redisTemplate.opsForHash().put(cacheKey, fieldKey, jsonValue);
+		redisTemplate.expire(cacheKey, CACHE_TTL_DAYS, TimeUnit.DAYS);
+
+		updateEtag(memberId);
 	}
 
 
 	public void deleteCache(final Long memberId, final Long scenarioId) {
-		try {
-			if (handleRefreshCacheFromDatabase(memberId)) {
-				return;
-			}
-
-			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
-			String fieldKey = scenarioId.toString();
-
-			redisTemplate.opsForHash().delete(cacheKey, fieldKey);
-
-			updateEtag(memberId);
-
-		} catch (Exception e) {
-			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_DELETE_FAILED);
+		if (handleRefreshCacheFromDatabase(memberId)) {
+			return;
 		}
+
+		String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
+		String fieldKey = scenarioId.toString();
+
+		redisTemplate.opsForHash().delete(cacheKey, fieldKey);
+
+		updateEtag(memberId);
 	}
 
 
@@ -145,7 +138,7 @@ public class NotificationCacheService {
 			redisTemplate.delete(cacheKey);
 			redisTemplate.delete(etagKey);
 
-		} catch (Exception e) {
+		} catch (RedisSystemException | RedisConnectionFailureException e) {
 			log.error("Failed to process scenario fetch delete event memberId={}", memberId, e);
 		}
 	}

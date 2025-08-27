@@ -4,13 +4,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.und.server.notification.exception.NotificationCacheException;
 import com.und.server.notification.service.NotificationCacheService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class ScenarioDeleteEventListener {
 
@@ -29,8 +30,11 @@ public class ScenarioDeleteEventListener {
 			}
 			processWithNotification(memberId, scenarioId);
 
+		} catch (NotificationCacheException e) {
+			log.error("Failed to process scenario delete event due to cache error: {}", event, e);
+			notificationCacheService.deleteMemberAllCache(memberId);
 		} catch (Exception e) {
-			log.error("Failed to process scenario delete event: {}", event, e);
+			log.error("Failed to process scenario delete event due to an unexpected error: {}", event, e);
 			notificationCacheService.deleteMemberAllCache(memberId);
 		}
 	}

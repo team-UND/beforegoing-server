@@ -5,14 +5,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.und.server.notification.entity.Notification;
+import com.und.server.notification.exception.NotificationCacheException;
 import com.und.server.notification.service.NotificationCacheService;
 import com.und.server.scenario.entity.Scenario;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class ScenarioCreateEventListener {
 
@@ -31,8 +32,11 @@ public class ScenarioCreateEventListener {
 			}
 			processWithNotification(memberId, scenario);
 
+		} catch (NotificationCacheException e) {
+			log.error("Failed to process scenario create event due to cache error: {}", event, e);
+			notificationCacheService.deleteMemberAllCache(memberId);
 		} catch (Exception e) {
-			log.error("Failed to process scenario create event: {}", event, e);
+			log.error("Failed to process scenario create event due to an unexpected error: {}", event, e);
 			notificationCacheService.deleteMemberAllCache(memberId);
 		}
 	}

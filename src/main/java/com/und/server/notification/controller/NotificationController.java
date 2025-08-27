@@ -63,13 +63,14 @@ public class NotificationController {
 
 	@Operation(
 		summary = "Get single scenario notification",
-		description = "Retrieve notification data for a specific scenario. Returns null if the scenario does not exist."
+		description = "Retrieve notification data for a specific scenario."
 	)
 	@ApiResponses({
 		@ApiResponse(
 			responseCode = "200", description = "Successfully retrieved scenario notification data",
 			content = @Content(schema = @Schema(implementation = ScenarioNotificationResponse.class))),
 		@ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
+		@ApiResponse(responseCode = "404", description = "Scenario not found or scenario has no notification"),
 		@ApiResponse(
 			responseCode = "500", description = "Internal server error - failed to retrieve notification cache")
 	})
@@ -80,10 +81,6 @@ public class NotificationController {
 	) {
 		final ScenarioNotificationResponse scenarioNotificationResponse =
 			notificationCacheService.getSingleScenarioNotificationCache(memberId, scenarioId);
-
-		if (scenarioNotificationResponse == null) {
-			return ResponseEntity.ok().body(null);
-		}
 
 		return ResponseEntity.ok().body(scenarioNotificationResponse);
 	}
