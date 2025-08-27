@@ -9,8 +9,4 @@ public class NotificationCacheException extends ServerException {
 		super(errorResult);
 	}
 
-	public NotificationCacheException(ErrorResult errorResult, Throwable cause) {
-		super(errorResult, cause);
-	}
-
 }
