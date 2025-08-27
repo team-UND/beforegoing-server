@@ -84,6 +84,7 @@ public class NotificationController {
 		if (scenarioNotificationResponse == null) {
 			return ResponseEntity.ok().body(null);
 		}
+
 		return ResponseEntity.ok().body(scenarioNotificationResponse);
 	}
 
