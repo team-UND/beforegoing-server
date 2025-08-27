@@ -75,15 +75,16 @@ public class NotificationCacheService {
 		final Long memberId, final Long scenarioId
 	) {
 		try {
+			handleRefreshCacheFromDatabase(memberId);
+
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String fieldKey = scenarioId.toString();
-
 			Object cachedValue = redisTemplate.opsForHash().get(cacheKey, fieldKey);
 			if (cachedValue == null) {
 				return null;
 			}
-
 			NotificationCacheData cacheData = serializer.deserialize((String) cachedValue);
+
 			return convertToResponse(cacheData);
 
 		} catch (Exception e) {
@@ -94,6 +95,10 @@ public class NotificationCacheService {
 
 	public void updateCache(final Long memberId, final Scenario scenario) {
 		try {
+			if (handleRefreshCacheFromDatabase(memberId)) {
+				return;
+			}
+
 			NotificationCacheData cacheData = createCacheData(scenario);
 
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
@@ -113,12 +118,17 @@ public class NotificationCacheService {
 
 	public void deleteCache(final Long memberId, final Long scenarioId) {
 		try {
+			if (handleRefreshCacheFromDatabase(memberId)) {
+				return;
+			}
+
 			String cacheKey = keyGenerator.generateNotificationCacheKey(memberId);
 			String fieldKey = scenarioId.toString();
 
 			redisTemplate.opsForHash().delete(cacheKey, fieldKey);
 
 			updateEtag(memberId);
+
 		} catch (Exception e) {
 			throw new NotificationCacheException(NotificationCacheErrorResult.CACHE_DELETE_FAILED);
 		}
@@ -138,6 +148,24 @@ public class NotificationCacheService {
 		}
 	}
 
+
+	private boolean handleRefreshCacheFromDatabase(Long memberId) {
+		String etagKey = keyGenerator.generateEtagKey(memberId);
+		String etag = (String) redisTemplate.opsForValue().get(etagKey);
+		if (etag == null) {
+			refreshCacheFromDatabase(memberId);
+			return true;
+		}
+		return false;
+	}
+
+	private void refreshCacheFromDatabase(Long memberId) {
+		List<ScenarioNotificationResponse> scenarioNotifications =
+			scenarioNotificationService.getScenarioNotifications(memberId);
+
+		saveToCache(memberId, scenarioNotifications);
+		updateEtag(memberId);
+	}
 
 	private void saveToCache(
 		final Long memberId, final List<ScenarioNotificationResponse> scenarioNotifications
