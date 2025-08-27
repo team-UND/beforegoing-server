@@ -43,7 +43,6 @@ public class ScenarioUpdateEventListener {
 	}
 
 	private void processWithNotification(final Long memberId, final Scenario scenario) {
-		notificationCacheService.deleteCache(memberId, scenario.getId());
 		notificationCacheService.updateCache(memberId, scenario);
 	}
 
