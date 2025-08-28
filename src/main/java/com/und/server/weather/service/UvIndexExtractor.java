@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
@@ -12,8 +13,8 @@ import com.und.server.weather.dto.api.OpenMeteoResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
+@Slf4j
 public class UvIndexExtractor {
 
 	public Map<Integer, UvType> extractUvForHours(
@@ -23,60 +24,51 @@ public class UvIndexExtractor {
 	) {
 		Map<Integer, UvType> result = new HashMap<>();
 
-		if (!isValidResponse(openMeteoResponse)) {
+		if (!isValidResponse(openMeteoResponse) || targetHours == null || targetHours.isEmpty()) {
 			return result;
 		}
 
 		List<String> times = openMeteoResponse.hourly().time();
 		List<Double> uvIndexValues = openMeteoResponse.hourly().uvIndex();
 
-		for (String str : times) {
-			System.out.println(str);
-		}
-		for (Double d : uvIndexValues) {
-			System.out.println(d);
-		}
-
 		if (!isValidData(times, uvIndexValues)) {
 			return result;
 		}
 
-		String targetDateStr = date.toString();
+		final var targetSet = Set.copyOf(targetHours);
+		final String targetDateStr = date.toString();
 
 		for (int i = 0; i < times.size(); i++) {
-			String timeStr = times.get(i);
-
-			if (!timeStr.startsWith(targetDateStr)) {
+			final String timeStr = times.get(i);
+			if (timeStr == null || !timeStr.startsWith(targetDateStr)) {
 				continue;
 			}
 
+			final int hour;
 			try {
-				int hour = Integer.parseInt(timeStr.substring(11, 13));
-				if (targetHours.contains(hour)) {
-					UvType uv = convertToUvType(i, uvIndexValues);
+				hour = Integer.parseInt(timeStr.substring(11, 13));
+			} catch (NumberFormatException e) {
+				continue;
+			}
 
-					if (uv != null) {
-						result.put(hour, uv);
-						System.out.println("자외선" + timeStr);
-					}
-				}
-			} catch (Exception e) {
-				log.warn("시간 파싱 실패: {}", timeStr);
+			if (!targetSet.contains(hour)) {
+				continue;
+			}
+
+			final UvType uv = convertToUvType(i, uvIndexValues);
+			if (uv != null) {
+				result.put(hour, uv);
 			}
 		}
-
-		log.debug("배치 UV 추출 완료: {} (총 {}개 시간)", result.size(), targetHours.size());
 		return result;
 	}
-
 
 	private UvType convertToUvType(final int index, final List<Double> uvIndexValues) {
 		if (index >= uvIndexValues.size()) {
 			return null;
 		}
 
-		Double uvIndex = uvIndexValues.get(index);
-
+		final Double uvIndex = uvIndexValues.get(index);
 		if (uvIndex == null) {
 			return null;
 		}

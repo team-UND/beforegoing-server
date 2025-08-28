@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
@@ -12,8 +13,8 @@ import com.und.server.weather.dto.api.OpenMeteoResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
+@Slf4j
 public class FineDustExtractor {
 
 	public Map<Integer, FineDustType> extractDustForHours(
@@ -23,7 +24,7 @@ public class FineDustExtractor {
 	) {
 		Map<Integer, FineDustType> result = new HashMap<>();
 
-		if (!isValidResponse(openMeteoResponse)) {
+		if (!isValidResponse(openMeteoResponse) || targetHours == null || targetHours.isEmpty()) {
 			return result;
 		}
 
@@ -31,64 +32,55 @@ public class FineDustExtractor {
 		List<Double> pm10Values = openMeteoResponse.hourly().pm10();
 		List<Double> pm25Values = openMeteoResponse.hourly().pm25();
 
-		for (String time : times) {
-			System.out.println(time);
-		}
-		for (Double value : pm10Values) {
-			System.out.println(value);
-		}
-		for (Double value : pm25Values) {
-			System.out.println(value);
-		}
-
 		if (!isValidData(times, pm10Values, pm25Values)) {
 			return result;
 		}
 
-		String targetDateStr = date.toString();
+		final var targetSet = Set.copyOf(targetHours);
+		final String targetDateStr = date.toString();
 
 		for (int i = 0; i < times.size(); i++) {
-			String timeStr = times.get(i);
-
-			if (!timeStr.startsWith(targetDateStr)) {
+			final String timeStr = times.get(i);
+			if (timeStr == null || !timeStr.startsWith(targetDateStr)) {
 				continue;
 			}
 
+			final int hour;
 			try {
-				int hour = Integer.parseInt(timeStr.substring(11, 13));
-				if (targetHours.contains(hour)) {
-					FineDustType dust = convertToFineDustType(i, pm10Values, pm25Values);
+				hour = Integer.parseInt(timeStr.substring(11, 13));
+			} catch (NumberFormatException e) {
+				continue;
+			}
 
-					if (dust != null) {
-						result.put(hour, dust);
-						System.out.println("미세먼지" + timeStr);
-						log.debug("미세먼지 데이터 매핑: {}시 -> {}", hour, dust);
-					}
-				}
-			} catch (Exception e) {
-				log.warn("시간 파싱 실패: {}", timeStr);
+			if (!targetSet.contains(hour)) {
+				continue;
+			}
+
+			final FineDustType dust = convertToFineDustType(i, pm10Values, pm25Values);
+			if (dust != null) {
+				result.put(hour, dust);
 			}
 		}
-		log.debug("배치 미세먼지 추출 완료: {} (총 {}개 시간)", result.size(), targetHours.size());
 		return result;
 	}
 
-
-	private FineDustType convertToFineDustType(final int index, final List<Double> pm10Values,
-											   final List<Double> pm25Values) {
+	private FineDustType convertToFineDustType(
+		final int index,
+		final List<Double> pm10Values,
+		final List<Double> pm25Values
+	) {
 		if (index >= pm10Values.size() || index >= pm25Values.size()) {
 			return null;
 		}
 
-		Double pm10 = pm10Values.get(index);
-		Double pm25 = pm25Values.get(index);
-
+		final Double pm10 = pm10Values.get(index);
+		final Double pm25 = pm25Values.get(index);
 		if (pm10 == null || pm25 == null) {
 			return null;
 		}
 
-		FineDustType pm10Level = FineDustType.fromPm10Concentration(pm10);
-		FineDustType pm25Level = FineDustType.fromPm25Concentration(pm25);
+		final FineDustType pm10Level = FineDustType.fromPm10Concentration(pm10);
+		final FineDustType pm25Level = FineDustType.fromPm25Concentration(pm25);
 
 		return FineDustType.getWorst(List.of(pm10Level, pm25Level));
 	}
