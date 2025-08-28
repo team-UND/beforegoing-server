@@ -109,7 +109,7 @@ public class WeatherCacheService {
 		}
 	}
 
-	
+
 	private WeatherCacheData handleTodayFallback(
 		final WeatherRequest weatherRequest,
 		final TimeSlot currentSlot,
@@ -129,9 +129,9 @@ public class WeatherCacheService {
 
 			return newData.get(hourKey);
 
-		} catch (Exception fallbackException) {
-			log.error("Fallback도 실패", fallbackException);
-			return WeatherCacheData.getDefault();
+		} catch (Exception e) {
+			log.error("Fallback도 실패", e);
+			throw e;
 		}
 	}
 
@@ -153,9 +153,9 @@ public class WeatherCacheService {
 
 			return futureWeatherCacheData;
 
-		} catch (Exception fallbackException) {
-			log.error("Fallback도 실패", fallbackException);
-			return WeatherCacheData.getDefault();
+		} catch (Exception e) {
+			log.error("Fallback도 실패", e);
+			throw e;
 		}
 	}
 
