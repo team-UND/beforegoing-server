@@ -284,13 +284,11 @@ public class WeatherApiProcessor {
 		final Double longitude,
 		final LocalDate date
 	) {
-		final String variables = "weathercode,temperature_2m,precipitation_probability";
-
 		try {
 			return openMeteoKmaClient.getWeatherForecast(
 				latitude,
 				longitude,
-				variables,
+				WeatherType.OPEN_METEO_VARIABLES,
 				date.toString(),
 				date.toString(),
 				"Asia/Seoul"

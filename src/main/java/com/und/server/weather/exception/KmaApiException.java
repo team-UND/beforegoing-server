@@ -1,9 +1,8 @@
 package com.und.server.weather.exception;
 
-import lombok.Getter;
-
 import com.und.server.common.exception.ErrorResult;
-import com.und.server.common.exception.ServerException;
+
+import lombok.Getter;
 
 @Getter
 public class KmaApiException extends WeatherException {

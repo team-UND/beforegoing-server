@@ -19,17 +19,13 @@ public record OpenMeteoWeatherResponse(
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public record HourlyUnits(
 		@JsonProperty("time") String time,
-		@JsonProperty("weathercode") String weathercode,
-		@JsonProperty("temperature_2m") String temperature2m,
-		@JsonProperty("precipitation_probability") String precipitationProbability
+		@JsonProperty("weathercode") String weathercode
 	) { }
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public record Hourly(
 		@JsonProperty("time") List<String> time,
-		@JsonProperty("weathercode") List<Integer> weathercode,
-		@JsonProperty("temperature_2m") List<Double> temperature2m,
-		@JsonProperty("precipitation_probability") List<Integer> precipitationProbability
+		@JsonProperty("weathercode") List<Integer> weathercode
 	) { }
 
 }

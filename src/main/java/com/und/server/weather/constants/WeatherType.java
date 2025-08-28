@@ -27,6 +27,7 @@ public enum WeatherType {
 	private final int severity;
 
 	public static final WeatherType DEFAULT = WeatherType.UNKNOWN;
+	public static final String OPEN_METEO_VARIABLES = "weathercode";
 	public static final DateTimeFormatter KMA_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 	public static WeatherType fromPtyValue(final int ptyValue) {
