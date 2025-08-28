@@ -2,8 +2,6 @@ package com.und.server.notification.dto.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.DayOfWeek;
-
 import org.junit.jupiter.api.Test;
 
 import com.und.server.notification.constants.NotificationType;
@@ -33,10 +31,9 @@ class TimeNotificationRequestTest {
 			.startMinute(45)
 			.build();
 
-		TimeNotification entity = req.toEntity(notification, DayOfWeek.MONDAY);
+		TimeNotification entity = req.toEntity(notification);
 
 		assertThat(entity.getNotification()).isEqualTo(notification);
-		assertThat(entity.getDayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
 		assertThat(entity.getStartHour()).isEqualTo(8);
 		assertThat(entity.getStartMinute()).isEqualTo(45);
 	}

@@ -10,12 +10,14 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 @Builder
-@Schema(description = "Scenario detail request for create and update")
+@Schema(description = "Scenario request for create and update")
 public record ScenarioDetailRequest(
 
 	@Schema(description = "Scenario name", example = "Home out")
@@ -40,10 +42,11 @@ public record ScenarioDetailRequest(
 		implementation = NotificationRequest.class
 	)
 	@Valid
+	@NotNull(message = "notification must not be null")
 	NotificationRequest notification,
 
 	@Schema(
-		description = "Notification details condition that are included only when the notification is active",
+		description = "Notification details condition - required when notification is active",
 		discriminatorProperty = "notificationType",
 		discriminatorMapping = {
 			@DiscriminatorMapping(value = "time", schema = TimeNotificationRequest.class)
@@ -52,4 +55,22 @@ public record ScenarioDetailRequest(
 	@Valid
 	NotificationConditionRequest notificationCondition
 
-) { }
+) {
+
+	@AssertTrue(message = "Notification condition required when notification is active")
+	private boolean isValidActiveNotificationCondition() {
+		if (!notification.isActive()) {
+			return true;
+		}
+		return notificationCondition != null;
+	}
+
+	@AssertTrue(message = "Notification condition not allowed when notification is inactive")
+	private boolean isValidInactiveNotificationCondition() {
+		if (notification.isActive()) {
+			return true;
+		}
+		return notificationCondition == null;
+	}
+
+}

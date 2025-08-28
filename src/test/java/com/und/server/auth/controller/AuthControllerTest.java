@@ -24,11 +24,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.und.server.auth.dto.AuthRequest;
-import com.und.server.auth.dto.AuthResponse;
-import com.und.server.auth.dto.NonceRequest;
-import com.und.server.auth.dto.NonceResponse;
-import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.dto.request.AuthRequest;
+import com.und.server.auth.dto.request.NonceRequest;
+import com.und.server.auth.dto.request.RefreshTokenRequest;
+import com.und.server.auth.dto.response.AuthResponse;
+import com.und.server.auth.dto.response.NonceResponse;
 import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.auth.service.AuthService;
@@ -60,8 +60,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fails handshake with bad request when provider is null")
-	void Given_HandshakeRequestWithNullProvider_When_Handshake_Then_ReturnsBadRequest() throws Exception {
+	@DisplayName("Fails to generate nonce with bad request when provider is null")
+	void Given_NonceRequestWithNullProvider_When_GenerateNonce_Then_ReturnsBadRequest() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest(null);
@@ -81,8 +81,8 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Fails handshake when provider is unknown")
-	void Given_HandshakeRequestWithUnknownProvider_When_Handshake_Then_ReturnsErrorResponse() throws Exception {
+	@DisplayName("Fails to generate nonce when provider is unknown")
+	void Given_NonceRequestWithUnknownProvider_When_GenerateNonce_Then_ReturnsErrorResponse() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("facebook");
@@ -90,7 +90,7 @@ class AuthControllerTest {
 		final AuthErrorResult errorResult = AuthErrorResult.INVALID_PROVIDER;
 
 		doThrow(new ServerException(errorResult))
-			.when(authService).handshake(request);
+			.when(authService).generateNonce(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -106,14 +106,14 @@ class AuthControllerTest {
 	}
 
 	@Test
-	@DisplayName("Succeeds handshake and returns nonce for a valid Kakao request")
-	void Given_ValidKakaoHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+	@DisplayName("Succeeds in generating nonce and returns nonce for a valid Kakao request")
+	void Given_ValidKakaoNonceRequest_When_GenerateNonce_Then_ReturnsCreatedWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("kakao");
 		final NonceResponse response = new NonceResponse("generated-nonce");
 
-		doReturn(response).when(authService).handshake(request);
+		doReturn(response).when(authService).generateNonce(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -123,19 +123,19 @@ class AuthControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk())
+		resultActions.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.nonce").value("generated-nonce"));
 	}
 
 	@Test
-	@DisplayName("Succeeds handshake and returns nonce for a valid Apple request")
-	void Given_ValidAppleHandshakeRequest_When_Handshake_Then_ReturnsOkWithNonce() throws Exception {
+	@DisplayName("Succeeds in generating nonce and returns nonce for a valid Apple request")
+	void Given_ValidAppleNonceRequest_When_GenerateNonce_Then_ReturnsCreatedWithNonce() throws Exception {
 		// given
 		final String url = "/v1/auth/nonce";
 		final NonceRequest request = new NonceRequest("apple");
 		final NonceResponse response = new NonceResponse("generated-nonce-for-apple");
 
-		doReturn(response).when(authService).handshake(request);
+		doReturn(response).when(authService).generateNonce(request);
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -145,7 +145,7 @@ class AuthControllerTest {
 		);
 
 		// then
-		resultActions.andExpect(status().isOk())
+		resultActions.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.nonce").value("generated-nonce-for-apple"));
 	}
 
@@ -361,7 +361,7 @@ class AuthControllerTest {
 
 	@Test
 	@DisplayName("Succeeds token refresh for a valid request")
-	void Given_ValidRefreshTokenRequest_When_ReissueTokens_Then_ReturnsOkWithNewTokens() throws Exception {
+	void Given_ValidRefreshTokenRequest_When_ReissueTokens_Then_ReturnsCreatedWithNewTokens() throws Exception {
 		// given
 		final String url = "/v1/auth/tokens";
 		final RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(
@@ -392,7 +392,7 @@ class AuthControllerTest {
 				.getContentAsString(StandardCharsets.UTF_8), AuthResponse.class
 		);
 
-		resultActions.andExpect(status().isOk());
+		resultActions.andExpect(status().isCreated());
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("new.access.token");
 		assertThat(response.refreshToken()).isEqualTo("new.refresh.token");

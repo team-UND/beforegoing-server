@@ -1,5 +1,9 @@
 package com.und.server.notification.entity;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.und.server.common.entity.BaseTimeEntity;
 import com.und.server.notification.constants.NotificationMethodType;
 import com.und.server.notification.constants.NotificationType;
@@ -23,7 +27,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
-@Table
+@Table(name = "notification")
 public class Notification extends BaseTimeEntity {
 
 	@Id
@@ -40,8 +44,26 @@ public class Notification extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	private NotificationMethodType notificationMethodType;
 
+	@Column
+	private String daysOfWeek;
+
 	public boolean isActive() {
 		return isActive;
+	}
+
+	public boolean isEveryDay() {
+		List<Integer> days = getDaysOfWeekOrdinalList();
+		return days.size() == 7;
+	}
+
+	public List<Integer> getDaysOfWeekOrdinalList() {
+		if (daysOfWeek == null || daysOfWeek.isEmpty()) {
+			return List.of();
+		}
+		return Arrays.stream(daysOfWeek.split(","))
+			.map(String::trim)
+			.map(Integer::parseInt)
+			.collect(Collectors.toList());
 	}
 
 	public void updateActiveStatus(final Boolean isActive) {
@@ -56,8 +78,22 @@ public class Notification extends BaseTimeEntity {
 		this.notificationMethodType = notificationMethodType;
 	}
 
+	public void updateDaysOfWeekOrdinal(List<Integer> daysOfWeekOrdinal) {
+		if (!isActive || daysOfWeekOrdinal == null || daysOfWeekOrdinal.isEmpty()) {
+			this.daysOfWeek = null;
+			return;
+		}
+		this.daysOfWeek = daysOfWeekOrdinal.stream()
+			.map(String::valueOf)
+			.collect(Collectors.joining(","));
+	}
+
 	public void deleteNotificationMethodType() {
 		this.notificationMethodType = null;
+	}
+
+	public void deleteDaysOfWeekOrdinal() {
+		this.daysOfWeek = null;
 	}
 
 }

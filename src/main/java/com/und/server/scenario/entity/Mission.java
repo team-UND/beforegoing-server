@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
-@Table
+@Table(name = "mission")
 public class Mission extends BaseTimeEntity {
 
 	@Id

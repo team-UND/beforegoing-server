@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.entity.Member;
 
 class MemberResponseTest {

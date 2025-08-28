@@ -3,12 +3,12 @@ package com.und.server.auth.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.und.server.auth.dto.AuthRequest;
-import com.und.server.auth.dto.AuthResponse;
-import com.und.server.auth.dto.NonceRequest;
-import com.und.server.auth.dto.NonceResponse;
 import com.und.server.auth.dto.OidcPublicKeys;
-import com.und.server.auth.dto.RefreshTokenRequest;
+import com.und.server.auth.dto.request.AuthRequest;
+import com.und.server.auth.dto.request.NonceRequest;
+import com.und.server.auth.dto.request.RefreshTokenRequest;
+import com.und.server.auth.dto.response.AuthResponse;
+import com.und.server.auth.dto.response.NonceResponse;
 import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProperties;
 import com.und.server.auth.jwt.JwtProvider;
@@ -17,7 +17,7 @@ import com.und.server.auth.oauth.OidcClient;
 import com.und.server.auth.oauth.OidcClientFactory;
 import com.und.server.auth.oauth.OidcProviderFactory;
 import com.und.server.auth.oauth.Provider;
-import com.und.server.common.dto.TestAuthRequest;
+import com.und.server.common.dto.request.TestAuthRequest;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
 import com.und.server.member.entity.Member;
@@ -50,7 +50,7 @@ public class AuthService {
 	}
 
 	@Transactional
-	public NonceResponse handshake(final NonceRequest nonceRequest) {
+	public NonceResponse generateNonce(final NonceRequest nonceRequest) {
 		final String nonce = nonceService.generateNonceValue();
 		final Provider provider = convertToProvider(nonceRequest.provider());
 

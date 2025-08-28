@@ -1,5 +1,6 @@
 package com.und.server.scenario.dto.response;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.und.server.scenario.constants.MissionType;
@@ -36,6 +37,9 @@ public record MissionResponse(
 	}
 
 	public static List<MissionResponse> listFrom(final List<Mission> missionList) {
+		if (missionList == null || missionList.isEmpty()) {
+			return new ArrayList<>();
+		}
 		return missionList.stream()
 			.map(MissionResponse::from)
 			.toList();

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.und.server.auth.filter.AuthMember;
-import com.und.server.member.dto.MemberResponse;
-import com.und.server.member.dto.NicknameRequest;
+import com.und.server.member.dto.request.NicknameRequest;
+import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.service.MemberService;
 
 import io.swagger.v3.oas.annotations.Parameter;
