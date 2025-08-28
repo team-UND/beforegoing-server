@@ -1,6 +1,8 @@
 package com.und.server.weather.util;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import org.springframework.stereotype.Component;
 
@@ -34,6 +36,10 @@ public class WeatherKeyGenerator {
 		WeatherCacheKey cacheKey = WeatherCacheKey.forFuture(gridPoint, requestDate, slot);
 
 		return cacheKey.toRedisKey();
+	}
+
+	public String generateTodayHourFieldKey(final LocalDateTime dateTime) {
+		return String.format("%02d", dateTime.getHour());
 	}
 
 	private GridPoint convertToGrid(final Double latitude, final Double longitude) {

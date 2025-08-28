@@ -14,7 +14,6 @@ import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.WeatherApiResultDto;
 import com.und.server.weather.dto.api.KmaWeatherResponse;
 import com.und.server.weather.dto.api.OpenMeteoResponse;
-import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,7 @@ public class WeatherDecisionService {
 	private final FutureWeatherDecisionSelector futureWeatherDecisionSelector;
 
 
-	public TimeSlotWeatherCacheData getTodayWeatherCacheData(
+	public Map<String, WeatherCacheData> getTodayWeatherCacheData(
 		final WeatherApiResultDto weatherApiResult,
 		final TimeSlot currentSlot,
 		final LocalDate today
@@ -56,7 +55,7 @@ public class WeatherDecisionService {
 			System.out.println(entry.getKey() + ":" + entry.getValue());
 		}
 
-		return TimeSlotWeatherCacheData.from(hourlyData);
+		return hourlyData;
 	}
 
 

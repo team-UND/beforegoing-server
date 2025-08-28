@@ -3,13 +3,13 @@ package com.und.server.weather.service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.und.server.weather.constants.TimeSlot;
 import com.und.server.weather.dto.WeatherApiResultDto;
-import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
 import com.und.server.weather.util.CacheSerializer;
@@ -32,7 +32,7 @@ public class WeatherCacheService {
 	private final CacheSerializer cacheSerializer;
 
 
-	public TimeSlotWeatherCacheData getTodayWeatherCache(
+	public WeatherCacheData getTodayWeatherCache(
 		final WeatherRequest weatherRequest, final LocalDateTime nowDateTime
 	) {
 		Double latitude = weatherRequest.latitude();
@@ -41,9 +41,10 @@ public class WeatherCacheService {
 
 		TimeSlot currentSlot = TimeSlot.getCurrentSlot(nowDateTime);
 		String cacheKey = keyGenerator.generateTodayKey(latitude, longitude, nowDate, currentSlot);
+		String hourKey = keyGenerator.generateTodayHourFieldKey(nowDateTime);
 
-		TimeSlotWeatherCacheData cached = getTodayWeatherCache(cacheKey);
-		if (cached != null && cached.isValid() && cached.hasValidDataForHour(nowDateTime.getHour())) {
+		WeatherCacheData cached = getTodayFromCache(cacheKey, hourKey);
+		if (cached != null && cached.isValid()) {
 			System.out.println("✅ 캐시 히트! 기존 데이터 사용");
 			return cached;
 		}
@@ -52,13 +53,13 @@ public class WeatherCacheService {
 		WeatherApiResultDto weatherApiResult =
 			weatherApiProcessor.callTodayWeather(weatherRequest, currentSlot, nowDate);
 
-		TimeSlotWeatherCacheData todayWeatherCacheData =
+		Map<String, WeatherCacheData> newData =
 			weatherDecisionService.getTodayWeatherCacheData(weatherApiResult, currentSlot, nowDate);
 
 		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
-		saveTodayCache(cacheKey, todayWeatherCacheData, ttl);
+		saveTodayCache(cacheKey, newData, ttl);
 
-		return todayWeatherCacheData;
+		return newData.get(hourKey);
 	}
 
 
@@ -93,12 +94,12 @@ public class WeatherCacheService {
 	}
 
 
-	private TimeSlotWeatherCacheData getTodayWeatherCache(final String cacheKey) {
-		String cachedJson = redisTemplate.opsForValue().get(cacheKey);
-		if (cachedJson == null) {
+	private WeatherCacheData getTodayFromCache(final String cacheKey, final String hourKey) {
+		Object cachedData = redisTemplate.opsForHash().get(cacheKey, hourKey);
+		if (cachedData == null) {
 			return null;
 		}
-		return cacheSerializer.deserializeTimeSlotWeatherCacheData(cachedJson);
+		return cacheSerializer.deserializeWeatherCacheDataFromHash((String) cachedData);
 	}
 
 	private WeatherCacheData getFutureFromCache(final String cacheKey) {
@@ -111,21 +112,22 @@ public class WeatherCacheService {
 
 	private void saveTodayCache(
 		final String cacheKey,
-		final TimeSlotWeatherCacheData data,
+		final Map<String, WeatherCacheData> data,
 		final Duration ttl
 	) {
-		String json = cacheSerializer.serializeTimeSlotWeatherCacheData(data);
-		if (json == null) {
+		Map<String, String> hashData = cacheSerializer.serializeWeatherCacheDataToHash(data);
+		if (hashData.isEmpty()) {
 			return;
 		}
 
-		redisTemplate.opsForValue().set(cacheKey, json, ttl);
+		redisTemplate.opsForHash().putAll(cacheKey, hashData);
+		redisTemplate.expire(cacheKey, ttl);
 
 		// 디버깅용 출력
 		System.out.println("=== REDIS 저장 데이터 (오늘) ===");
 		System.out.println("키: " + cacheKey);
 		System.out.println("TTL: " + ttl.toMinutes() + "분");
-		System.out.println("데이터: " + json);
+		System.out.println("데이터: " + hashData);
 		System.out.println("========================");
 	}
 

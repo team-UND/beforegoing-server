@@ -1,11 +1,13 @@
 package com.und.server.weather.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,20 +22,12 @@ public class CacheSerializer {
 		this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 	}
 
+	// 미래 날씨용 - String 방식 유지
 	public String serializeWeatherCacheData(final WeatherCacheData data) {
 		try {
 			return objectMapper.writeValueAsString(data);
 		} catch (JsonProcessingException e) {
 			log.error("WeatherCacheData 직렬화 실패", e);
-			return null;
-		}
-	}
-
-	public String serializeTimeSlotWeatherCacheData(final TimeSlotWeatherCacheData data) {
-		try {
-			return objectMapper.writeValueAsString(data);
-		} catch (JsonProcessingException e) {
-			log.error("TimeSlotWeatherCacheData 직렬화 실패", e);
 			return null;
 		}
 	}
@@ -47,11 +41,25 @@ public class CacheSerializer {
 		}
 	}
 
-	public TimeSlotWeatherCacheData deserializeTimeSlotWeatherCacheData(final String json) {
+	public Map<String, String> serializeWeatherCacheDataToHash(final Map<String, WeatherCacheData> hourlyData) {
+		Map<String, String> hashData = new HashMap<>();
+
+		for (Map.Entry<String, WeatherCacheData> entry : hourlyData.entrySet()) {
+			try {
+				String json = objectMapper.writeValueAsString(entry.getValue());
+				hashData.put(entry.getKey(), json);
+			} catch (JsonProcessingException e) {
+				log.error("WeatherCacheData Hash 직렬화 실패: {}", entry.getKey(), e);
+			}
+		}
+		return hashData;
+	}
+
+	public WeatherCacheData deserializeWeatherCacheDataFromHash(final String json) {
 		try {
-			return objectMapper.readValue(json, TimeSlotWeatherCacheData.class);
+			return objectMapper.readValue(json, WeatherCacheData.class);
 		} catch (JsonProcessingException e) {
-			log.error("TimeSlotWeatherCacheData 역직렬화 실패: {}", json, e);
+			log.error("WeatherCacheData Hash 역직렬화 실패: {}", json, e);
 			return null;
 		}
 	}

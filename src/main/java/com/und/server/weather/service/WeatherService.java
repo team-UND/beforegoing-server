@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.und.server.common.exception.ServerException;
-import com.und.server.weather.dto.cache.TimeSlotWeatherCacheData;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
 import com.und.server.weather.dto.response.WeatherResponse;
@@ -49,10 +48,8 @@ public class WeatherService {
 	private WeatherResponse getTodayWeather(
 		final WeatherRequest weatherRequest, final LocalDateTime nowDateTime
 	) {
-		TimeSlotWeatherCacheData todayWeatherCacheData =
+		WeatherCacheData weatherCacheData =
 			weatherCacheService.getTodayWeatherCache(weatherRequest, nowDateTime);
-
-		WeatherCacheData weatherCacheData = todayWeatherCacheData.getHourlyData(nowDateTime.getHour());
 
 		if (weatherCacheData == null || !weatherCacheData.isValid()) {
 			return WeatherCacheData.getDefault().toWeatherResponse();
