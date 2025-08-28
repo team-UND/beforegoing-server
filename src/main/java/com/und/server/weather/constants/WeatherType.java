@@ -1,5 +1,6 @@
 package com.und.server.weather.constants;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +45,26 @@ public enum WeatherType {
 			}
 		}
 		return DEFAULT;
+	}
+
+	public static String getBaseTime(final TimeSlot timeSlot) {
+		return switch (timeSlot) {
+			case SLOT_00_03 -> "2300";
+			case SLOT_03_06 -> "0200";
+			case SLOT_06_09 -> "0500";
+			case SLOT_09_12 -> "0800";
+			case SLOT_12_15 -> "1100";
+			case SLOT_15_18 -> "1400";
+			case SLOT_18_21 -> "1700";
+			case SLOT_21_24 -> "2000";
+		};
+	}
+
+	public static LocalDate getBaseDate(final TimeSlot timeSlot, final LocalDate date) {
+		if (timeSlot == TimeSlot.SLOT_00_03) {
+			return date.minusDays(1);
+		}
+		return date;
 	}
 
 	public static WeatherType getWorst(final List<WeatherType> types) {

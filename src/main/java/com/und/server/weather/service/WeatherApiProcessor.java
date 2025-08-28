@@ -95,8 +95,8 @@ public class WeatherApiProcessor {
 		final LocalDate date
 	) {
 		try {
-			String baseDate = timeSlot.getBaseDate(date).format(WeatherType.KMA_DATE_FORMATTER);
-			String baseTime = timeSlot.getBaseTime();
+			String baseDate = WeatherType.getBaseDate(timeSlot, date).format(WeatherType.KMA_DATE_FORMATTER);
+			String baseTime = WeatherType.getBaseTime(timeSlot);
 
 			return kmaWeatherClient.getVilageForecast(
 				weatherProperties.kma().serviceKey(),

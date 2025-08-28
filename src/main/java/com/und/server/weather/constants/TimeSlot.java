@@ -1,6 +1,5 @@
 package com.und.server.weather.constants;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -13,12 +12,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TimeSlot {
 
-	SLOT_00_04(0, 4),
-	SLOT_04_08(4, 8),
-	SLOT_08_12(8, 12),
-	SLOT_12_16(12, 16),
-	SLOT_16_20(16, 20),
-	SLOT_20_00(20, 24);
+	SLOT_00_03(0, 3),
+	SLOT_03_06(3, 6),
+	SLOT_06_09(6, 9),
+	SLOT_09_12(9, 12),
+	SLOT_12_15(12, 15),
+	SLOT_15_18(15, 18),
+	SLOT_18_21(18, 21),
+	SLOT_21_24(21, 24);
 
 	private final int startHour;
 	private final int endHour;
@@ -35,26 +36,7 @@ public enum TimeSlot {
 				return slot;
 			}
 		}
-		return SLOT_00_04;
-	}
-
-	public String getBaseTime() {
-		return switch (this) {
-			case SLOT_00_04 -> "2300";
-			case SLOT_04_08 -> "0200";
-			case SLOT_08_12 -> "0500";
-			case SLOT_12_16 -> "1100";
-			case SLOT_16_20 -> "1400";
-			case SLOT_20_00 -> "1700";
-			default -> "0200";
-		};
-	}
-
-	public LocalDate getBaseDate(final LocalDate currentDate) {
-		if (this == SLOT_00_04) {
-			return currentDate.minusDays(1);
-		}
-		return currentDate;
+		return SLOT_00_03;
 	}
 
 	public List<Integer> getForecastHours() {

@@ -26,7 +26,7 @@ public class WeatherTtlCalculator {
 			deleteTime = LocalTime.of(endHour, 0);
 		}
 
-		if (timeSlot == TimeSlot.SLOT_20_00 && currentTime.getHour() >= 20) {
+		if (timeSlot == TimeSlot.SLOT_21_24 && currentTime.getHour() >= 21) {
 			LocalDateTime nextDayMidnight = now.toLocalDate()
 				.plusDays(1)
 				.atTime(0, 0);
