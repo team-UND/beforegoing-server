@@ -6,7 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record WeatherProperties(
 
 	Kma kma,
-	OpenMeteo openMeteo
+	OpenMeteo openMeteo,
+	OpenMeteoKma openMeteoKma
 
 ) {
 
@@ -16,6 +17,10 @@ public record WeatherProperties(
 	) { }
 
 	public record OpenMeteo(
+		String baseUrl
+	) { }
+
+	public record OpenMeteoKma(
 		String baseUrl
 	) { }
 

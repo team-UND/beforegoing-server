@@ -79,4 +79,18 @@ public enum WeatherType {
 		return worst;
 	}
 
+	public static WeatherType fromOpenMeteoCode(final int weatherCode) {
+		return switch (weatherCode) {
+			case 0 -> WeatherType.SUNNY;
+			case 1, 2, 3 -> WeatherType.CLOUDY;
+			case 45, 48 -> WeatherType.OVERCAST;
+			case 51, 53, 55, 56, 57 -> WeatherType.RAIN;
+			case 61, 63, 65, 66, 67 -> WeatherType.RAIN;
+			case 71, 73, 75, 77 -> WeatherType.SNOW;
+			case 80, 81, 82 -> WeatherType.SHOWER;
+			case 85, 86 -> WeatherType.SLEET;
+			default -> WeatherType.DEFAULT;
+		};
+	}
+
 }

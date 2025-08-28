@@ -9,9 +9,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.und.server.weather.constants.TimeSlot;
+import com.und.server.weather.dto.OpenMeteoWeatherApiResultDto;
 import com.und.server.weather.dto.WeatherApiResultDto;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
+import com.und.server.weather.exception.KmaApiException;
 import com.und.server.weather.util.CacheSerializer;
 import com.und.server.weather.util.WeatherKeyGenerator;
 import com.und.server.weather.util.WeatherTtlCalculator;
@@ -50,16 +52,23 @@ public class WeatherCacheService {
 		}
 
 		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
-		WeatherApiResultDto weatherApiResult =
-			weatherApiProcessor.callTodayWeather(weatherRequest, currentSlot, nowDate);
 
-		Map<String, WeatherCacheData> newData =
-			weatherDecisionService.getTodayWeatherCacheData(weatherApiResult, currentSlot, nowDate);
+		try {
+			WeatherApiResultDto weatherApiResult =
+				weatherApiProcessor.callTodayWeather(weatherRequest, currentSlot, nowDate);
 
-		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
-		saveTodayCache(cacheKey, newData, ttl);
+			Map<String, WeatherCacheData> newData =
+				weatherDecisionService.getTodayWeatherCacheData(weatherApiResult, currentSlot, nowDate);
 
-		return newData.get(hourKey);
+			Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+			saveTodayCache(cacheKey, newData, ttl);
+
+			return newData.get(hourKey);
+
+		} catch (KmaApiException e) {
+			log.warn("KMA API 실패, Open-Meteo KMA로 fallback", e);
+			return handleTodayFallback(weatherRequest, currentSlot, nowDate, cacheKey, hourKey);
+		}
 	}
 
 
@@ -80,19 +89,75 @@ public class WeatherCacheService {
 		}
 
 		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
-		WeatherApiResultDto weatherApiResult =
-			weatherApiProcessor.callFutureWeather(
-				weatherRequest, currentSlot, nowDateTime.toLocalDate(), targetDate);
 
-		WeatherCacheData futureWeatherCacheData =
-			weatherDecisionService.getFutureWeatherCacheData(weatherApiResult, targetDate);
+		try {
+			WeatherApiResultDto weatherApiResult =
+				weatherApiProcessor.callFutureWeather(
+					weatherRequest, currentSlot, nowDateTime.toLocalDate(), targetDate);
 
-		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
-		saveFutureCache(cacheKey, futureWeatherCacheData, ttl);
+			WeatherCacheData futureWeatherCacheData =
+				weatherDecisionService.getFutureWeatherCacheData(weatherApiResult, targetDate);
 
-		return futureWeatherCacheData;
+			Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+			saveFutureCache(cacheKey, futureWeatherCacheData, ttl);
+
+			return futureWeatherCacheData;
+
+		} catch (KmaApiException e) {
+			log.warn("KMA API 실패, Open-Meteo KMA로 fallback", e);
+			return handleFutureFallback(weatherRequest, currentSlot, targetDate, cacheKey);
+		}
 	}
 
+	
+	private WeatherCacheData handleTodayFallback(
+		final WeatherRequest weatherRequest,
+		final TimeSlot currentSlot,
+		final LocalDate nowDate,
+		final String cacheKey,
+		final String hourKey
+	) {
+		try {
+			OpenMeteoWeatherApiResultDto fallbackResult =
+				weatherApiProcessor.callOpenMeteoFallBackWeather(weatherRequest, nowDate);
+
+			Map<String, WeatherCacheData> newData =
+				weatherDecisionService.getTodayWeatherCacheDataFallback(fallbackResult, currentSlot, nowDate);
+
+			Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+			saveTodayCache(cacheKey, newData, ttl);
+
+			return newData.get(hourKey);
+
+		} catch (Exception fallbackException) {
+			log.error("Fallback도 실패", fallbackException);
+			return WeatherCacheData.getDefault();
+		}
+	}
+
+	private WeatherCacheData handleFutureFallback(
+		final WeatherRequest weatherRequest,
+		final TimeSlot currentSlot,
+		final LocalDate targetDate,
+		final String cacheKey
+	) {
+		try {
+			OpenMeteoWeatherApiResultDto fallbackResult =
+				weatherApiProcessor.callOpenMeteoFallBackWeather(weatherRequest, targetDate);
+
+			WeatherCacheData futureWeatherCacheData =
+				weatherDecisionService.getFutureWeatherCacheDataFallback(fallbackResult, targetDate);
+
+			Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+			saveFutureCache(cacheKey, futureWeatherCacheData, ttl);
+
+			return futureWeatherCacheData;
+
+		} catch (Exception fallbackException) {
+			log.error("Fallback도 실패", fallbackException);
+			return WeatherCacheData.getDefault();
+		}
+	}
 
 	private WeatherCacheData getTodayFromCache(final String cacheKey, final String hourKey) {
 		Object cachedData = redisTemplate.opsForHash().get(cacheKey, hourKey);
