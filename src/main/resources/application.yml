@@ -41,3 +41,5 @@ weather:
     service-key: ${KMA_SERVICE_KEY}
   open-meteo:
     base-url: https://air-quality-api.open-meteo.com/v1
+  open-meteo-kma:
+    base-url: https://api.open-meteo.com/v1
