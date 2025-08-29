@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class OpenMeteoApiService {
+public class OpenMeteoApiFacade {
 
 	private final OpenMeteoClient openMeteoClient;
 	private final OpenMeteoKmaClient openMeteoKmaClient;

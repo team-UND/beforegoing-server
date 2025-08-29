@@ -30,17 +30,17 @@ import lombok.extern.slf4j.Slf4j;
 public class WeatherApiProcessor {
 
 	private static final long API_TIMEOUT_SEC = 5;
-	private final KmaApiService kmaApiService;
-	private final OpenMeteoApiService openMeteoApiService;
+	private final KmaApiFacade kmaApiFacade;
+	private final OpenMeteoApiFacade openMeteoApiFacade;
 	private final Executor weatherExecutor;
 
 	public WeatherApiProcessor(
-		KmaApiService kmaApiService,
-		OpenMeteoApiService openMeteoApiService,
+		KmaApiFacade kmaApiFacade,
+		OpenMeteoApiFacade openMeteoApiFacade,
 		@Qualifier("weatherExecutor") Executor weatherExecutor
 	) {
-		this.kmaApiService = kmaApiService;
-		this.openMeteoApiService = openMeteoApiService;
+		this.kmaApiFacade = kmaApiFacade;
+		this.openMeteoApiFacade = openMeteoApiFacade;
 		this.weatherExecutor = weatherExecutor;
 	}
 
@@ -55,12 +55,12 @@ public class WeatherApiProcessor {
 		final GridPoint gridPoint = GridConverter.convertToApiGrid(latitude, longitude);
 
 		CompletableFuture<KmaWeatherResponse> weatherFuture =
-			CompletableFuture.supplyAsync(() -> kmaApiService.callWeatherApi(gridPoint, timeSlot, today),
+			CompletableFuture.supplyAsync(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, today),
 					weatherExecutor)
 				.orTimeout(API_TIMEOUT_SEC, TimeUnit.SECONDS);
 
 		CompletableFuture<OpenMeteoResponse> openMeteoFuture =
-			CompletableFuture.supplyAsync(() -> openMeteoApiService.callDustUvApi(latitude, longitude, today),
+			CompletableFuture.supplyAsync(() -> openMeteoApiFacade.callDustUvApi(latitude, longitude, today),
 					weatherExecutor)
 				.orTimeout(API_TIMEOUT_SEC, TimeUnit.SECONDS);
 
@@ -99,12 +99,12 @@ public class WeatherApiProcessor {
 		final GridPoint gridPoint = GridConverter.convertToApiGrid(latitude, longitude);
 
 		CompletableFuture<KmaWeatherResponse> weatherFuture =
-			CompletableFuture.supplyAsync(() -> kmaApiService.callWeatherApi(gridPoint, timeSlot, today),
+			CompletableFuture.supplyAsync(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, today),
 					weatherExecutor)
 				.orTimeout(API_TIMEOUT_SEC, TimeUnit.SECONDS);
 
 		CompletableFuture<OpenMeteoResponse> openMeteoFuture =
-			CompletableFuture.supplyAsync(() -> openMeteoApiService.callDustUvApi(latitude, longitude, targetDate),
+			CompletableFuture.supplyAsync(() -> openMeteoApiFacade.callDustUvApi(latitude, longitude, targetDate),
 					weatherExecutor)
 				.orTimeout(API_TIMEOUT_SEC, TimeUnit.SECONDS);
 
@@ -140,12 +140,12 @@ public class WeatherApiProcessor {
 		final Double longitude = weatherRequest.longitude();
 
 		CompletableFuture<OpenMeteoWeatherResponse> weatherFuture =
-			CompletableFuture.supplyAsync(() -> openMeteoApiService.callWeatherApi(latitude, longitude, targetDate),
+			CompletableFuture.supplyAsync(() -> openMeteoApiFacade.callWeatherApi(latitude, longitude, targetDate),
 					weatherExecutor)
 				.orTimeout(API_TIMEOUT_SEC, TimeUnit.SECONDS);
 
 		CompletableFuture<OpenMeteoResponse> openMeteoFuture =
-			CompletableFuture.supplyAsync(() -> openMeteoApiService.callDustUvApi(latitude, longitude, targetDate),
+			CompletableFuture.supplyAsync(() -> openMeteoApiFacade.callDustUvApi(latitude, longitude, targetDate),
 					weatherExecutor)
 				.orTimeout(API_TIMEOUT_SEC, TimeUnit.SECONDS);
 

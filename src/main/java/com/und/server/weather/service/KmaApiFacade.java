@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class KmaApiService {
+public class KmaApiFacade {
 
 	private final KmaWeatherClient kmaWeatherClient;
 	private final WeatherProperties weatherProperties;
