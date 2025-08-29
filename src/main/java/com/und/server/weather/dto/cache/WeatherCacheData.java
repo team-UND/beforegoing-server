@@ -1,5 +1,7 @@
 package com.und.server.weather.dto.cache;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,6 +36,14 @@ public record WeatherCacheData(
 			.weather(weather)
 			.findDust(findDust)
 			.uv(uv)
+			.build();
+	}
+
+	public WeatherCacheData getValidDefault() {
+		return WeatherCacheData.builder()
+			.weather(Objects.requireNonNullElse(this.weather(), WeatherType.DEFAULT))
+			.findDust(Objects.requireNonNullElse(this.findDust(), FineDustType.DEFAULT))
+			.uv(Objects.requireNonNullElse(this.uv(), UvType.DEFAULT))
 			.build();
 	}
 

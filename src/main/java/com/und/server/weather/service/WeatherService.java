@@ -44,14 +44,17 @@ public class WeatherService {
 	private WeatherResponse getTodayWeather(
 		final WeatherRequest weatherRequest, final LocalDateTime nowDateTime
 	) {
-		WeatherCacheData weatherCacheData =
+		WeatherCacheData todayWeatherCache =
 			weatherCacheService.getTodayWeatherCache(weatherRequest, nowDateTime);
 
-		if (weatherCacheData == null || !weatherCacheData.isValid()) {
+		if (todayWeatherCache == null) {
 			return WeatherResponse.from(WeatherCacheData.getDefault());
 		}
+		if (!todayWeatherCache.isValid()) {
+			return WeatherResponse.from(todayWeatherCache.getValidDefault());
+		}
 
-		return WeatherResponse.from(weatherCacheData);
+		return WeatherResponse.from(todayWeatherCache);
 	}
 
 	private WeatherResponse getFutureWeather(
@@ -62,8 +65,11 @@ public class WeatherService {
 		WeatherCacheData futureWeatherCacheData =
 			weatherCacheService.getFutureWeatherCache(weatherRequest, nowDateTime, targetDate);
 
-		if (futureWeatherCacheData == null || !futureWeatherCacheData.isValid()) {
+		if (futureWeatherCacheData == null) {
 			return WeatherResponse.from(WeatherCacheData.getDefault());
+		}
+		if (!futureWeatherCacheData.isValid()) {
+			return WeatherResponse.from(futureWeatherCacheData.getValidDefault());
 		}
 
 		return WeatherResponse.from(futureWeatherCacheData);
