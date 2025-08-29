@@ -48,10 +48,10 @@ public class WeatherService {
 			weatherCacheService.getTodayWeatherCache(weatherRequest, nowDateTime);
 
 		if (weatherCacheData == null || !weatherCacheData.isValid()) {
-			return WeatherCacheData.getDefault().toWeatherResponse();
+			return WeatherResponse.from(WeatherCacheData.getDefault());
 		}
 
-		return weatherCacheData.toWeatherResponse();
+		return WeatherResponse.from(weatherCacheData);
 	}
 
 	private WeatherResponse getFutureWeather(
@@ -63,10 +63,10 @@ public class WeatherService {
 			weatherCacheService.getFutureWeatherCache(weatherRequest, nowDateTime, targetDate);
 
 		if (futureWeatherCacheData == null || !futureWeatherCacheData.isValid()) {
-			return WeatherCacheData.getDefault().toWeatherResponse();
+			return WeatherResponse.from(WeatherCacheData.getDefault());
 		}
 
-		return futureWeatherCacheData.toWeatherResponse();
+		return WeatherResponse.from(futureWeatherCacheData);
 	}
 
 	private void validateLocation(final WeatherRequest request) {

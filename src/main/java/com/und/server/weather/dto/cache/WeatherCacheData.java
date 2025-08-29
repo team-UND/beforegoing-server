@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.und.server.weather.constants.FineDustType;
 import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
-import com.und.server.weather.dto.response.WeatherResponse;
 
 import lombok.Builder;
 
@@ -20,10 +19,6 @@ public record WeatherCacheData(
 	UvType uv
 
 ) {
-
-	public WeatherResponse toWeatherResponse() {
-		return WeatherResponse.from(weather, findDust, uv);
-	}
 
 	@JsonIgnore
 	public boolean isValid() {

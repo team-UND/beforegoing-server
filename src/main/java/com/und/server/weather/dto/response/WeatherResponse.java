@@ -3,6 +3,7 @@ package com.und.server.weather.dto.response;
 import com.und.server.weather.constants.FineDustType;
 import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
+import com.und.server.weather.dto.cache.WeatherCacheData;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -31,6 +32,14 @@ public record WeatherResponse(
 			.weather(weather)
 			.fineDust(fineDust)
 			.uv(uvIndex)
+			.build();
+	}
+
+	public static WeatherResponse from(final WeatherCacheData weatherCacheData) {
+		return WeatherResponse.builder()
+			.weather(weatherCacheData.weather())
+			.fineDust(weatherCacheData.findDust())
+			.uv(weatherCacheData.uv())
 			.build();
 	}
 
