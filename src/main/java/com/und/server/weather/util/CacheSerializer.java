@@ -12,8 +12,8 @@ import com.und.server.weather.dto.cache.WeatherCacheData;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
+@Slf4j
 public class CacheSerializer {
 
 	private final ObjectMapper objectMapper;
@@ -22,12 +22,11 @@ public class CacheSerializer {
 		this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 	}
 
-	// 미래 날씨용 - String 방식 유지
 	public String serializeWeatherCacheData(final WeatherCacheData data) {
 		try {
 			return objectMapper.writeValueAsString(data);
 		} catch (JsonProcessingException e) {
-			log.error("WeatherCacheData 직렬화 실패", e);
+			log.error("WeatherCacheData serialization failed", e);
 			return null;
 		}
 	}
@@ -36,7 +35,7 @@ public class CacheSerializer {
 		try {
 			return objectMapper.readValue(json, WeatherCacheData.class);
 		} catch (JsonProcessingException e) {
-			log.error("WeatherCacheData 역직렬화 실패: {}", json, e);
+			log.error("WeatherCacheData deserialization failed: {}", json, e);
 			return null;
 		}
 	}
@@ -49,7 +48,7 @@ public class CacheSerializer {
 				String json = objectMapper.writeValueAsString(entry.getValue());
 				hashData.put(entry.getKey(), json);
 			} catch (JsonProcessingException e) {
-				log.error("WeatherCacheData Hash 직렬화 실패: {}", entry.getKey(), e);
+				log.error("WeatherCacheData Hash serialization failed: {}", entry.getKey(), e);
 			}
 		}
 		return hashData;
@@ -59,7 +58,7 @@ public class CacheSerializer {
 		try {
 			return objectMapper.readValue(json, WeatherCacheData.class);
 		} catch (JsonProcessingException e) {
-			log.error("WeatherCacheData Hash 역직렬화 실패: {}", json, e);
+			log.error("WeatherCacheData Hash deserialization failed: {}", json, e);
 			return null;
 		}
 	}
