@@ -21,8 +21,8 @@ import com.und.server.weather.util.WeatherTtlCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class WeatherCacheService {
 
@@ -47,11 +47,8 @@ public class WeatherCacheService {
 
 		WeatherCacheData cached = getTodayFromCache(cacheKey, hourKey);
 		if (cached != null && cached.isValid()) {
-			System.out.println("✅ 캐시 히트! 기존 데이터 사용");
 			return cached;
 		}
-
-		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
 
 		try {
 			WeatherApiResultDto weatherApiResult =
@@ -66,7 +63,7 @@ public class WeatherCacheService {
 			return newData.get(hourKey);
 
 		} catch (KmaApiException e) {
-			log.warn("KMA API 실패, Open-Meteo KMA로 fallback", e);
+			log.error("KMA API failed, falling back to Open-Meteo KMA", e);
 			return handleTodayFallback(weatherRequest, currentSlot, nowDate, cacheKey, hourKey);
 		}
 	}
@@ -84,11 +81,8 @@ public class WeatherCacheService {
 
 		WeatherCacheData cached = getFutureFromCache(cacheKey);
 		if (cached != null && cached.isValid()) {
-			System.out.println("✅ 캐시 히트! 기존 데이터 사용");
 			return cached;
 		}
-
-		System.out.println("❌ 캐시 미스! API 호출하여 새로 생성");
 
 		try {
 			WeatherApiResultDto weatherApiResult =
@@ -104,7 +98,7 @@ public class WeatherCacheService {
 			return futureWeatherCacheData;
 
 		} catch (KmaApiException e) {
-			log.warn("KMA API 실패, Open-Meteo KMA로 fallback", e);
+			log.error("KMA API failed, falling back to Open-Meteo KMA", e);
 			return handleFutureFallback(weatherRequest, currentSlot, targetDate, cacheKey);
 		}
 	}
@@ -130,7 +124,7 @@ public class WeatherCacheService {
 			return newData.get(hourKey);
 
 		} catch (Exception e) {
-			log.error("Fallback도 실패", e);
+			log.error("Today Fallback also failed", e);
 			throw e;
 		}
 	}
@@ -154,7 +148,7 @@ public class WeatherCacheService {
 			return futureWeatherCacheData;
 
 		} catch (Exception e) {
-			log.error("Fallback도 실패", e);
+			log.error("Future Fallback also failed", e);
 			throw e;
 		}
 	}
@@ -187,13 +181,6 @@ public class WeatherCacheService {
 
 		redisTemplate.opsForHash().putAll(cacheKey, hashData);
 		redisTemplate.expire(cacheKey, ttl);
-
-		// 디버깅용 출력
-		System.out.println("=== REDIS 저장 데이터 (오늘) ===");
-		System.out.println("키: " + cacheKey);
-		System.out.println("TTL: " + ttl.toMinutes() + "분");
-		System.out.println("데이터: " + hashData);
-		System.out.println("========================");
 	}
 
 	private void saveFutureCache(
@@ -207,13 +194,6 @@ public class WeatherCacheService {
 		}
 
 		redisTemplate.opsForValue().set(cacheKey, json, ttl);
-
-		// 디버깅용 출력
-		System.out.println("=== REDIS 저장 데이터 (미래) ===");
-		System.out.println("키: " + cacheKey);
-		System.out.println("TTL: " + ttl.toMinutes() + "분");
-		System.out.println("데이터: " + json);
-		System.out.println("========================");
 	}
 
 }
