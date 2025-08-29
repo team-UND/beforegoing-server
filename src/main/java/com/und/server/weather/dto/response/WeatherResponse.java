@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 @Builder
-@Schema(description = "Weather response")
+@Schema(description = "Weather(Weather, FindDust, UV) response")
 public record WeatherResponse(
 
 	@Schema(description = "Weather condition", example = "RAIN")

@@ -10,8 +10,8 @@ import com.und.server.weather.constants.WeatherType;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
+@Slf4j
 public class FutureWeatherDecisionSelector {
 
 	public WeatherType calculateWorstWeather(final List<WeatherType> weatherTypes) {

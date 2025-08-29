@@ -2,14 +2,12 @@ package com.und.server.weather.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 import org.springframework.stereotype.Component;
 
 import com.und.server.weather.constants.TimeSlot;
 import com.und.server.weather.dto.GridPoint;
 import com.und.server.weather.dto.cache.WeatherCacheKey;
-
 
 @Component
 public class WeatherKeyGenerator {
