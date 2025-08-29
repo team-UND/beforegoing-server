@@ -23,7 +23,9 @@ public record WeatherCacheKey(
 	private static final String FUTURE_PREFIX = "future";
 	private static final String DELIMITER = ":";
 
-	public static WeatherCacheKey forToday(GridPoint gridPoint, LocalDate today, TimeSlot timeSlot) {
+	public static WeatherCacheKey forToday(
+		final GridPoint gridPoint, final LocalDate today, final TimeSlot timeSlot
+	) {
 		return WeatherCacheKey.builder()
 			.isToday(true)
 			.gridX(gridPoint.gridX())
@@ -33,7 +35,9 @@ public record WeatherCacheKey(
 			.build();
 	}
 
-	public static WeatherCacheKey forFuture(GridPoint gridPoint, LocalDate future, TimeSlot timeSlot) {
+	public static WeatherCacheKey forFuture(
+		final GridPoint gridPoint, final LocalDate future, final TimeSlot timeSlot
+	) {
 		return WeatherCacheKey.builder()
 			.isToday(false)
 			.gridX(gridPoint.gridX())

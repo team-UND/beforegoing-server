@@ -71,7 +71,8 @@ public class WeatherCacheService {
 
 	public WeatherCacheData getFutureWeatherCache(
 		final WeatherRequest weatherRequest,
-		final LocalDateTime nowDateTime, final LocalDate targetDate
+		final LocalDateTime nowDateTime,
+		final LocalDate targetDate
 	) {
 		Double latitude = weatherRequest.latitude();
 		Double longitude = weatherRequest.longitude();

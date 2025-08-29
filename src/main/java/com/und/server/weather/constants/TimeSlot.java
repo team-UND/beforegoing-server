@@ -28,8 +28,8 @@ public enum TimeSlot {
 		return from(dateTime.toLocalTime());
 	}
 
-	public static TimeSlot from(final LocalTime localTime) {
-		int hour = localTime.getHour();
+	public static TimeSlot from(final LocalTime time) {
+		int hour = time.getHour();
 
 		for (TimeSlot slot : values()) {
 			if (hour >= slot.startHour && hour < slot.endHour) {

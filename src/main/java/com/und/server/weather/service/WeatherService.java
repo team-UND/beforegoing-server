@@ -60,7 +60,8 @@ public class WeatherService {
 
 	private WeatherResponse getFutureWeather(
 		final WeatherRequest weatherRequest,
-		final LocalDateTime nowDateTime, final LocalDate targetDate
+		final LocalDateTime nowDateTime,
+		final LocalDate targetDate
 	) {
 		WeatherCacheData futureWeatherCacheData =
 			weatherCacheService.getFutureWeatherCache(weatherRequest, nowDateTime, targetDate);
