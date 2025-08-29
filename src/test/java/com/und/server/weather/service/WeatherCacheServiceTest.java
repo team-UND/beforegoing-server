@@ -44,6 +44,7 @@ import com.und.server.weather.util.WeatherTtlCalculator;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("WeatherCacheService 테스트")
+@SuppressWarnings("unchecked")
 class WeatherCacheServiceTest {
 
 	@Mock
@@ -69,6 +70,7 @@ class WeatherCacheServiceTest {
 	@Mock
 	private ValueOperations valueOperations;
 
+	@SuppressWarnings("unchecked")
 	@BeforeEach
 	void setUp() {
 		when(redisTemplate.opsForHash()).thenReturn(hashOperations);
@@ -309,7 +311,8 @@ class WeatherCacheServiceTest {
 			.willThrow(new KmaApiException(WeatherErrorResult.KMA_TIMEOUT, new RuntimeException()));
 
 		WeatherCacheData fallbackData = WeatherCacheData.getDefault();
-		given(weatherApiService.callOpenMeteoFallBackWeather(any(), any())).willReturn(mock());
+		given(weatherApiService.callOpenMeteoFallBackWeather(any(), any())).willReturn(
+			mock(OpenMeteoWeatherApiResultDto.class));
 		given(weatherDecisionService.getFutureWeatherCacheDataFallback(any(), any())).willReturn(fallbackData);
 		given(ttlCalculator.calculateTtl(any(), any())).willReturn(Duration.ofMinutes(5));
 		given(cacheSerializer.serializeWeatherCacheData(any())).willReturn("{}");
@@ -318,6 +321,5 @@ class WeatherCacheServiceTest {
 
 		assertThat(result).isEqualTo(fallbackData);
 	}
-
 
 }
