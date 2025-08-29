@@ -33,14 +33,10 @@ public class WeatherService {
 		validateDate(date, today);
 
 		boolean isToday = date.equals(today);
-		try {
-			if (isToday) {
-				return getTodayWeather(weatherRequest, nowDateTime);
-			} else {
-				return getFutureWeather(weatherRequest, nowDateTime, date);
-			}
-		} catch (Exception e) {
-			throw new ServerException(WeatherErrorResult.WEATHER_SERVICE_ERROR, e);
+		if (isToday) {
+			return getTodayWeather(weatherRequest, nowDateTime);
+		} else {
+			return getFutureWeather(weatherRequest, nowDateTime, date);
 		}
 	}
 
