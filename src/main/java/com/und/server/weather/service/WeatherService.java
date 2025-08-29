@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.und.server.common.exception.ServerException;
 import com.und.server.weather.dto.cache.WeatherCacheData;
 import com.und.server.weather.dto.request.WeatherRequest;
 import com.und.server.weather.dto.response.WeatherResponse;
 import com.und.server.weather.exception.WeatherErrorResult;
+import com.und.server.weather.exception.WeatherException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,8 +79,9 @@ public class WeatherService {
 		if (request.latitude() < -90
 			|| request.latitude() > 90
 			|| request.longitude() < -180
-			|| request.longitude() > 180) {
-			throw new ServerException(WeatherErrorResult.INVALID_COORDINATES);
+			|| request.longitude() > 180
+		) {
+			throw new WeatherException(WeatherErrorResult.INVALID_COORDINATES);
 		}
 	}
 
@@ -88,7 +89,7 @@ public class WeatherService {
 		LocalDate maxDate = today.plusDays(MAX_FUTURE_DATE);
 
 		if (requestDate.isBefore(today) || requestDate.isAfter(maxDate)) {
-			throw new ServerException(WeatherErrorResult.DATE_OUT_OF_RANGE);
+			throw new WeatherException(WeatherErrorResult.DATE_OUT_OF_RANGE);
 		}
 	}
 
