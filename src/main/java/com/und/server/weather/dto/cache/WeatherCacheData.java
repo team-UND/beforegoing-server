@@ -27,6 +27,15 @@ public record WeatherCacheData(
 		return weather != null && findDust != null && uv != null;
 	}
 
+	@JsonIgnore
+	public WeatherCacheData getValidDefault() {
+		return WeatherCacheData.builder()
+			.weather(Objects.requireNonNullElse(this.weather(), WeatherType.DEFAULT))
+			.findDust(Objects.requireNonNullElse(this.findDust(), FineDustType.DEFAULT))
+			.uv(Objects.requireNonNullElse(this.uv(), UvType.DEFAULT))
+			.build();
+	}
+
 	public static WeatherCacheData from(
 		final WeatherType weather,
 		final FineDustType findDust,
@@ -36,14 +45,6 @@ public record WeatherCacheData(
 			.weather(weather)
 			.findDust(findDust)
 			.uv(uv)
-			.build();
-	}
-
-	public WeatherCacheData getValidDefault() {
-		return WeatherCacheData.builder()
-			.weather(Objects.requireNonNullElse(this.weather(), WeatherType.DEFAULT))
-			.findDust(Objects.requireNonNullElse(this.findDust(), FineDustType.DEFAULT))
-			.uv(Objects.requireNonNullElse(this.uv(), UvType.DEFAULT))
 			.build();
 	}
 
