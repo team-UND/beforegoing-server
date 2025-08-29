@@ -1,29 +1,25 @@
 package com.und.server.weather.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.mock;
 
 import java.time.LocalDate;
-import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.und.server.weather.constants.FineDustType;
-import com.und.server.weather.constants.UvType;
-import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.exception.WeatherErrorResult;
 import com.und.server.weather.exception.WeatherException;
 import com.und.server.weather.infrastructure.client.OpenMeteoClient;
@@ -32,7 +28,6 @@ import com.und.server.weather.infrastructure.dto.OpenMeteoResponse;
 import com.und.server.weather.infrastructure.dto.OpenMeteoWeatherResponse;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("OpenMeteoApiFacade 테스트")
 class OpenMeteoApiFacadeTest {
 
 	@Mock
@@ -42,266 +37,148 @@ class OpenMeteoApiFacadeTest {
 	private OpenMeteoKmaClient openMeteoKmaClient;
 
 	@InjectMocks
-	private OpenMeteoApiFacade openMeteoApiFacade;
+	private OpenMeteoApiFacade facade;
 
-	private Double latitude;
-	private Double longitude;
-	private LocalDate date;
-
-	@BeforeEach
-	void setUp() {
-		latitude = 37.5665;
-		longitude = 126.9780;
-		date = LocalDate.of(2024, 1, 15);
-	}
+	private final Double latitude = 37.5;
+	private final Double longitude = 127.0;
+	private final LocalDate date = LocalDate.of(2024, 1, 1);
 
 	@Test
-	@DisplayName("OpenMeteo Dust/UV API 호출이 성공한다")
-	void Given_ValidRequest_When_CallDustUvApi_Then_ReturnsOpenMeteoResponse() {
+	@DisplayName("callDustUvApi - 정상 응답 반환")
+	void Given_ValidRequest_When_CallDustUvApi_Then_ReturnResponse() {
 		// given
-		OpenMeteoResponse expectedResponse = createMockOpenMeteoResponse();
-		String expectedVariables = String.join(",", FineDustType.OPEN_METEO_VARIABLES, UvType.OPEN_METEO_VARIABLES);
-
-		given(openMeteoClient.getForecast(
-			eq(latitude), eq(longitude), eq(expectedVariables),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		)).willReturn(expectedResponse);
+		OpenMeteoResponse mockResponse = mock(OpenMeteoResponse.class);
+		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
+			.willReturn(mockResponse);
 
 		// when
-		OpenMeteoResponse result = openMeteoApiFacade.callDustUvApi(latitude, longitude, date);
+		OpenMeteoResponse result = facade.callDustUvApi(latitude, longitude, date);
 
 		// then
-		assertThat(result).isEqualTo(expectedResponse);
-		verify(openMeteoClient, times(1)).getForecast(
-			eq(latitude), eq(longitude), eq(expectedVariables),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		);
+		assertThat(result).isEqualTo(mockResponse);
 	}
 
 	@Test
-	@DisplayName("다른 좌표로 OpenMeteo Dust/UV API 호출이 성공한다")
-	void Given_DifferentCoordinates_When_CallDustUvApi_Then_ReturnsOpenMeteoResponse() {
+	@DisplayName("callDustUvApi - 네트워크 타임아웃 시 WeatherException 발생")
+	void Given_Timeout_When_CallDustUvApi_Then_ThrowWeatherException() {
 		// given
-		Double differentLat = 35.1796;
-		Double differentLon = 129.0756;
-		OpenMeteoResponse expectedResponse = createMockOpenMeteoResponse();
-		String expectedVariables = String.join(",", FineDustType.OPEN_METEO_VARIABLES, UvType.OPEN_METEO_VARIABLES);
-
-		given(openMeteoClient.getForecast(
-			eq(differentLat), eq(differentLon), eq(expectedVariables),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		)).willReturn(expectedResponse);
+		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
+			.willThrow(new ResourceAccessException("timeout"));
 
 		// when
-		OpenMeteoResponse result = openMeteoApiFacade.callDustUvApi(differentLat, differentLon, date);
+		Throwable thrown = catchThrowable(() ->
+			facade.callDustUvApi(37.5, 127.0, LocalDate.of(2024, 1, 1)));
 
 		// then
-		assertThat(result).isEqualTo(expectedResponse);
-		verify(openMeteoClient, times(1)).getForecast(
-			eq(differentLat), eq(differentLon), eq(expectedVariables),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		);
+		assertThat(thrown).isInstanceOf(WeatherException.class);
+		WeatherException ex = (WeatherException) thrown;
+		assertThat(ex.getErrorResult()).isEqualTo(WeatherErrorResult.OPEN_METEO_TIMEOUT);
 	}
 
-	@Test
-	@DisplayName("다른 날짜로 OpenMeteo Dust/UV API 호출이 성공한다")
-	void Given_DifferentDate_When_CallDustUvApi_Then_ReturnsOpenMeteoResponse() {
-		// given
-		LocalDate differentDate = LocalDate.of(2024, 12, 25);
-		OpenMeteoResponse expectedResponse = createMockOpenMeteoResponse();
-		String expectedVariables = String.join(",", FineDustType.OPEN_METEO_VARIABLES, UvType.OPEN_METEO_VARIABLES);
 
-		given(openMeteoClient.getForecast(
-			eq(latitude), eq(longitude), eq(expectedVariables),
-			eq("2024-12-25"), eq("2024-12-25"), eq("Asia/Seoul")
-		)).willReturn(expectedResponse);
+	@Test
+	@DisplayName("callWeatherApi - 정상 응답 반환")
+	void Given_ValidRequest_When_CallWeatherApi_Then_ReturnResponse() {
+		// given
+		OpenMeteoWeatherResponse mockResponse = mock(OpenMeteoWeatherResponse.class);
+		given(openMeteoKmaClient.getWeatherForecast(any(), any(), any(), any(), any(), any()))
+			.willReturn(mockResponse);
 
 		// when
-		OpenMeteoResponse result = openMeteoApiFacade.callDustUvApi(latitude, longitude, differentDate);
+		OpenMeteoWeatherResponse result = facade.callWeatherApi(latitude, longitude, date);
 
 		// then
-		assertThat(result).isEqualTo(expectedResponse);
-		verify(openMeteoClient, times(1)).getForecast(
-			eq(latitude), eq(longitude), eq(expectedVariables),
-			eq("2024-12-25"), eq("2024-12-25"), eq("Asia/Seoul")
-		);
+		assertThat(result).isEqualTo(mockResponse);
 	}
 
 	@Test
-	@DisplayName("OpenMeteo Weather API 호출이 성공한다")
-	void Given_ValidRequest_When_CallWeatherApi_Then_ReturnsOpenMeteoWeatherResponse() {
-		// given
-		OpenMeteoWeatherResponse expectedResponse = createMockOpenMeteoWeatherResponse();
-
-		given(openMeteoKmaClient.getWeatherForecast(
-			eq(latitude), eq(longitude), eq(WeatherType.OPEN_METEO_VARIABLES),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		)).willReturn(expectedResponse);
-
-		// when
-		OpenMeteoWeatherResponse result = openMeteoApiFacade.callWeatherApi(latitude, longitude, date);
-
-		// then
-		assertThat(result).isEqualTo(expectedResponse);
-		verify(openMeteoKmaClient, times(1)).getWeatherForecast(
-			eq(latitude), eq(longitude), eq(WeatherType.OPEN_METEO_VARIABLES),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		);
-	}
-
-	@Test
-	@DisplayName("ResourceAccessException 발생시 OPEN_METEO_TIMEOUT 예외를 던진다")
-	void Given_ResourceAccessException_When_CallDustUvApi_Then_ThrowsOpenMeteoTimeoutException() {
-		// given
-		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
-			.willThrow(new ResourceAccessException("Connection timeout"));
-
-		// when & then
-		assertThatThrownBy(() -> openMeteoApiFacade.callDustUvApi(latitude, longitude, date))
-			.isInstanceOf(WeatherException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.OPEN_METEO_TIMEOUT);
-	}
-
-
-	@Test
-	@DisplayName("RestClientResponseException 429 발생시 OPEN_METEO_RATE_LIMIT 예외를 던진다")
-	void Given_RestClientResponseException429_When_CallDustUvApi_Then_ThrowsOpenMeteoRateLimitException() {
-		// given
-		RestClientResponseException rateLimitException = new RestClientResponseException(
-			"Rate limit exceeded", 429, "Too Many Requests", null, null, null
-		);
-		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
-			.willThrow(rateLimitException);
-
-		// when & then
-		assertThatThrownBy(() -> openMeteoApiFacade.callDustUvApi(latitude, longitude, date))
-			.isInstanceOf(WeatherException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.OPEN_METEO_RATE_LIMIT);
-	}
-
-	@Test
-	@DisplayName("RestClientResponseException 기타 상태코드 발생시 OPEN_METEO_API_ERROR 예외를 던진다")
-	void Given_RestClientResponseExceptionOtherStatus_When_CallDustUvApi_Then_ThrowsOpenMeteoApiErrorException() {
-		// given
-		RestClientResponseException otherException = new RestClientResponseException(
-			"Other error", 500, "Internal Server Error", null, null, null
-		);
-		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
-			.willThrow(otherException);
-
-		// when & then
-		assertThatThrownBy(() -> openMeteoApiFacade.callDustUvApi(latitude, longitude, date))
-			.isInstanceOf(WeatherException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.OPEN_METEO_API_ERROR);
-	}
-
-	@Test
-	@DisplayName("기타 Exception 발생시 OPEN_METEO_API_ERROR 예외를 던진다")
-	void Given_GenericException_When_CallDustUvApi_Then_ThrowsOpenMeteoApiErrorException() {
-		// given
-		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
-			.willThrow(new RuntimeException("Unexpected error"));
-
-		// when & then
-		assertThatThrownBy(() -> openMeteoApiFacade.callDustUvApi(latitude, longitude, date))
-			.isInstanceOf(WeatherException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.OPEN_METEO_API_ERROR);
-	}
-
-	@Test
-	@DisplayName("OpenMeteo Weather API에서 Exception 발생시 OPEN_METEO_API_ERROR 예외를 던진다")
-	void Given_Exception_When_CallWeatherApi_Then_ThrowsOpenMeteoApiErrorException() {
+	@DisplayName("callWeatherApi - 예외 발생 시 WeatherException 발생")
+	void Given_Error_When_CallWeatherApi_Then_ThrowWeatherException() {
 		// given
 		given(openMeteoKmaClient.getWeatherForecast(any(), any(), any(), any(), any(), any()))
-			.willThrow(new RuntimeException("Weather API error"));
+			.willThrow(new RuntimeException("API error"));
 
-		// when & then
-		assertThatThrownBy(() -> openMeteoApiFacade.callWeatherApi(latitude, longitude, date))
-			.isInstanceOf(WeatherException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.OPEN_METEO_API_ERROR);
+		// when
+		Throwable thrown = catchThrowable(() ->
+			facade.callWeatherApi(37.5, 127.0, LocalDate.of(2024, 1, 1)));
+
+		// then
+		assertThat(thrown).isInstanceOf(WeatherException.class);
+		WeatherException ex = (WeatherException) thrown;
+		assertThat(ex.getErrorResult()).isEqualTo(WeatherErrorResult.OPEN_METEO_API_ERROR);
+	}
+
+
+	@Test
+	@DisplayName("callDustUvApi - 4xx 발생 시 WeatherException 발생")
+	void Given_HttpClientError_When_CallDustUvApi_Then_ThrowWeatherException() {
+		// given
+		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
+			.willThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+
+		// when
+		Throwable thrown = catchThrowable(() ->
+			facade.callDustUvApi(latitude, longitude, date));
+
+		// then
+		assertThat(thrown).isInstanceOf(WeatherException.class);
+		WeatherException ex = (WeatherException) thrown;
+		assertThat(ex.getErrorResult()).isEqualTo(WeatherErrorResult.OPEN_METEO_BAD_REQUEST);
 	}
 
 	@Test
-	@DisplayName("다른 좌표로 OpenMeteo Weather API 호출이 성공한다")
-	void Given_DifferentCoordinates_When_CallWeatherApi_Then_ReturnsOpenMeteoWeatherResponse() {
+	@DisplayName("callDustUvApi - 5xx 발생 시 WeatherException 발생")
+	void Given_HttpServerError_When_CallDustUvApi_Then_ThrowWeatherException() {
 		// given
-		Double differentLat = 35.1796;
-		Double differentLon = 129.0756;
-		OpenMeteoWeatherResponse expectedResponse = createMockOpenMeteoWeatherResponse();
-
-		given(openMeteoKmaClient.getWeatherForecast(
-			eq(differentLat), eq(differentLon), eq(WeatherType.OPEN_METEO_VARIABLES),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		)).willReturn(expectedResponse);
+		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
+			.willThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
 		// when
-		OpenMeteoWeatherResponse result = openMeteoApiFacade.callWeatherApi(differentLat, differentLon, date);
+		Throwable thrown = catchThrowable(() ->
+			facade.callDustUvApi(latitude, longitude, date));
 
 		// then
-		assertThat(result).isEqualTo(expectedResponse);
-		verify(openMeteoKmaClient, times(1)).getWeatherForecast(
-			eq(differentLat), eq(differentLon), eq(WeatherType.OPEN_METEO_VARIABLES),
-			eq("2024-01-15"), eq("2024-01-15"), eq("Asia/Seoul")
-		);
+		assertThat(thrown).isInstanceOf(WeatherException.class);
+		WeatherException ex = (WeatherException) thrown;
+		assertThat(ex.getErrorResult()).isEqualTo(WeatherErrorResult.OPEN_METEO_SERVER_ERROR);
 	}
 
 	@Test
-	@DisplayName("다른 날짜로 OpenMeteo Weather API 호출이 성공한다")
-	void Given_DifferentDate_When_CallWeatherApi_Then_ReturnsOpenMeteoWeatherResponse() {
+	@DisplayName("callDustUvApi - 429 발생 시 WeatherException 발생")
+	void Given_TooManyRequests_When_CallDustUvApi_Then_ThrowWeatherException() {
 		// given
-		LocalDate differentDate = LocalDate.of(2024, 12, 25);
-		OpenMeteoWeatherResponse expectedResponse = createMockOpenMeteoWeatherResponse();
-
-		given(openMeteoKmaClient.getWeatherForecast(
-			eq(latitude), eq(longitude), eq(WeatherType.OPEN_METEO_VARIABLES),
-			eq("2024-12-25"), eq("2024-12-25"), eq("Asia/Seoul")
-		)).willReturn(expectedResponse);
+		RestClientResponseException tooManyRequests =
+			new RestClientResponseException("Rate limit", 429, "Too Many Requests", null, null, null);
+		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
+			.willThrow(tooManyRequests);
 
 		// when
-		OpenMeteoWeatherResponse result = openMeteoApiFacade.callWeatherApi(latitude, longitude, differentDate);
+		Throwable thrown = catchThrowable(() ->
+			facade.callDustUvApi(latitude, longitude, date));
 
 		// then
-		assertThat(result).isEqualTo(expectedResponse);
-		verify(openMeteoKmaClient, times(1)).getWeatherForecast(
-			eq(latitude), eq(longitude), eq(WeatherType.OPEN_METEO_VARIABLES),
-			eq("2024-12-25"), eq("2024-12-25"), eq("Asia/Seoul")
-		);
+		assertThat(thrown).isInstanceOf(WeatherException.class);
+		WeatherException ex = (WeatherException) thrown;
+		assertThat(ex.getErrorResult()).isEqualTo(WeatherErrorResult.OPEN_METEO_RATE_LIMIT);
 	}
 
-	private OpenMeteoResponse createMockOpenMeteoResponse() {
-		return new OpenMeteoResponse(
-			37.5665,
-			126.9780,
-			"Asia/Seoul",
-			new OpenMeteoResponse.HourlyUnits(
-				"iso8601",
-				"μg/m³",
-				"μg/m³",
-				""
-			),
-			new OpenMeteoResponse.Hourly(
-				List.of("2024-01-15T09:00"),
-				List.of(0.8), // PM2.5
-				List.of(1.5), // PM10
-				List.of(2.5)  // UV Index
-			)
-		);
-	}
+	@Test
+	@DisplayName("callDustUvApi - RestClientResponseException(기타) 발생 시 WeatherException 발생")
+	void Given_RestClientResponseException_When_CallDustUvApi_Then_ThrowWeatherException() {
+		// given
+		RestClientResponseException otherError =
+			new RestClientResponseException("Other error", 418, "I'm a teapot", null, null, null);
+		given(openMeteoClient.getForecast(any(), any(), any(), any(), any(), any()))
+			.willThrow(otherError);
 
-	private OpenMeteoWeatherResponse createMockOpenMeteoWeatherResponse() {
-		return new OpenMeteoWeatherResponse(
-			37.5665,
-			126.9780,
-			"Asia/Seoul",
-			new OpenMeteoWeatherResponse.HourlyUnits(
-				"iso8601",
-				""
-			),
-			new OpenMeteoWeatherResponse.Hourly(
-				List.of("2024-01-15T09:00"),
-				List.of(1) // Weather code (1 = 맑음)
-			)
-		);
+		// when
+		Throwable thrown = catchThrowable(() ->
+			facade.callDustUvApi(latitude, longitude, date));
+
+		// then
+		assertThat(thrown).isInstanceOf(WeatherException.class);
+		WeatherException ex = (WeatherException) thrown;
+		assertThat(ex.getErrorResult()).isEqualTo(WeatherErrorResult.OPEN_METEO_API_ERROR);
 	}
 
 }

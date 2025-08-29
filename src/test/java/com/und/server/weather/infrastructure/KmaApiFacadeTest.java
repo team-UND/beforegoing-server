@@ -3,10 +3,10 @@ package com.und.server.weather.infrastructure;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -27,7 +30,6 @@ import com.und.server.weather.infrastructure.client.KmaWeatherClient;
 import com.und.server.weather.infrastructure.dto.KmaWeatherResponse;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("KmaApiFacade 테스트")
 class KmaApiFacadeTest {
 
 	@Mock
@@ -36,199 +38,125 @@ class KmaApiFacadeTest {
 	@Mock
 	private WeatherProperties weatherProperties;
 
-	@Mock
-	private WeatherProperties.Kma kmaProperties;
-
 	@InjectMocks
 	private KmaApiFacade kmaApiFacade;
 
 	private GridPoint gridPoint;
-	private LocalDate date;
 	private TimeSlot timeSlot;
+	private LocalDate date;
 
 	@BeforeEach
 	void setUp() {
 		gridPoint = new GridPoint(60, 127);
-		date = LocalDate.of(2024, 1, 15);
 		timeSlot = TimeSlot.SLOT_09_12;
+		date = LocalDate.of(2024, 1, 1);
 
-		given(weatherProperties.kma()).willReturn(kmaProperties);
-		given(kmaProperties.serviceKey()).willReturn("test-service-key");
-
-		// 기본 Mock 설정
-		given(kmaWeatherClient.getVilageForecast(any(), any(), any(), any(), any(), any(), any(), any()))
-			.willReturn(createMockKmaWeatherResponse());
+		WeatherProperties.Kma props = org.mockito.Mockito.mock(WeatherProperties.Kma.class);
+		given(props.serviceKey()).willReturn("test-key");
+		given(weatherProperties.kma()).willReturn(props);
 	}
 
 	@Test
-	@DisplayName("KMA API 호출이 성공한다")
-	void Given_ValidRequest_When_CallWeatherApi_Then_ReturnsWeatherResponse() {
-		// when
+	@DisplayName("정상 호출 시 KmaWeatherResponse 반환")
+	void Given_ValidRequest_When_CallWeatherApi_Then_ReturnResponse() {
+		KmaWeatherResponse mockResponse = org.mockito.Mockito.mock(KmaWeatherResponse.class);
+		given(kmaWeatherClient.getVilageForecast(any(), anyInt(), anyInt(), any(), any(), any(), anyInt(), anyInt()))
+			.willReturn(mockResponse);
+
 		KmaWeatherResponse result = kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date);
 
-		// then
-		assertThat(result).isNotNull();
-		assertThat(result.response()).isNotNull();
-		assertThat(result.response().header()).isNotNull();
-		assertThat(result.response().body()).isNotNull();
+		assertThat(result).isEqualTo(mockResponse);
 	}
 
 	@Test
-	@DisplayName("다른 시간대 슬롯으로 KMA API 호출이 성공한다")
-	void Given_DifferentTimeSlot_When_CallWeatherApi_Then_ReturnsWeatherResponse() {
-		// given
-		TimeSlot differentSlot = TimeSlot.SLOT_15_18;
+	@DisplayName("네트워크 타임아웃 발생 시 KMA_TIMEOUT 반환")
+	void Given_Timeout_When_CallWeatherApi_Then_ThrowKmaTimeout() {
+		given(kmaWeatherClient.getVilageForecast(any(), anyInt(), anyInt(), any(), any(), any(), anyInt(), anyInt()))
+			.willThrow(new ResourceAccessException("timeout"));
 
-		// when
-		KmaWeatherResponse result = kmaApiFacade.callWeatherApi(gridPoint, differentSlot, date);
-
-		// then
-		assertThat(result).isNotNull();
-		assertThat(result.response()).isNotNull();
-	}
-
-	@Test
-	@DisplayName("다른 날짜로 KMA API 호출이 성공한다")
-	void Given_DifferentDate_When_CallWeatherApi_Then_ReturnsWeatherResponse() {
-		// given
-		LocalDate differentDate = LocalDate.of(2024, 12, 25);
-
-		// when
-		KmaWeatherResponse result = kmaApiFacade.callWeatherApi(gridPoint, timeSlot, differentDate);
-
-		// then
-		assertThat(result).isNotNull();
-		assertThat(result.response()).isNotNull();
-	}
-
-	@Test
-	@DisplayName("다른 그리드 포인트로 KMA API 호출이 성공한다")
-	void Given_DifferentGridPoint_When_CallWeatherApi_Then_ReturnsWeatherResponse() {
-		// given
-		GridPoint differentGridPoint = new GridPoint(100, 200);
-
-		// when
-		KmaWeatherResponse result = kmaApiFacade.callWeatherApi(differentGridPoint, timeSlot, date);
-
-		// then
-		assertThat(result).isNotNull();
-		assertThat(result.response()).isNotNull();
-	}
-
-	@Test
-	@DisplayName("ResourceAccessException 발생시 KMA_TIMEOUT 예외를 던진다")
-	void Given_ResourceAccessException_When_CallWeatherApi_Then_ThrowsKmaTimeoutException() {
-		// given
-		given(kmaWeatherClient.getVilageForecast(any(), any(), any(), any(), any(), any(), any(), any()))
-			.willThrow(new ResourceAccessException("Connection timeout"));
-
-		// when & then
 		assertThatThrownBy(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date))
 			.isInstanceOf(KmaApiException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.KMA_TIMEOUT);
+			.satisfies(e -> {
+				assertThat(((KmaApiException) e).getErrorResult())
+					.isEqualTo(WeatherErrorResult.KMA_TIMEOUT);
+			});
 	}
 
 	@Test
-	@DisplayName("HttpClientErrorException 발생시 KMA_BAD_REQUEST 예외를 던진다")
-	void Given_HttpClientErrorException_When_CallWeatherApi_Then_ThrowsKmaBadRequestException() {
-		// given
-		given(kmaWeatherClient.getVilageForecast(any(), any(), any(), any(), any(), any(), any(), any()))
-			.willThrow(new RuntimeException("Bad request"));
+	@DisplayName("4xx 발생 시 KMA_BAD_REQUEST 반환")
+	void Given_4xx_When_CallWeatherApi_Then_ThrowKmaBadRequest() {
+		given(kmaWeatherClient.getVilageForecast(any(), anyInt(), anyInt(), any(), any(), any(), anyInt(), anyInt()))
+			.willThrow(HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "Bad request", null, null, null));
 
-		// when & then
 		assertThatThrownBy(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date))
 			.isInstanceOf(KmaApiException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.KMA_API_ERROR);
+			.satisfies(e -> {
+				assertThat(((KmaApiException) e).getErrorResult())
+					.isEqualTo(WeatherErrorResult.KMA_BAD_REQUEST);
+			});
 	}
 
 	@Test
-	@DisplayName("HttpServerErrorException 발생시 KMA_SERVER_ERROR 예외를 던진다")
-	void Given_HttpServerErrorException_When_CallWeatherApi_Then_ThrowsKmaServerErrorException() {
-		// given
-		given(kmaWeatherClient.getVilageForecast(any(), any(), any(), any(), any(), any(), any(), any()))
-			.willThrow(new RuntimeException("Server error"));
+	@DisplayName("5xx 발생 시 KMA_SERVER_ERROR 반환")
+	void Given_5xx_When_CallWeatherApi_Then_ThrowKmaServerError() {
+		given(kmaWeatherClient.getVilageForecast(any(), anyInt(), anyInt(), any(), any(), any(), anyInt(), anyInt()))
+			.willThrow(
+				HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "Server error", null, null, null));
 
-		// when & then
 		assertThatThrownBy(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date))
 			.isInstanceOf(KmaApiException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.KMA_API_ERROR);
+			.satisfies(e -> {
+				assertThat(((KmaApiException) e).getErrorResult())
+					.isEqualTo(WeatherErrorResult.KMA_SERVER_ERROR);
+			});
 	}
 
 	@Test
-	@DisplayName("RestClientResponseException 429 발생시 KMA_RATE_LIMIT 예외를 던진다")
-	void Given_RestClientResponseException429_When_CallWeatherApi_Then_ThrowsKmaRateLimitException() {
-		// given
-		RestClientResponseException rateLimitException = new RestClientResponseException(
-			"Rate limit exceeded", 429, "Too Many Requests", null, null, null
-		);
-		given(kmaWeatherClient.getVilageForecast(any(), any(), any(), any(), any(), any(), any(), any()))
-			.willThrow(rateLimitException);
+	@DisplayName("429 발생 시 KMA_RATE_LIMIT 반환")
+	void Given_429_When_CallWeatherApi_Then_ThrowKmaRateLimit() {
+		RestClientResponseException rateLimitEx =
+			new RestClientResponseException("Too many requests", 429, "Too many requests", null, null, null);
 
-		// when & then
+		given(kmaWeatherClient.getVilageForecast(any(), anyInt(), anyInt(), any(), any(), any(), anyInt(), anyInt()))
+			.willThrow(rateLimitEx);
+
 		assertThatThrownBy(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date))
 			.isInstanceOf(KmaApiException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.KMA_RATE_LIMIT);
+			.satisfies(e -> {
+				assertThat(((KmaApiException) e).getErrorResult())
+					.isEqualTo(WeatherErrorResult.KMA_RATE_LIMIT);
+			});
 	}
 
 	@Test
-	@DisplayName("RestClientResponseException 기타 상태코드 발생시 KMA_API_ERROR 예외를 던진다")
-	void Given_RestClientResponseExceptionOtherStatus_When_CallWeatherApi_Then_ThrowsKmaApiErrorException() {
-		// given
-		RestClientResponseException otherException = new RestClientResponseException(
-			"Other error", 500, "Internal Server Error", null, null, null
-		);
-		given(kmaWeatherClient.getVilageForecast(any(), any(), any(), any(), any(), any(), any(), any()))
-			.willThrow(otherException);
-
-		// when & then
-		assertThatThrownBy(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date))
-			.isInstanceOf(KmaApiException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.KMA_API_ERROR);
-	}
-
-	@Test
-	@DisplayName("기타 Exception 발생시 KMA_API_ERROR 예외를 던진다")
-	void Given_GenericException_When_CallWeatherApi_Then_ThrowsKmaApiErrorException() {
-		// given
-		given(kmaWeatherClient.getVilageForecast(any(), any(), any(), any(), any(), any(), any(), any()))
+	@DisplayName("기타 Exception 발생 시 KMA_API_ERROR 반환")
+	void Given_OtherError_When_CallWeatherApi_Then_ThrowKmaApiError() {
+		given(kmaWeatherClient.getVilageForecast(any(), anyInt(), anyInt(), any(), any(), any(), anyInt(), anyInt()))
 			.willThrow(new RuntimeException("Unexpected error"));
 
-		// when & then
 		assertThatThrownBy(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date))
 			.isInstanceOf(KmaApiException.class)
-			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.KMA_API_ERROR);
+			.satisfies(e -> {
+				assertThat(((KmaApiException) e).getErrorResult())
+					.isEqualTo(WeatherErrorResult.KMA_API_ERROR);
+			});
 	}
 
 	@Test
-	@DisplayName("야간 시간대 슬롯으로 KMA API 호출이 성공한다")
-	void Given_NightTimeSlot_When_CallWeatherApi_Then_ReturnsWeatherResponse() {
-		// given
-		TimeSlot nightSlot = TimeSlot.SLOT_21_24;
+	@DisplayName("RestClientResponseException (429 아님) 발생 시 KMA_API_ERROR 반환")
+	void Given_RestClientResponseExceptionNon429_When_CallWeatherApi_Then_ThrowKmaApiError() {
+		RestClientResponseException otherError =
+			new RestClientResponseException("Other error", 418, "I'm a teapot", null, null, null);
 
-		// when
-		KmaWeatherResponse result = kmaApiFacade.callWeatherApi(gridPoint, nightSlot, date);
+		given(kmaWeatherClient.getVilageForecast(any(), anyInt(), anyInt(), any(), any(), any(), anyInt(), anyInt()))
+			.willThrow(otherError);
 
-		// then
-		assertThat(result).isNotNull();
-		assertThat(result.response()).isNotNull();
-	}
-
-	private KmaWeatherResponse createMockKmaWeatherResponse() {
-		return new KmaWeatherResponse(
-			new KmaWeatherResponse.Response(
-				new KmaWeatherResponse.Header("00", "성공"),
-				new KmaWeatherResponse.Body(
-					"JSON",
-					new KmaWeatherResponse.Items(
-						List.of(
-							new KmaWeatherResponse.WeatherItem("20240115", "0900", "SKY", "20240115", "0900", "1", 60,
-								127)
-						)
-					),
-					1
-				)
-			)
-		);
+		assertThatThrownBy(() -> kmaApiFacade.callWeatherApi(gridPoint, timeSlot, date))
+			.isInstanceOf(KmaApiException.class)
+			.satisfies(e -> {
+				assertThat(((KmaApiException) e).getErrorResult())
+					.isEqualTo(WeatherErrorResult.KMA_API_ERROR);
+			});
 	}
 
 }
