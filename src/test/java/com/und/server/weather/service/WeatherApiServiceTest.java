@@ -71,7 +71,8 @@ class WeatherApiServiceTest {
 		LocalDate today = LocalDate.now();
 
 		KmaWeatherResponse mockKmaResponse = new KmaWeatherResponse(null);
-		OpenMeteoResponse mockOpenMeteoResponse = new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null);
+		OpenMeteoResponse mockOpenMeteoResponse = new OpenMeteoResponse(
+			37.5665, 126.9780, "Asia/Seoul", null, null);
 
 		when(kmaApiFacade.callWeatherApi(any(GridPoint.class), eq(timeSlot), eq(today)))
 			.thenReturn(mockKmaResponse);
@@ -96,7 +97,8 @@ class WeatherApiServiceTest {
 		LocalDate targetDate = LocalDate.now().plusDays(1);
 
 		KmaWeatherResponse mockKmaResponse = new KmaWeatherResponse(null);
-		OpenMeteoResponse mockOpenMeteoResponse = new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null);
+		OpenMeteoResponse mockOpenMeteoResponse = new OpenMeteoResponse(
+			37.5665, 126.9780, "Asia/Seoul", null, null);
 
 		when(kmaApiFacade.callWeatherApi(any(GridPoint.class), eq(timeSlot), eq(today)))
 			.thenReturn(mockKmaResponse);
@@ -119,8 +121,10 @@ class WeatherApiServiceTest {
 		LocalDate targetDate = LocalDate.now().plusDays(2);
 
 		OpenMeteoWeatherResponse mockWeatherResponse =
-			new OpenMeteoWeatherResponse(37.5665, 126.9780, "Asia/Seoul", null, null);
-		OpenMeteoResponse mockDustUvResponse = new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null);
+			new OpenMeteoWeatherResponse(
+				37.5665, 126.9780, "Asia/Seoul", null, null);
+		OpenMeteoResponse mockDustUvResponse = new OpenMeteoResponse(
+			37.5665, 126.9780, "Asia/Seoul", null, null);
 
 		when(openMeteoApiFacade.callWeatherApi(eq(37.5665), eq(126.9780), eq(targetDate)))
 			.thenReturn(mockWeatherResponse);
@@ -146,7 +150,8 @@ class WeatherApiServiceTest {
 		when(kmaApiFacade.callWeatherApi(any(GridPoint.class), eq(timeSlot), eq(today)))
 			.thenThrow(new CompletionException(new TimeoutException("API timeout")));
 		when(openMeteoApiFacade.callDustUvApi(eq(37.5665), eq(126.9780), eq(today)))
-			.thenReturn(new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null));
+			.thenReturn(new OpenMeteoResponse(
+				37.5665, 126.9780, "Asia/Seoul", null, null));
 
 		// when & then
 		assertThatThrownBy(() -> weatherApiService.callTodayWeather(request, timeSlot, today))
@@ -167,7 +172,8 @@ class WeatherApiServiceTest {
 		when(kmaApiFacade.callWeatherApi(any(GridPoint.class), eq(timeSlot), eq(today)))
 			.thenThrow(new CompletionException(expectedException));
 		when(openMeteoApiFacade.callDustUvApi(eq(37.5665), eq(126.9780), eq(today)))
-			.thenReturn(new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null));
+			.thenReturn(new OpenMeteoResponse(
+				37.5665, 126.9780, "Asia/Seoul", null, null));
 
 		// when & then
 		assertThatThrownBy(() -> weatherApiService.callTodayWeather(request, timeSlot, today))
@@ -188,7 +194,8 @@ class WeatherApiServiceTest {
 		when(kmaApiFacade.callWeatherApi(any(GridPoint.class), eq(timeSlot), eq(today)))
 			.thenThrow(new CompletionException(unexpectedException));
 		when(openMeteoApiFacade.callDustUvApi(eq(37.5665), eq(126.9780), eq(today)))
-			.thenReturn(new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null));
+			.thenReturn(new OpenMeteoResponse(
+				37.5665, 126.9780, "Asia/Seoul", null, null));
 
 		// when & then
 		assertThatThrownBy(() -> weatherApiService.callTodayWeather(request, timeSlot, today))
@@ -228,7 +235,8 @@ class WeatherApiServiceTest {
 		when(kmaApiFacade.callWeatherApi(any(GridPoint.class), eq(timeSlot), eq(today)))
 			.thenThrow(new CompletionException(new TimeoutException("API timeout")));
 		when(openMeteoApiFacade.callDustUvApi(eq(37.5665), eq(126.9780), eq(targetDate)))
-			.thenReturn(new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null));
+			.thenReturn(new OpenMeteoResponse(
+				37.5665, 126.9780, "Asia/Seoul", null, null));
 
 		// when & then
 		assertThatThrownBy(() -> weatherApiService.callFutureWeather(request, timeSlot, today, targetDate))
@@ -268,7 +276,8 @@ class WeatherApiServiceTest {
 		when(openMeteoApiFacade.callWeatherApi(eq(37.5665), eq(126.9780), eq(targetDate)))
 			.thenThrow(new CompletionException(unexpectedException));
 		when(openMeteoApiFacade.callDustUvApi(eq(37.5665), eq(126.9780), eq(targetDate)))
-			.thenReturn(new OpenMeteoResponse(37.5665, 126.9780, "Asia/Seoul", null, null));
+			.thenReturn(new OpenMeteoResponse(
+				37.5665, 126.9780, "Asia/Seoul", null, null));
 
 		// when & then
 		assertThatThrownBy(() -> weatherApiService.callOpenMeteoFallBackWeather(request, targetDate))
@@ -310,7 +319,8 @@ class WeatherApiServiceTest {
 		LocalDate today = LocalDate.now();
 
 		KmaWeatherResponse mockKmaResponse = new KmaWeatherResponse(null);
-		OpenMeteoResponse mockOpenMeteoResponse = new OpenMeteoResponse(35.1796, 129.0756, "Asia/Seoul", null, null);
+		OpenMeteoResponse mockOpenMeteoResponse = new OpenMeteoResponse(
+			35.1796, 129.0756, "Asia/Seoul", null, null);
 
 		when(kmaApiFacade.callWeatherApi(any(GridPoint.class), eq(timeSlot), eq(today)))
 			.thenReturn(mockKmaResponse);
