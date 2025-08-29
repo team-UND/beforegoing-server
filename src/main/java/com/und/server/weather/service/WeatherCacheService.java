@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WeatherCacheService {
 
 	private final RedisTemplate<String, String> redisTemplate;
-	private final WeatherApiProcessor weatherApiProcessor;
+	private final WeatherApiService weatherApiService;
 	private final WeatherDecisionService weatherDecisionService;
 	private final WeatherKeyGenerator keyGenerator;
 	private final WeatherTtlCalculator ttlCalculator;
@@ -52,7 +52,7 @@ public class WeatherCacheService {
 
 		WeatherApiResultDto weatherApiResult;
 		try {
-			weatherApiResult = weatherApiProcessor.callTodayWeather(weatherRequest, currentSlot, nowDate);
+			weatherApiResult = weatherApiService.callTodayWeather(weatherRequest, currentSlot, nowDate);
 		} catch (KmaApiException e) {
 			log.error("KMA API failed, falling back to Open-Meteo KMA", e);
 			return handleTodayFallback(weatherRequest, currentSlot, nowDate, cacheKey, hourKey);
@@ -87,7 +87,7 @@ public class WeatherCacheService {
 
 		WeatherApiResultDto weatherApiResult;
 		try {
-			weatherApiResult = weatherApiProcessor.callFutureWeather(
+			weatherApiResult = weatherApiService.callFutureWeather(
 				weatherRequest, currentSlot, nowDateTime.toLocalDate(), targetDate);
 		} catch (KmaApiException e) {
 			log.error("KMA API failed, falling back to Open-Meteo KMA", e);
@@ -114,7 +114,7 @@ public class WeatherCacheService {
 	) {
 		OpenMeteoWeatherApiResultDto fallbackResult;
 		try {
-			fallbackResult = weatherApiProcessor.callOpenMeteoFallBackWeather(weatherRequest, nowDate);
+			fallbackResult = weatherApiService.callOpenMeteoFallBackWeather(weatherRequest, nowDate);
 		} catch (Exception e) {
 			log.error("Today Fallback also failed", e);
 			throw e;
@@ -137,7 +137,7 @@ public class WeatherCacheService {
 	) {
 		OpenMeteoWeatherApiResultDto fallbackResult;
 		try {
-			fallbackResult = weatherApiProcessor.callOpenMeteoFallBackWeather(weatherRequest, targetDate);
+			fallbackResult = weatherApiService.callOpenMeteoFallBackWeather(weatherRequest, targetDate);
 		} catch (Exception e) {
 			log.error("Future Fallback also failed", e);
 			throw e;

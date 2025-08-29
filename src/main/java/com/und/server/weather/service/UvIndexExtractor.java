@@ -9,7 +9,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import com.und.server.weather.constants.UvType;
-import com.und.server.weather.dto.api.OpenMeteoResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoResponse;
 
 import lombok.extern.slf4j.Slf4j;
 

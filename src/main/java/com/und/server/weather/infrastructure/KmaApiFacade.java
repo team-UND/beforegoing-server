@@ -1,4 +1,4 @@
-package com.und.server.weather.service;
+package com.und.server.weather.infrastructure;
 
 import java.time.LocalDate;
 
@@ -8,14 +8,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.und.server.weather.client.KmaWeatherClient;
 import com.und.server.weather.config.WeatherProperties;
 import com.und.server.weather.constants.TimeSlot;
 import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.GridPoint;
-import com.und.server.weather.dto.api.KmaWeatherResponse;
 import com.und.server.weather.exception.KmaApiException;
 import com.und.server.weather.exception.WeatherErrorResult;
+import com.und.server.weather.infrastructure.client.KmaWeatherClient;
+import com.und.server.weather.infrastructure.dto.KmaWeatherResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

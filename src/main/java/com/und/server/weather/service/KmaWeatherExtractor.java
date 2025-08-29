@@ -9,7 +9,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import com.und.server.weather.constants.WeatherType;
-import com.und.server.weather.dto.api.KmaWeatherResponse;
+import com.und.server.weather.infrastructure.dto.KmaWeatherResponse;
 
 import lombok.extern.slf4j.Slf4j;
 

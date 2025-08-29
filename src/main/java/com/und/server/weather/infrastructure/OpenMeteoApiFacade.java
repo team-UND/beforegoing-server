@@ -1,4 +1,4 @@
-package com.und.server.weather.service;
+package com.und.server.weather.infrastructure;
 
 import java.time.LocalDate;
 
@@ -8,15 +8,15 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.und.server.weather.client.OpenMeteoClient;
-import com.und.server.weather.client.OpenMeteoKmaClient;
 import com.und.server.weather.constants.FineDustType;
 import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
-import com.und.server.weather.dto.api.OpenMeteoResponse;
-import com.und.server.weather.dto.api.OpenMeteoWeatherResponse;
 import com.und.server.weather.exception.WeatherErrorResult;
 import com.und.server.weather.exception.WeatherException;
+import com.und.server.weather.infrastructure.client.OpenMeteoClient;
+import com.und.server.weather.infrastructure.client.OpenMeteoKmaClient;
+import com.und.server.weather.infrastructure.dto.OpenMeteoResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoWeatherResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

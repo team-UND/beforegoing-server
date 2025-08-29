@@ -13,10 +13,10 @@ import com.und.server.weather.constants.UvType;
 import com.und.server.weather.constants.WeatherType;
 import com.und.server.weather.dto.OpenMeteoWeatherApiResultDto;
 import com.und.server.weather.dto.WeatherApiResultDto;
-import com.und.server.weather.dto.api.KmaWeatherResponse;
-import com.und.server.weather.dto.api.OpenMeteoResponse;
-import com.und.server.weather.dto.api.OpenMeteoWeatherResponse;
 import com.und.server.weather.dto.cache.WeatherCacheData;
+import com.und.server.weather.infrastructure.dto.KmaWeatherResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoWeatherResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

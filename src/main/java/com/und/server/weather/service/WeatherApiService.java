@@ -14,27 +14,29 @@ import com.und.server.weather.constants.TimeSlot;
 import com.und.server.weather.dto.GridPoint;
 import com.und.server.weather.dto.OpenMeteoWeatherApiResultDto;
 import com.und.server.weather.dto.WeatherApiResultDto;
-import com.und.server.weather.dto.api.KmaWeatherResponse;
-import com.und.server.weather.dto.api.OpenMeteoResponse;
-import com.und.server.weather.dto.api.OpenMeteoWeatherResponse;
 import com.und.server.weather.dto.request.WeatherRequest;
 import com.und.server.weather.exception.KmaApiException;
 import com.und.server.weather.exception.WeatherErrorResult;
 import com.und.server.weather.exception.WeatherException;
+import com.und.server.weather.infrastructure.KmaApiFacade;
+import com.und.server.weather.infrastructure.OpenMeteoApiFacade;
+import com.und.server.weather.infrastructure.dto.KmaWeatherResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoWeatherResponse;
 import com.und.server.weather.util.GridConverter;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class WeatherApiProcessor {
+public class WeatherApiService {
 
 	private static final long API_TIMEOUT_SEC = 5;
 	private final KmaApiFacade kmaApiFacade;
 	private final OpenMeteoApiFacade openMeteoApiFacade;
 	private final Executor weatherExecutor;
 
-	public WeatherApiProcessor(
+	public WeatherApiService(
 		KmaApiFacade kmaApiFacade,
 		OpenMeteoApiFacade openMeteoApiFacade,
 		@Qualifier("weatherExecutor") Executor weatherExecutor

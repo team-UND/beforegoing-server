@@ -1,7 +1,7 @@
 package com.und.server.weather.dto;
 
-import com.und.server.weather.dto.api.OpenMeteoResponse;
-import com.und.server.weather.dto.api.OpenMeteoWeatherResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoResponse;
+import com.und.server.weather.infrastructure.dto.OpenMeteoWeatherResponse;
 
 import lombok.Builder;
 

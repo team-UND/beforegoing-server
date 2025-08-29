@@ -1,10 +1,10 @@
-package com.und.server.weather.client;
+package com.und.server.weather.infrastructure.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.und.server.weather.dto.api.KmaWeatherResponse;
+import com.und.server.weather.infrastructure.dto.KmaWeatherResponse;
 
 @FeignClient(
 	name = "kmaWeatherClient",

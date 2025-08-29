@@ -1,4 +1,4 @@
-package com.und.server.weather.dto.api;
+package com.und.server.weather.infrastructure.dto;
 
 import java.util.List;
 
