@@ -8,14 +8,11 @@ import org.springframework.stereotype.Component;
 
 import com.und.server.weather.constants.TimeSlot;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Component
 public class WeatherTtlCalculator {
 
-	public Duration calculateTtl(final TimeSlot timeSlot) {
-		LocalDateTime now = LocalDateTime.now();
-		LocalTime currentTime = now.toLocalTime();
+	public Duration calculateTtl(final TimeSlot timeSlot, final LocalDateTime nowDateTime) {
+		LocalTime currentTime = nowDateTime.toLocalTime();
 
 		int endHour = timeSlot.getEndHour();
 		LocalTime deleteTime;
@@ -27,10 +24,10 @@ public class WeatherTtlCalculator {
 		}
 
 		if (timeSlot == TimeSlot.SLOT_21_24 && currentTime.getHour() >= 21) {
-			LocalDateTime nextDayMidnight = now.toLocalDate()
+			LocalDateTime nextDayMidnight = nowDateTime.toLocalDate()
 				.plusDays(1)
 				.atTime(0, 0);
-			return Duration.between(now, nextDayMidnight);
+			return Duration.between(nowDateTime, nextDayMidnight);
 		}
 
 		if (currentTime.isBefore(deleteTime)) {

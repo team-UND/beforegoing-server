@@ -55,13 +55,13 @@ public class WeatherCacheService {
 			weatherApiResult = weatherApiService.callTodayWeather(weatherRequest, currentSlot, nowDate);
 		} catch (KmaApiException e) {
 			log.error("KMA API failed, falling back to Open-Meteo KMA", e);
-			return handleTodayFallback(weatherRequest, currentSlot, nowDate, cacheKey, hourKey);
+			return handleTodayFallback(weatherRequest, currentSlot, nowDateTime, cacheKey, hourKey);
 		}
 
 		Map<String, WeatherCacheData> newData =
 			weatherDecisionService.getTodayWeatherCacheData(weatherApiResult, currentSlot, nowDate);
 
-		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+		Duration ttl = ttlCalculator.calculateTtl(currentSlot, nowDateTime);
 		saveTodayCache(cacheKey, newData, ttl);
 
 		return newData.get(hourKey);
@@ -91,13 +91,13 @@ public class WeatherCacheService {
 				weatherRequest, currentSlot, nowDateTime.toLocalDate(), targetDate);
 		} catch (KmaApiException e) {
 			log.error("KMA API failed, falling back to Open-Meteo KMA", e);
-			return handleFutureFallback(weatherRequest, currentSlot, targetDate, cacheKey);
+			return handleFutureFallback(weatherRequest, currentSlot, nowDateTime, targetDate, cacheKey);
 		}
 
 		WeatherCacheData futureWeatherCacheData =
 			weatherDecisionService.getFutureWeatherCacheData(weatherApiResult, targetDate);
 
-		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+		Duration ttl = ttlCalculator.calculateTtl(currentSlot, nowDateTime);
 		saveFutureCache(cacheKey, futureWeatherCacheData, ttl);
 
 		return futureWeatherCacheData;
@@ -108,10 +108,11 @@ public class WeatherCacheService {
 	private WeatherCacheData handleTodayFallback(
 		final WeatherRequest weatherRequest,
 		final TimeSlot currentSlot,
-		final LocalDate nowDate,
+		final LocalDateTime nowDateTime,
 		final String cacheKey,
 		final String hourKey
 	) {
+		LocalDate nowDate = nowDateTime.toLocalDate();
 		OpenMeteoWeatherApiResultDto fallbackResult;
 		try {
 			fallbackResult = weatherApiService.callOpenMeteoFallBackWeather(weatherRequest, nowDate);
@@ -123,7 +124,7 @@ public class WeatherCacheService {
 		Map<String, WeatherCacheData> newData =
 			weatherDecisionService.getTodayWeatherCacheDataFallback(fallbackResult, currentSlot, nowDate);
 
-		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+		Duration ttl = ttlCalculator.calculateTtl(currentSlot, nowDateTime);
 		saveTodayCache(cacheKey, newData, ttl);
 
 		return newData.get(hourKey);
@@ -132,6 +133,7 @@ public class WeatherCacheService {
 	private WeatherCacheData handleFutureFallback(
 		final WeatherRequest weatherRequest,
 		final TimeSlot currentSlot,
+		final LocalDateTime nowDateTime,
 		final LocalDate targetDate,
 		final String cacheKey
 	) {
@@ -146,7 +148,7 @@ public class WeatherCacheService {
 		WeatherCacheData futureWeatherCacheData =
 			weatherDecisionService.getFutureWeatherCacheDataFallback(fallbackResult, targetDate);
 
-		Duration ttl = ttlCalculator.calculateTtl(currentSlot);
+		Duration ttl = ttlCalculator.calculateTtl(currentSlot, nowDateTime);
 		saveFutureCache(cacheKey, futureWeatherCacheData, ttl);
 
 		return futureWeatherCacheData;
