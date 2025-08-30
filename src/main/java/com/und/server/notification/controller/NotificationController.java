@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/notifications")
+@RequestMapping("/v1")
 public class NotificationController {
 
 	private final NotificationCacheService notificationCacheService;
@@ -42,7 +42,7 @@ public class NotificationController {
 		@ApiResponse(
 			responseCode = "500", description = "Internal server error - failed to retrieve notification cache")
 	})
-	@GetMapping("/scenarios")
+	@GetMapping("/scenarios/notifications")
 	public ResponseEntity<ScenarioNotificationListResponse> getScenarioNotifications(
 		@AuthMember final Long memberId,
 		@Parameter(description = "ETag for client caching")
@@ -74,7 +74,7 @@ public class NotificationController {
 		@ApiResponse(
 			responseCode = "500", description = "Internal server error - failed to retrieve notification cache")
 	})
-	@GetMapping("/scenarios/{scenarioId}")
+	@GetMapping("/scenarios/{scenarioId}/notifications")
 	public ResponseEntity<ScenarioNotificationResponse> getSingleScenarioNotification(
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId
