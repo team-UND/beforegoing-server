@@ -88,7 +88,7 @@ class UvTypeTest {
 	@DisplayName("UvType의 심각도가 올바르다")
 	void Given_UvType_When_GetSeverity_Then_ReturnsCorrectSeverity() {
 		// given & when & then
-		assertThat(UvType.UNKNOWN.getSeverity()).isEqualTo(0);
+		assertThat(UvType.UNKNOWN.getSeverity()).isZero();
 		assertThat(UvType.VERY_LOW.getSeverity()).isEqualTo(1);
 		assertThat(UvType.LOW.getSeverity()).isEqualTo(2);
 		assertThat(UvType.NORMAL.getSeverity()).isEqualTo(3);
@@ -112,7 +112,7 @@ class UvTypeTest {
 	@DisplayName("UV 지수 범위가 올바르다")
 	void Given_UvType_When_GetUvIndexRange_Then_ReturnsCorrectRange() {
 		// given & when & then
-		assertThat(UvType.VERY_LOW.getMinUvIndex()).isEqualTo(0);
+		assertThat(UvType.VERY_LOW.getMinUvIndex()).isZero();
 		assertThat(UvType.VERY_LOW.getMaxUvIndex()).isEqualTo(2);
 		assertThat(UvType.LOW.getMinUvIndex()).isEqualTo(3);
 		assertThat(UvType.LOW.getMaxUvIndex()).isEqualTo(4);
