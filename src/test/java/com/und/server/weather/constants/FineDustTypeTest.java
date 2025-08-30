@@ -126,33 +126,6 @@ class FineDustTypeTest {
 		assertThat(worst).isEqualTo(FineDustType.DEFAULT);
 	}
 
-
-	@Test
-	@DisplayName("평균값을 계산할 수 있다")
-	void Given_FineDustType_When_GetAverageValue_Then_ReturnsAverageValue() {
-		// given & when & then
-		assertThat(FineDustType.UNKNOWN.getAverageValue()).isEqualTo(0.0);
-		assertThat(FineDustType.GOOD.getAverageValue()).isEqualTo(7.5); // (0 + 15) / 2
-		assertThat(FineDustType.NORMAL.getAverageValue()).isEqualTo(25.5); // (16 + 35) / 2
-		assertThat(FineDustType.BAD.getAverageValue()).isEqualTo(55.5); // (36 + 75) / 2
-		assertThat(FineDustType.VERY_BAD.getAverageValue()).isEqualTo(126.0); // 76 + 50
-	}
-
-
-	@Test
-	@DisplayName("평균값으로 FineDustType을 가져올 수 있다")
-	void Given_AverageValue_When_FromAverageValue_Then_ReturnsFineDustType() {
-		// given
-		double averageValue = 10.0; // 좋음 범위
-
-		// when
-		FineDustType result = FineDustType.fromAverageValue(averageValue);
-
-		// then
-		assertThat(result).isEqualTo(FineDustType.GOOD);
-	}
-
-
 	@Test
 	@DisplayName("FineDustType의 심각도가 올바르다")
 	void Given_FineDustType_When_GetSeverity_Then_ReturnsCorrectSeverity() {

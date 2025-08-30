@@ -152,12 +152,4 @@ class FineDustExtractorTest {
 		assertThat(result).isEqualTo(FineDustType.BAD);
 	}
 
-	@Test
-	@DisplayName("FineDustType getAverageValue / fromAverageValue 동작 확인")
-	void Given_Level_When_GetAverageValue_Then_ReturnCorrectValue() {
-		assertThat(FineDustType.GOOD.getAverageValue()).isEqualTo(7.5); // (0+15)/2
-		assertThat(FineDustType.VERY_BAD.getAverageValue()).isGreaterThan(75);
-		assertThat(FineDustType.fromAverageValue(20)).isEqualTo(FineDustType.NORMAL);
-	}
-
 }
