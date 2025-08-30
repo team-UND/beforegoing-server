@@ -39,10 +39,11 @@ class CacheSerializerTest {
 		String result = cacheSerializer.serializeWeatherCacheData(data);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result).contains("SUNNY");
-		assertThat(result).contains("GOOD");
-		assertThat(result).contains("LOW");
+		assertThat(result)
+			.isNotNull()
+			.contains("SUNNY")
+			.contains("GOOD")
+			.contains("LOW");
 	}
 
 
@@ -62,10 +63,13 @@ class CacheSerializerTest {
 		WeatherCacheData result = cacheSerializer.deserializeWeatherCacheData(json);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.fineDust()).isEqualTo(FineDustType.GOOD);
-		assertThat(result.uv()).isEqualTo(UvType.LOW);
+		assertThat(result)
+			.isNotNull()
+			.satisfies(data -> {
+				assertThat(data.weather()).isEqualTo(WeatherType.SUNNY);
+				assertThat(data.fineDust()).isEqualTo(FineDustType.GOOD);
+				assertThat(data.uv()).isEqualTo(UvType.LOW);
+			});
 	}
 
 
@@ -84,10 +88,13 @@ class CacheSerializerTest {
 		WeatherCacheData deserialized = cacheSerializer.deserializeWeatherCacheData(serialized);
 
 		// then
-		assertThat(deserialized).isNotNull();
-		assertThat(deserialized.weather()).isEqualTo(originalData.weather());
-		assertThat(deserialized.fineDust()).isEqualTo(originalData.fineDust());
-		assertThat(deserialized.uv()).isEqualTo(originalData.uv());
+		assertThat(deserialized)
+			.isNotNull()
+			.satisfies(data -> {
+				assertThat(data.weather()).isEqualTo(originalData.weather());
+				assertThat(data.fineDust()).isEqualTo(originalData.fineDust());
+				assertThat(data.uv()).isEqualTo(originalData.uv());
+			});
 	}
 
 
@@ -111,9 +118,12 @@ class CacheSerializerTest {
 		Map<String, String> result = cacheSerializer.serializeWeatherCacheDataToHash(hourlyData);
 
 		// then
-		assertThat(result).hasSize(2);
-		assertThat(result.get("12")).contains("SUNNY");
-		assertThat(result.get("13")).contains("CLOUDY");
+		assertThat(result)
+			.hasSize(2)
+			.satisfies(map -> {
+				assertThat(map.get("12")).contains("SUNNY");
+				assertThat(map.get("13")).contains("CLOUDY");
+			});
 	}
 
 
@@ -133,10 +143,13 @@ class CacheSerializerTest {
 		WeatherCacheData result = cacheSerializer.deserializeWeatherCacheDataFromHash(json);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.weather()).isEqualTo(WeatherType.SNOW);
-		assertThat(result.fineDust()).isEqualTo(FineDustType.VERY_BAD);
-		assertThat(result.uv()).isEqualTo(UvType.VERY_HIGH);
+		assertThat(result)
+			.isNotNull()
+			.satisfies(data -> {
+				assertThat(data.weather()).isEqualTo(WeatherType.SNOW);
+				assertThat(data.fineDust()).isEqualTo(FineDustType.VERY_BAD);
+				assertThat(data.uv()).isEqualTo(UvType.VERY_HIGH);
+			});
 	}
 
 
@@ -150,8 +163,9 @@ class CacheSerializerTest {
 		String result = cacheSerializer.serializeWeatherCacheData(data);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result).contains("{}");
+		assertThat(result)
+			.isNotNull()
+			.contains("{}");
 	}
 
 
@@ -165,10 +179,13 @@ class CacheSerializerTest {
 		WeatherCacheData result = cacheSerializer.deserializeWeatherCacheData(json);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.weather()).isNull();
-		assertThat(result.fineDust()).isNull();
-		assertThat(result.uv()).isNull();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(data -> {
+				assertThat(data.weather()).isNull();
+				assertThat(data.fineDust()).isNull();
+				assertThat(data.uv()).isNull();
+			});
 	}
 
 
@@ -228,8 +245,9 @@ class CacheSerializerTest {
 			WeatherCacheData deserialized = cacheSerializer.deserializeWeatherCacheData(serialized);
 
 			// then
-			assertThat(deserialized).isNotNull();
-			assertThat(deserialized.weather()).isEqualTo(weatherType);
+			assertThat(deserialized)
+				.isNotNull()
+				.satisfies(result -> assertThat(result.weather()).isEqualTo(weatherType));
 		}
 	}
 
@@ -250,8 +268,9 @@ class CacheSerializerTest {
 			WeatherCacheData deserialized = cacheSerializer.deserializeWeatherCacheData(serialized);
 
 			// then
-			assertThat(deserialized).isNotNull();
-			assertThat(deserialized.fineDust()).isEqualTo(fineDustType);
+			assertThat(deserialized)
+				.isNotNull()
+				.satisfies(result -> assertThat(result.fineDust()).isEqualTo(fineDustType));
 		}
 	}
 
@@ -272,8 +291,9 @@ class CacheSerializerTest {
 			WeatherCacheData deserialized = cacheSerializer.deserializeWeatherCacheData(serialized);
 
 			// then
-			assertThat(deserialized).isNotNull();
-			assertThat(deserialized.uv()).isEqualTo(uvType);
+			assertThat(deserialized)
+				.isNotNull()
+				.satisfies(result -> assertThat(result.uv()).isEqualTo(uvType));
 		}
 	}
 
@@ -295,9 +315,12 @@ class CacheSerializerTest {
 		Map<String, String> result = cacheSerializer.serializeWeatherCacheDataToHash(hourlyData);
 
 		// then
-		assertThat(result).hasSize(2);
-		assertThat(result.get("12")).contains("SUNNY");
-		assertThat(result.get("13")).isEqualTo("null");
+		assertThat(result)
+			.hasSize(2)
+			.satisfies(map -> {
+				assertThat(map.get("12")).contains("SUNNY");
+				assertThat(map.get("13")).isEqualTo("null");
+			});
 	}
 
 
@@ -351,10 +374,13 @@ class CacheSerializerTest {
 		WeatherCacheData result = cacheSerializer.deserializeWeatherCacheDataFromHash(json);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.weather()).isNull();
-		assertThat(result.fineDust()).isNull();
-		assertThat(result.uv()).isNull();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(data -> {
+				assertThat(data.weather()).isNull();
+				assertThat(data.fineDust()).isNull();
+				assertThat(data.uv()).isNull();
+			});
 	}
 
 }
