@@ -31,7 +31,7 @@ class CacheSerializerTest {
 		// given
 		WeatherCacheData data = WeatherCacheData.builder()
 			.weather(WeatherType.SUNNY)
-			.findDust(FineDustType.GOOD)
+			.fineDust(FineDustType.GOOD)
 			.uv(UvType.LOW)
 			.build();
 
@@ -53,7 +53,7 @@ class CacheSerializerTest {
 		String json = """
 			{
 				"weather": "SUNNY",
-				"findDust": "GOOD",
+				"fineDust": "GOOD",
 				"uv": "LOW"
 			}
 			""";
@@ -75,7 +75,7 @@ class CacheSerializerTest {
 		// given
 		WeatherCacheData originalData = WeatherCacheData.builder()
 			.weather(WeatherType.RAIN)
-			.findDust(FineDustType.BAD)
+			.fineDust(FineDustType.BAD)
 			.uv(UvType.HIGH)
 			.build();
 
@@ -98,12 +98,12 @@ class CacheSerializerTest {
 		Map<String, WeatherCacheData> hourlyData = new HashMap<>();
 		hourlyData.put("12", WeatherCacheData.builder()
 			.weather(WeatherType.SUNNY)
-			.findDust(FineDustType.GOOD)
+			.fineDust(FineDustType.GOOD)
 			.uv(UvType.LOW)
 			.build());
 		hourlyData.put("13", WeatherCacheData.builder()
 			.weather(WeatherType.CLOUDY)
-			.findDust(FineDustType.NORMAL)
+			.fineDust(FineDustType.NORMAL)
 			.uv(UvType.NORMAL)
 			.build());
 
@@ -124,7 +124,7 @@ class CacheSerializerTest {
 		String json = """
 			{
 				"weather": "SNOW",
-				"findDust": "VERY_BAD",
+				"fineDust": "VERY_BAD",
 				"uv": "VERY_HIGH"
 			}
 			""";
@@ -219,7 +219,7 @@ class CacheSerializerTest {
 		for (WeatherType weatherType : WeatherType.values()) {
 			WeatherCacheData data = WeatherCacheData.builder()
 				.weather(weatherType)
-				.findDust(FineDustType.GOOD)
+				.fineDust(FineDustType.GOOD)
 				.uv(UvType.LOW)
 				.build();
 
@@ -241,7 +241,7 @@ class CacheSerializerTest {
 		for (FineDustType fineDustType : FineDustType.values()) {
 			WeatherCacheData data = WeatherCacheData.builder()
 				.weather(WeatherType.SUNNY)
-				.findDust(fineDustType)
+				.fineDust(fineDustType)
 				.uv(UvType.LOW)
 				.build();
 
@@ -263,7 +263,7 @@ class CacheSerializerTest {
 		for (UvType uvType : UvType.values()) {
 			WeatherCacheData data = WeatherCacheData.builder()
 				.weather(WeatherType.SUNNY)
-				.findDust(FineDustType.GOOD)
+				.fineDust(FineDustType.GOOD)
 				.uv(uvType)
 				.build();
 
@@ -285,7 +285,7 @@ class CacheSerializerTest {
 		Map<String, WeatherCacheData> hourlyData = new HashMap<>();
 		hourlyData.put("12", WeatherCacheData.builder()
 			.weather(WeatherType.SUNNY)
-			.findDust(FineDustType.GOOD)
+			.fineDust(FineDustType.GOOD)
 			.uv(UvType.LOW)
 			.build());
 		// null 데이터는 "null" 문자열로 직렬화됨

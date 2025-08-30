@@ -52,7 +52,7 @@ class WeatherServiceTest {
 		LocalDateTime nowDateTime = LocalDateTime.now();
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.SUNNY)
-			.findDust(FineDustType.GOOD)
+			.fineDust(FineDustType.GOOD)
 			.uv(UvType.LOW)
 			.build();
 
@@ -78,7 +78,7 @@ class WeatherServiceTest {
 		LocalDateTime nowDateTime = LocalDateTime.now();
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.CLOUDY)
-			.findDust(FineDustType.NORMAL)
+			.fineDust(FineDustType.NORMAL)
 			.uv(UvType.NORMAL)
 			.build();
 
@@ -123,7 +123,7 @@ class WeatherServiceTest {
 		LocalDate today = LocalDate.now();
 		WeatherCacheData invalidCacheData = WeatherCacheData.builder()
 			.weather(null)
-			.findDust(FineDustType.GOOD)
+			.fineDust(FineDustType.GOOD)
 			.uv(UvType.LOW)
 			.build();
 
@@ -168,7 +168,7 @@ class WeatherServiceTest {
 		LocalDate futureDate = LocalDate.now().plusDays(1);
 		WeatherCacheData invalidCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.CLOUDY)
-			.findDust(null)
+			.fineDust(null)
 			.uv(UvType.NORMAL)
 			.build();
 
@@ -277,7 +277,7 @@ class WeatherServiceTest {
 		LocalDate today = LocalDate.now();
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.RAIN)
-			.findDust(FineDustType.BAD)
+			.fineDust(FineDustType.BAD)
 			.uv(UvType.HIGH)
 			.build();
 
@@ -302,7 +302,7 @@ class WeatherServiceTest {
 		LocalDate maxDate = LocalDate.now().plusDays(3); // MAX_FUTURE_DATE
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.SNOW)
-			.findDust(FineDustType.VERY_BAD)
+			.fineDust(FineDustType.VERY_BAD)
 			.uv(UvType.VERY_LOW)
 			.build();
 
