@@ -152,7 +152,7 @@ class TimeSlotTest {
 
 		// then
 		assertThat(allDayHours).hasSize(24);
-		assertThat(allDayHours.get(0)).isEqualTo(0);
+		assertThat(allDayHours.get(0)).isZero();
 		assertThat(allDayHours.get(23)).isEqualTo(23);
 	}
 
@@ -176,7 +176,7 @@ class TimeSlotTest {
 	@DisplayName("시간대의 시작 시간과 종료 시간이 올바르다")
 	void Given_TimeSlots_When_GetBoundaries_Then_ReturnsCorrectHours() {
 		// given & when & then
-		assertThat(TimeSlot.SLOT_00_03.getStartHour()).isEqualTo(0);
+		assertThat(TimeSlot.SLOT_00_03.getStartHour()).isZero();
 		assertThat(TimeSlot.SLOT_00_03.getEndHour()).isEqualTo(3);
 
 		assertThat(TimeSlot.SLOT_03_06.getStartHour()).isEqualTo(3);
