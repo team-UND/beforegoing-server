@@ -38,8 +38,8 @@ class OpenMeteoWeatherExtractorTest {
 
 		// then
 		assertThat(result).hasSize(2);
-		assertThat(result.get(9)).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.get(10)).isEqualTo(WeatherType.RAIN);
+		assertThat(result).containsEntry(9, WeatherType.SUNNY);
+		assertThat(result).containsEntry(10, WeatherType.RAIN);
 	}
 
 
