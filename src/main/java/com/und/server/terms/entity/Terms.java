@@ -42,7 +42,7 @@ public class Terms extends BaseTimeEntity {
 	@Builder.Default
 	private Boolean privacyPolicyAgreed = false;
 
-	@Column(nullable = false)
+	@Column(name = "is_over_14", nullable = false)
 	@Builder.Default
 	private Boolean isOver14 = false;
 
