@@ -14,8 +14,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 	@JsonSubTypes.Type(value = TimeNotificationResponse.class, name = "TIME")
 })
 @Schema(
-	description =
-		"Notification condition request. The request body structure changes depending on the 'notificationType'.",
-	discriminatorProperty = "notificationType"
+	description = "Notification condition polymorphic base",
+	discriminatorProperty = "notificationType",
+	oneOf = {TimeNotificationResponse.class}
 )
 public interface NotificationConditionResponse { }

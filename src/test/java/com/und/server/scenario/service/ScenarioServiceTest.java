@@ -33,6 +33,7 @@ import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.request.TimeNotificationRequest;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
@@ -79,6 +80,9 @@ class ScenarioServiceTest {
 
 	@Mock
 	private com.und.server.scenario.util.ScenarioValidator scenarioValidator;
+
+	@Mock
+	private NotificationEventPublisher notificationEventPublisher;
 
 
 	@Test
@@ -349,6 +353,7 @@ class ScenarioServiceTest {
 		verify(missionService).addBasicMission(any(Scenario.class), eq(missionList));
 		verify(scenarioRepository).save(scenarioCaptor.capture());
 		verify(missionTypeGrouper).groupAndSortByType(savedMissions, MissionType.BASIC);
+		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
 
 		Scenario saved = scenarioCaptor.getValue();
 
@@ -429,6 +434,7 @@ class ScenarioServiceTest {
 		// then
 		verify(scenarioRepository).save(captor.capture());
 		verify(missionTypeGrouper).groupAndSortByType(List.of(), MissionType.BASIC);
+		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
 
 		Scenario saved = captor.getValue();
 		assertThat(saved.getScenarioOrder()).isEqualTo(reorderedOrder);
@@ -473,6 +479,7 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification oldNotification = Notification.builder()
 			.id(1L)
+			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.build();
 		// removed unused newNotification
@@ -536,6 +543,7 @@ class ScenarioServiceTest {
 		assertThat(oldScenario.getNotification().isActive()).isTrue();
 		verify(notificationService).updateNotification(oldNotification, notifRequest, condition);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
+		verify(notificationEventPublisher).publishUpdateEvent(eq(memberId), eq(oldScenario), eq(true));
 
 		assertThat(result).isNotNull();
 		assertThat(result.scenarioId()).isEqualTo(scenarioId);
@@ -554,6 +562,7 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification notification = Notification.builder()
 			.id(1L)
+			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.build();
 
@@ -597,6 +606,7 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification notification = Notification.builder()
 			.id(1L)
+			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.build();
 
@@ -654,7 +664,8 @@ class ScenarioServiceTest {
 
 		given(scenarioRepository.findOrdersByMemberIdAndNotificationType(memberId, NotificationType.TIME))
 			.willReturn(List.of());
-		Notification saved = Notification.builder().id(1L).notificationType(NotificationType.TIME).build();
+		Notification saved =
+			Notification.builder().id(1L).isActive(true).notificationType(NotificationType.TIME).build();
 		given(notificationService.addNotification(notificationRequest, null)).willReturn(saved);
 
 		// when
@@ -664,6 +675,7 @@ class ScenarioServiceTest {
 		verify(notificationService).addNotification(notificationRequest, null);
 		verify(scenarioRepository).save(any(Scenario.class));
 		verify(missionService).addBasicMission(any(Scenario.class), eq(List.of()));
+		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
 	}
 
 
@@ -676,6 +688,7 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification notification = Notification.builder()
 			.id(1L)
+			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.build();
 
@@ -694,6 +707,7 @@ class ScenarioServiceTest {
 		// then
 		verify(notificationService).deleteNotification(notification);
 		verify(scenarioRepository).delete(scenario);
+		verify(notificationEventPublisher).publishDeleteEvent(eq(memberId), eq(scenarioId), eq(true));
 	}
 
 
@@ -772,6 +786,7 @@ class ScenarioServiceTest {
 		Member member = Member.builder().id(memberId).build();
 		Notification oldNotification = Notification.builder()
 			.id(1L)
+			.isActive(false)
 			.notificationType(NotificationType.TIME)
 			.build();
 
@@ -817,6 +832,7 @@ class ScenarioServiceTest {
 		assertThat(oldScenario.getMemo()).isEqualTo("수정된 메모");
 		verify(notificationService).updateNotification(oldNotification, notificationRequest, null);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
+		verify(notificationEventPublisher).publishUpdateEvent(eq(memberId), eq(oldScenario), eq(false));
 
 		assertThat(result).isNotNull();
 		assertThat(result.scenarioId()).isEqualTo(scenarioId);
@@ -1026,6 +1042,7 @@ class ScenarioServiceTest {
 
 		// then
 		verify(scenarioRepository).save(scenarioCaptor.capture());
+		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
 
 		Scenario saved = scenarioCaptor.getValue();
 		assertThat(saved.getScenarioOrder()).isEqualTo(OrderCalculator.START_ORDER);
