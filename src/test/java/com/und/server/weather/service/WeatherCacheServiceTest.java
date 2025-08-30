@@ -86,7 +86,7 @@ class WeatherCacheServiceTest {
 		TimeSlot currentSlot = TimeSlot.SLOT_09_12;
 		String expectedCacheKey = "today:weather:37.5665:126.9780:2024-01-01:SLOT_09_12";
 
-		when(keyGenerator.generateTodayKey(eq(37.5665), eq(126.9780), eq(nowDate), eq(currentSlot)))
+		when(keyGenerator.generateTodayKey((37.5665), (126.9780), (nowDate), (currentSlot)))
 			.thenReturn(expectedCacheKey);
 
 		// when
@@ -104,7 +104,7 @@ class WeatherCacheServiceTest {
 		TimeSlot currentSlot = TimeSlot.SLOT_09_12;
 		String expectedCacheKey = "future:weather:37.5665:126.9780:2024-01-02:SLOT_09_12";
 
-		when(keyGenerator.generateFutureKey(eq(37.5665), eq(126.9780), eq(targetDate), eq(currentSlot)))
+		when(keyGenerator.generateFutureKey((37.5665), (126.9780), (targetDate), (currentSlot)))
 			.thenReturn(expectedCacheKey);
 
 		// when
