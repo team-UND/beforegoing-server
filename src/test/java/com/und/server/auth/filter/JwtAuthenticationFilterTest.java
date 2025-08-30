@@ -24,7 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.jwt.JwtProvider;
-import com.und.server.common.dto.ErrorResponse;
+import com.und.server.common.dto.response.ErrorResponse;
 import com.und.server.common.exception.ServerException;
 
 import jakarta.servlet.FilterChain;

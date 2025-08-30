@@ -1,4 +1,4 @@
-package com.und.server.auth.dto;
+package com.und.server.auth.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

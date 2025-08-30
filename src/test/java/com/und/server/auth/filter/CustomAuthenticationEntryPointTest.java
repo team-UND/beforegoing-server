@@ -11,7 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.und.server.auth.exception.AuthErrorResult;
-import com.und.server.common.dto.ErrorResponse;
+import com.und.server.common.dto.response.ErrorResponse;
 
 class CustomAuthenticationEntryPointTest {
 

@@ -1,4 +1,4 @@
-package com.und.server.common.dto;
+package com.und.server.common.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

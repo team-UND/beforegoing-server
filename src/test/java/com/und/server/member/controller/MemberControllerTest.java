@@ -26,8 +26,8 @@ import com.und.server.auth.filter.AuthMemberArgumentResolver;
 import com.und.server.common.exception.CommonErrorResult;
 import com.und.server.common.exception.GlobalExceptionHandler;
 import com.und.server.common.exception.ServerException;
-import com.und.server.member.dto.MemberResponse;
-import com.und.server.member.dto.NicknameRequest;
+import com.und.server.member.dto.request.NicknameRequest;
+import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.service.MemberService;
 
 @ExtendWith(MockitoExtension.class)
