@@ -45,11 +45,11 @@ class UvIndexExtractorTest {
 
 		// then
 		assertThat(result).hasSize(5);
-		assertThat(result.get(9)).isEqualTo(UvType.VERY_LOW);
-		assertThat(result.get(10)).isEqualTo(UvType.LOW);
-		assertThat(result.get(11)).isEqualTo(UvType.NORMAL);
-		assertThat(result.get(12)).isEqualTo(UvType.HIGH);
-		assertThat(result.get(13)).isEqualTo(UvType.VERY_HIGH);
+		assertThat(result).containsEntry(9, UvType.VERY_LOW);
+		assertThat(result).containsEntry(10, UvType.LOW);
+		assertThat(result).containsEntry(11, UvType.NORMAL);
+		assertThat(result).containsEntry(12, UvType.HIGH);
+		assertThat(result).containsEntry(13, UvType.VERY_HIGH);
 	}
 
 	@Test
