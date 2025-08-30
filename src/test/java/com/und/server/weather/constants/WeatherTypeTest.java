@@ -195,7 +195,7 @@ class WeatherTypeTest {
 	@DisplayName("WeatherType의 심각도가 올바르다")
 	void Given_WeatherType_When_GetSeverity_Then_ReturnsCorrectSeverity() {
 		// given & when & then
-		assertThat(WeatherType.UNKNOWN.getSeverity()).isEqualTo(0);
+		assertThat(WeatherType.UNKNOWN.getSeverity()).isZero();
 		assertThat(WeatherType.SUNNY.getSeverity()).isEqualTo(1);
 		assertThat(WeatherType.CLOUDY.getSeverity()).isEqualTo(2);
 		assertThat(WeatherType.OVERCAST.getSeverity()).isEqualTo(2);
