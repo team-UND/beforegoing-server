@@ -1,6 +1,5 @@
 package com.und.server.weather.controller;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,7 +56,7 @@ class WeatherControllerTest {
 			WeatherType.SUNNY, FineDustType.GOOD, UvType.LOW
 		);
 
-		given(weatherService.getWeatherInfo(eq(request), eq(date)))
+		given(weatherService.getWeatherInfo((request), (date)))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -82,7 +81,7 @@ class WeatherControllerTest {
 			WeatherType.RAIN, FineDustType.NORMAL, UvType.NORMAL
 		);
 
-		given(weatherService.getWeatherInfo(eq(request), eq(date)))
+		given(weatherService.getWeatherInfo((request), (date)))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -107,7 +106,7 @@ class WeatherControllerTest {
 			WeatherType.CLOUDY, FineDustType.BAD, UvType.HIGH
 		);
 
-		given(weatherService.getWeatherInfo(eq(request), eq(date)))
+		given(weatherService.getWeatherInfo((request), (date)))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -131,7 +130,7 @@ class WeatherControllerTest {
 			WeatherType.SNOW, FineDustType.GOOD, UvType.VERY_LOW
 		);
 
-		given(weatherService.getWeatherInfo(eq(request), eq(date)))
+		given(weatherService.getWeatherInfo((request), (date)))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -156,7 +155,7 @@ class WeatherControllerTest {
 			WeatherType.SUNNY, FineDustType.GOOD, UvType.VERY_HIGH
 		);
 
-		given(weatherService.getWeatherInfo(eq(request), eq(date)))
+		given(weatherService.getWeatherInfo((request), (date)))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -181,7 +180,7 @@ class WeatherControllerTest {
 			WeatherType.CLOUDY, FineDustType.NORMAL, UvType.LOW
 		);
 
-		given(weatherService.getWeatherInfo(eq(request), eq(date)))
+		given(weatherService.getWeatherInfo((request), (date)))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -206,7 +205,7 @@ class WeatherControllerTest {
 			WeatherType.SNOW, FineDustType.VERY_BAD, UvType.VERY_HIGH
 		);
 
-		given(weatherService.getWeatherInfo(eq(request), eq(date)))
+		given(weatherService.getWeatherInfo((request), (date)))
 			.willReturn(expectedResponse);
 
 		// when & then
