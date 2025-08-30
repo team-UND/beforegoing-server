@@ -43,16 +43,17 @@ class FineDustExtractorTest {
 
 		// then
 		assertThat(result).hasSize(3);
-		assertThat(result.get(9)).isEqualTo(FineDustType.GOOD);
-		assertThat(result.get(10)).isEqualTo(FineDustType.BAD);
-		assertThat(result.get(11)).isEqualTo(FineDustType.VERY_BAD);
+		assertThat(result).containsEntry(9, FineDustType.GOOD);
+		assertThat(result).containsEntry(10, FineDustType.BAD);
+		assertThat(result).containsEntry(11, FineDustType.VERY_BAD);
 	}
 
 	@Test
 	@DisplayName("응답이 null이면 빈 맵을 반환한다")
 	void Given_NullResponse_When_ExtractDustForHours_Then_ReturnsEmptyMap() {
 		Map<Integer, FineDustType> result =
-			extractor.extractDustForHours(null, List.of(9), LocalDate.of(2024, 1, 1));
+			extractor.extractDustForHours(
+				null, List.of(9), LocalDate.of(2024, 1, 1));
 		assertThat(result).isEmpty();
 	}
 
