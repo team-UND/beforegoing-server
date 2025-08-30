@@ -14,6 +14,7 @@ import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.NotificationResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
@@ -47,6 +48,7 @@ public class ScenarioService {
 	private final OrderCalculator orderCalculator;
 	private final ScenarioValidator scenarioValidator;
 	private final EntityManager em;
+	private final NotificationEventPublisher notificationEventPublisher;
 
 
 	@Transactional(readOnly = true)
@@ -124,6 +126,8 @@ public class ScenarioService {
 
 		List<Mission> basicMissions = missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
 
+		notificationEventPublisher.publishCreateEvent(memberId, scenario);
+
 		return MissionGroupResponse.from(scenario.getId(), basicMissions, null);
 	}
 
@@ -136,9 +140,12 @@ public class ScenarioService {
 	) {
 		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+		Notification oldNotification = oldScenario.getNotification();
+
+		Boolean isOldScenarioNotificationActive = oldNotification.isActive();
 
 		notificationService.updateNotification(
-			oldScenario.getNotification(),
+			oldNotification,
 			scenarioDetailRequest.notification(),
 			scenarioDetailRequest.notificationCondition()
 		);
@@ -147,6 +154,8 @@ public class ScenarioService {
 
 		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
+
+		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
 
 		return missionService.findMissionsByScenarioId(memberId, scenarioId, LocalDate.now());
 	}
@@ -186,8 +195,13 @@ public class ScenarioService {
 		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
-		notificationService.deleteNotification(scenario.getNotification());
+		Notification notification = scenario.getNotification();
+		boolean isNotificationActive = notification.isActive();
+
+		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);
+
+		notificationEventPublisher.publishDeleteEvent(memberId, scenarioId, isNotificationActive);
 	}
 
 
