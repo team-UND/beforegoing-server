@@ -130,7 +130,7 @@ class FineDustTypeTest {
 	@DisplayName("FineDustType의 심각도가 올바르다")
 	void Given_FineDustType_When_GetSeverity_Then_ReturnsCorrectSeverity() {
 		// given & when & then
-		assertThat(FineDustType.UNKNOWN.getSeverity()).isEqualTo(0);
+		assertThat(FineDustType.UNKNOWN.getSeverity()).isZero();
 		assertThat(FineDustType.GOOD.getSeverity()).isEqualTo(1);
 		assertThat(FineDustType.NORMAL.getSeverity()).isEqualTo(2);
 		assertThat(FineDustType.BAD.getSeverity()).isEqualTo(3);
@@ -152,7 +152,7 @@ class FineDustTypeTest {
 	@DisplayName("PM10 범위가 올바르다")
 	void Given_FineDustType_When_GetPm10Range_Then_ReturnsCorrectRange() {
 		// given & when & then
-		assertThat(FineDustType.GOOD.getMinPm10()).isEqualTo(0);
+		assertThat(FineDustType.GOOD.getMinPm10()).isZero();
 		assertThat(FineDustType.GOOD.getMaxPm10()).isEqualTo(30);
 		assertThat(FineDustType.NORMAL.getMinPm10()).isEqualTo(31);
 		assertThat(FineDustType.NORMAL.getMaxPm10()).isEqualTo(80);
@@ -166,7 +166,7 @@ class FineDustTypeTest {
 	@DisplayName("PM2.5 범위가 올바르다")
 	void Given_FineDustType_When_GetPm25Range_Then_ReturnsCorrectRange() {
 		// given & when & then
-		assertThat(FineDustType.GOOD.getMinPm25()).isEqualTo(0);
+		assertThat(FineDustType.GOOD.getMinPm25()).isZero();
 		assertThat(FineDustType.GOOD.getMaxPm25()).isEqualTo(15);
 		assertThat(FineDustType.NORMAL.getMinPm25()).isEqualTo(16);
 		assertThat(FineDustType.NORMAL.getMaxPm25()).isEqualTo(35);
