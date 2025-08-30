@@ -24,44 +24,57 @@ public class FineDustExtractor {
 	) {
 		Map<Integer, FineDustType> result = new HashMap<>();
 
-		if (!isValidResponse(openMeteoResponse) || targetHours == null || targetHours.isEmpty()) {
+		if (!isValidInput(openMeteoResponse, targetHours)) {
 			return result;
 		}
 
-		List<String> times = openMeteoResponse.hourly().time();
-		List<Double> pm10Values = openMeteoResponse.hourly().pm10();
-		List<Double> pm25Values = openMeteoResponse.hourly().pm25();
+		final List<String> times = openMeteoResponse.hourly().time();
+		final List<Double> pm10Values = openMeteoResponse.hourly().pm10();
+		final List<Double> pm25Values = openMeteoResponse.hourly().pm25();
 
 		if (!isValidData(times, pm10Values, pm25Values)) {
 			return result;
 		}
 
-		final var targetSet = Set.copyOf(targetHours);
+		final Set<Integer> targetSet = Set.copyOf(targetHours);
 		final String targetDateStr = date.toString();
 
 		for (int i = 0; i < times.size(); i++) {
-			final String timeStr = times.get(i);
-			if (timeStr == null || !timeStr.startsWith(targetDateStr)) {
-				continue;
-			}
-
-			final int hour;
-			try {
-				hour = Integer.parseInt(timeStr.substring(11, 13));
-			} catch (NumberFormatException e) {
-				continue;
-			}
-
-			if (!targetSet.contains(hour)) {
-				continue;
-			}
-
-			final FineDustType dust = convertToFineDustType(i, pm10Values, pm25Values);
-			if (dust != null) {
-				result.put(hour, dust);
-			}
+			processItem(times.get(i), i, targetDateStr, targetSet, pm10Values, pm25Values, result);
 		}
+
 		return result;
+	}
+
+	private void processItem(
+		final String timeStr,
+		final int index,
+		final String targetDateStr,
+		final Set<Integer> targetSet,
+		final List<Double> pm10Values,
+		final List<Double> pm25Values,
+		final Map<Integer, FineDustType> result
+	) {
+		Integer hour = parseHour(timeStr, targetDateStr);
+		if (hour == null || !targetSet.contains(hour)) {
+			return;
+		}
+
+		FineDustType dust = convertToFineDustType(index, pm10Values, pm25Values);
+		if (dust != null) {
+			result.put(hour, dust);
+		}
+	}
+
+	private Integer parseHour(final String timeStr, final String targetDateStr) {
+		if (timeStr == null || !timeStr.startsWith(targetDateStr)) {
+			return null;
+		}
+		try {
+			return Integer.parseInt(timeStr.substring(11, 13));
+		} catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 
 	private FineDustType convertToFineDustType(
@@ -85,8 +98,14 @@ public class FineDustExtractor {
 		return FineDustType.getWorst(List.of(pm10Level, pm25Level));
 	}
 
-	private boolean isValidResponse(final OpenMeteoResponse openMeteoResponse) {
-		return openMeteoResponse != null && openMeteoResponse.hourly() != null;
+	private boolean isValidInput(final OpenMeteoResponse response, final List<Integer> targetHours) {
+		if (response == null || response.hourly() == null) {
+			return false;
+		}
+		if (targetHours == null || targetHours.isEmpty()) {
+			return false;
+		}
+		return true;
 	}
 
 	private boolean isValidData(
