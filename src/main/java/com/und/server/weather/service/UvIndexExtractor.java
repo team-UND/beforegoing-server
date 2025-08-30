@@ -24,43 +24,55 @@ public class UvIndexExtractor {
 	) {
 		Map<Integer, UvType> result = new HashMap<>();
 
-		if (!isValidResponse(openMeteoResponse) || targetHours == null || targetHours.isEmpty()) {
+		if (!isValidInput(openMeteoResponse, targetHours)) {
 			return result;
 		}
 
-		List<String> times = openMeteoResponse.hourly().time();
-		List<Double> uvIndexValues = openMeteoResponse.hourly().uvIndex();
+		final List<String> times = openMeteoResponse.hourly().time();
+		final List<Double> uvIndexValues = openMeteoResponse.hourly().uvIndex();
 
 		if (!isValidData(times, uvIndexValues)) {
 			return result;
 		}
 
-		final var targetSet = Set.copyOf(targetHours);
+		final Set<Integer> targetSet = Set.copyOf(targetHours);
 		final String targetDateStr = date.toString();
 
 		for (int i = 0; i < times.size(); i++) {
-			final String timeStr = times.get(i);
-			if (timeStr == null || !timeStr.startsWith(targetDateStr)) {
-				continue;
-			}
-
-			final int hour;
-			try {
-				hour = Integer.parseInt(timeStr.substring(11, 13));
-			} catch (NumberFormatException e) {
-				continue;
-			}
-
-			if (!targetSet.contains(hour)) {
-				continue;
-			}
-
-			final UvType uv = convertToUvType(i, uvIndexValues);
-			if (uv != null) {
-				result.put(hour, uv);
-			}
+			processItem(times.get(i), i, targetDateStr, targetSet, uvIndexValues, result);
 		}
+
 		return result;
+	}
+
+	private void processItem(
+		final String timeStr,
+		final int index,
+		final String targetDateStr,
+		final Set<Integer> targetSet,
+		final List<Double> uvIndexValues,
+		final Map<Integer, UvType> result
+	) {
+		Integer hour = parseHour(timeStr, targetDateStr);
+		if (hour == null || !targetSet.contains(hour)) {
+			return;
+		}
+
+		UvType uv = convertToUvType(index, uvIndexValues);
+		if (uv != null) {
+			result.put(hour, uv);
+		}
+	}
+
+	private Integer parseHour(final String timeStr, final String targetDateStr) {
+		if (timeStr == null || !timeStr.startsWith(targetDateStr)) {
+			return null;
+		}
+		try {
+			return Integer.parseInt(timeStr.substring(11, 13));
+		} catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 
 	private UvType convertToUvType(final int index, final List<Double> uvIndexValues) {
@@ -76,8 +88,14 @@ public class UvIndexExtractor {
 		return UvType.fromUvIndex(uvIndex);
 	}
 
-	private boolean isValidResponse(final OpenMeteoResponse openMeteoResponse) {
-		return openMeteoResponse != null && openMeteoResponse.hourly() != null;
+	private boolean isValidInput(final OpenMeteoResponse response, final List<Integer> targetHours) {
+		if (response == null || response.hourly() == null) {
+			return false;
+		}
+		if (targetHours == null || targetHours.isEmpty()) {
+			return false;
+		}
+		return true;
 	}
 
 	private boolean isValidData(final List<String> times, final List<Double> uvIndexValues) {
