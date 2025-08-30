@@ -64,7 +64,7 @@ class CacheSerializerTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.findDust()).isEqualTo(FineDustType.GOOD);
+		assertThat(result.fineDust()).isEqualTo(FineDustType.GOOD);
 		assertThat(result.uv()).isEqualTo(UvType.LOW);
 	}
 
@@ -86,7 +86,7 @@ class CacheSerializerTest {
 		// then
 		assertThat(deserialized).isNotNull();
 		assertThat(deserialized.weather()).isEqualTo(originalData.weather());
-		assertThat(deserialized.findDust()).isEqualTo(originalData.findDust());
+		assertThat(deserialized.fineDust()).isEqualTo(originalData.fineDust());
 		assertThat(deserialized.uv()).isEqualTo(originalData.uv());
 	}
 
@@ -135,7 +135,7 @@ class CacheSerializerTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.weather()).isEqualTo(WeatherType.SNOW);
-		assertThat(result.findDust()).isEqualTo(FineDustType.VERY_BAD);
+		assertThat(result.fineDust()).isEqualTo(FineDustType.VERY_BAD);
 		assertThat(result.uv()).isEqualTo(UvType.VERY_HIGH);
 	}
 
@@ -167,7 +167,7 @@ class CacheSerializerTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.weather()).isNull();
-		assertThat(result.findDust()).isNull();
+		assertThat(result.fineDust()).isNull();
 		assertThat(result.uv()).isNull();
 	}
 
@@ -251,7 +251,7 @@ class CacheSerializerTest {
 
 			// then
 			assertThat(deserialized).isNotNull();
-			assertThat(deserialized.findDust()).isEqualTo(fineDustType);
+			assertThat(deserialized.fineDust()).isEqualTo(fineDustType);
 		}
 	}
 
@@ -353,7 +353,7 @@ class CacheSerializerTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.weather()).isNull();
-		assertThat(result.findDust()).isNull();
+		assertThat(result.fineDust()).isNull();
 		assertThat(result.uv()).isNull();
 	}
 

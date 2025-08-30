@@ -111,7 +111,7 @@ class WeatherServiceTest {
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.weather()).isEqualTo(WeatherCacheData.getDefault().weather());
-		assertThat(response.fineDust()).isEqualTo(WeatherCacheData.getDefault().findDust());
+		assertThat(response.fineDust()).isEqualTo(WeatherCacheData.getDefault().fineDust());
 	}
 
 
@@ -136,7 +136,7 @@ class WeatherServiceTest {
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.weather()).isEqualTo(invalidCacheData.getValidDefault().weather());
-		assertThat(response.fineDust()).isEqualTo(invalidCacheData.getValidDefault().findDust());
+		assertThat(response.fineDust()).isEqualTo(invalidCacheData.getValidDefault().fineDust());
 	}
 
 
@@ -156,7 +156,7 @@ class WeatherServiceTest {
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.weather()).isEqualTo(WeatherCacheData.getDefault().weather());
-		assertThat(response.fineDust()).isEqualTo(WeatherCacheData.getDefault().findDust());
+		assertThat(response.fineDust()).isEqualTo(WeatherCacheData.getDefault().fineDust());
 	}
 
 
@@ -181,7 +181,7 @@ class WeatherServiceTest {
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.weather()).isEqualTo(invalidCacheData.getValidDefault().weather());
-		assertThat(response.fineDust()).isEqualTo(invalidCacheData.getValidDefault().findDust());
+		assertThat(response.fineDust()).isEqualTo(invalidCacheData.getValidDefault().fineDust());
 	}
 
 

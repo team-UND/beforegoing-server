@@ -92,11 +92,11 @@ class WeatherDecisionServiceTest {
 		assertThat(result).hasSize(3);
 		assertThat(result.get("09")).isNotNull();
 		assertThat(result.get("09").weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.get("09").findDust()).isEqualTo(FineDustType.GOOD);
+		assertThat(result.get("09").fineDust()).isEqualTo(FineDustType.GOOD);
 		assertThat(result.get("09").uv()).isEqualTo(UvType.LOW);
 		assertThat(result.get("11")).isNotNull();
 		assertThat(result.get("11").weather()).isEqualTo(WeatherType.RAIN);
-		assertThat(result.get("11").findDust()).isEqualTo(FineDustType.BAD);
+		assertThat(result.get("11").fineDust()).isEqualTo(FineDustType.BAD);
 		assertThat(result.get("11").uv()).isEqualTo(UvType.HIGH);
 	}
 
@@ -149,7 +149,7 @@ class WeatherDecisionServiceTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.weather()).isEqualTo(WeatherType.SNOW);
-		assertThat(result.findDust()).isEqualTo(FineDustType.VERY_BAD);
+		assertThat(result.fineDust()).isEqualTo(FineDustType.VERY_BAD);
 		assertThat(result.uv()).isEqualTo(UvType.VERY_HIGH);
 	}
 
@@ -197,11 +197,11 @@ class WeatherDecisionServiceTest {
 		assertThat(result).hasSize(3);
 		assertThat(result.get("15")).isNotNull();
 		assertThat(result.get("15").weather()).isEqualTo(WeatherType.CLOUDY);
-		assertThat(result.get("15").findDust()).isEqualTo(FineDustType.NORMAL);
+		assertThat(result.get("15").fineDust()).isEqualTo(FineDustType.NORMAL);
 		assertThat(result.get("15").uv()).isEqualTo(UvType.NORMAL);
 		assertThat(result.get("17")).isNotNull();
 		assertThat(result.get("17").weather()).isEqualTo(WeatherType.RAIN);
-		assertThat(result.get("17").findDust()).isEqualTo(FineDustType.VERY_BAD);
+		assertThat(result.get("17").fineDust()).isEqualTo(FineDustType.VERY_BAD);
 		assertThat(result.get("17").uv()).isEqualTo(UvType.VERY_HIGH);
 	}
 
@@ -256,7 +256,7 @@ class WeatherDecisionServiceTest {
 		// then
 		assertThat(result).isNotNull();
 		assertThat(result.weather()).isEqualTo(WeatherType.SNOW);
-		assertThat(result.findDust()).isEqualTo(FineDustType.VERY_BAD);
+		assertThat(result.fineDust()).isEqualTo(FineDustType.VERY_BAD);
 		assertThat(result.uv()).isEqualTo(UvType.VERY_HIGH);
 	}
 
@@ -292,11 +292,11 @@ class WeatherDecisionServiceTest {
 		assertThat(result).hasSize(3);
 		assertThat(result.get("21")).isNotNull();
 		assertThat(result.get("21").weather()).isEqualTo(WeatherType.DEFAULT);
-		assertThat(result.get("21").findDust()).isEqualTo(FineDustType.DEFAULT);
+		assertThat(result.get("21").fineDust()).isEqualTo(FineDustType.DEFAULT);
 		assertThat(result.get("21").uv()).isEqualTo(UvType.DEFAULT);
 		assertThat(result.get("23")).isNotNull();
 		assertThat(result.get("23").weather()).isEqualTo(WeatherType.DEFAULT);
-		assertThat(result.get("23").findDust()).isEqualTo(FineDustType.DEFAULT);
+		assertThat(result.get("23").fineDust()).isEqualTo(FineDustType.DEFAULT);
 		assertThat(result.get("23").uv()).isEqualTo(UvType.DEFAULT);
 	}
 
@@ -344,11 +344,11 @@ class WeatherDecisionServiceTest {
 		assertThat(result).hasSize(3);
 		assertThat(result.get("03")).isNotNull();
 		assertThat(result.get("03").weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.get("03").findDust()).isEqualTo(FineDustType.GOOD);
+		assertThat(result.get("03").fineDust()).isEqualTo(FineDustType.GOOD);
 		assertThat(result.get("03").uv()).isEqualTo(UvType.UNKNOWN);
 		assertThat(result.get("05")).isNotNull();
 		assertThat(result.get("05").weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.get("05").findDust()).isEqualTo(FineDustType.GOOD);
+		assertThat(result.get("05").fineDust()).isEqualTo(FineDustType.GOOD);
 		assertThat(result.get("05").uv()).isEqualTo(UvType.UNKNOWN);
 	}
 

@@ -38,7 +38,7 @@ public record WeatherResponse(
 	public static WeatherResponse from(final WeatherCacheData weatherCacheData) {
 		return WeatherResponse.builder()
 			.weather(weatherCacheData.weather())
-			.fineDust(weatherCacheData.findDust())
+			.fineDust(weatherCacheData.fineDust())
 			.uv(weatherCacheData.uv())
 			.build();
 	}

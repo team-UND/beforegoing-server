@@ -17,21 +17,21 @@ import lombok.Builder;
 public record WeatherCacheData(
 
 	WeatherType weather,
-	FineDustType findDust,
+	FineDustType fineDust,
 	UvType uv
 
 ) {
 
 	@JsonIgnore
 	public boolean isValid() {
-		return weather != null && findDust != null && uv != null;
+		return weather != null && fineDust != null && uv != null;
 	}
 
 	@JsonIgnore
 	public WeatherCacheData getValidDefault() {
 		return WeatherCacheData.builder()
 			.weather(Objects.requireNonNullElse(this.weather(), WeatherType.DEFAULT))
-			.findDust(Objects.requireNonNullElse(this.findDust(), FineDustType.DEFAULT))
+			.fineDust(Objects.requireNonNullElse(this.fineDust(), FineDustType.DEFAULT))
 			.uv(Objects.requireNonNullElse(this.uv(), UvType.DEFAULT))
 			.build();
 	}
@@ -43,7 +43,7 @@ public record WeatherCacheData(
 	) {
 		return WeatherCacheData.builder()
 			.weather(weather)
-			.findDust(findDust)
+			.fineDust(findDust)
 			.uv(uv)
 			.build();
 	}
@@ -51,7 +51,7 @@ public record WeatherCacheData(
 	public static WeatherCacheData getDefault() {
 		return WeatherCacheData.builder()
 			.weather(WeatherType.DEFAULT)
-			.findDust(FineDustType.DEFAULT)
+			.fineDust(FineDustType.DEFAULT)
 			.uv(UvType.DEFAULT)
 			.build();
 	}
