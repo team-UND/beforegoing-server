@@ -57,18 +57,4 @@ public enum FineDustType {
 		return worst;
 	}
 
-	public double getAverageValue() {
-		if (this == UNKNOWN) {
-			return 0.0;
-		}
-		if (maxPm25 == Integer.MAX_VALUE) {
-			return minPm25 + 50;
-		}
-		return (double) (minPm25 + maxPm25) / 2;
-	}
-
-	public static FineDustType fromAverageValue(final double averageValue) {
-		return fromPm25Concentration(averageValue);
-	}
-
 }
