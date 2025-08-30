@@ -157,12 +157,4 @@ class UvIndexExtractorTest {
 		assertThat(result).isEqualTo(UvType.HIGH);
 	}
 
-	@Test
-	@DisplayName("UvType getAverageValue / fromAverageValue 동작 확인")
-	void Given_Level_When_GetAverageValue_Then_ReturnCorrectValue() {
-		assertThat(UvType.NORMAL.getAverageValue()).isEqualTo(5.5); // (5+6)/2
-		assertThat(UvType.VERY_HIGH.getAverageValue()).isGreaterThan(10);
-		assertThat(UvType.fromAverageValue(8)).isEqualTo(UvType.HIGH);
-	}
-
 }

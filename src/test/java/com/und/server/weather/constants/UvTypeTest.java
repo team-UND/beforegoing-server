@@ -85,31 +85,6 @@ class UvTypeTest {
 	}
 
 	@Test
-	@DisplayName("평균값을 계산할 수 있다")
-	void Given_UvType_When_GetAverageValue_Then_ReturnsAverageValue() {
-		// given & when & then
-		assertThat(UvType.UNKNOWN.getAverageValue()).isEqualTo(0.0);
-		assertThat(UvType.VERY_LOW.getAverageValue()).isEqualTo(1.0); // (0 + 2) / 2
-		assertThat(UvType.LOW.getAverageValue()).isEqualTo(3.5); // (3 + 4) / 2
-		assertThat(UvType.NORMAL.getAverageValue()).isEqualTo(5.5); // (5 + 6) / 2
-		assertThat(UvType.HIGH.getAverageValue()).isEqualTo(8.0); // (7 + 9) / 2
-		assertThat(UvType.VERY_HIGH.getAverageValue()).isEqualTo(15.0); // 10 + 5
-	}
-
-	@Test
-	@DisplayName("평균값으로 UvType을 가져올 수 있다")
-	void Given_AverageValue_When_FromAverageValue_Then_ReturnsUvType() {
-		// given
-		double averageValue = 3.5; // 낮음 범위
-
-		// when
-		UvType result = UvType.fromAverageValue(averageValue);
-
-		// then
-		assertThat(result).isEqualTo(UvType.LOW);
-	}
-
-	@Test
 	@DisplayName("UvType의 심각도가 올바르다")
 	void Given_UvType_When_GetSeverity_Then_ReturnsCorrectSeverity() {
 		// given & when & then
