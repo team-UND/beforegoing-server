@@ -27,62 +27,71 @@ public class KmaWeatherExtractor {
 	) {
 		Map<Integer, WeatherType> result = new HashMap<>();
 
-		if (!isValidResponse(weatherResponse) || targetHours == null || targetHours.isEmpty()) {
+		if (!isValidInput(weatherResponse, targetHours)) {
 			return result;
 		}
 
-		final var targetSet = Set.copyOf(targetHours);
+		final Set<Integer> targetSet = Set.copyOf(targetHours);
 		final String targetDateStr = date.format(WeatherType.KMA_DATE_FORMATTER);
-
-		var items = weatherResponse.response().body().items().item();
-		if (items == null || items.isEmpty()) {
-			return result;
-		}
+		final List<KmaWeatherResponse.WeatherItem> items =
+			weatherResponse.response().body().items().item();
 
 		for (KmaWeatherResponse.WeatherItem item : items) {
-			final String category = item.category();
-			if (!CAT_PTY.equals(category) && !CAT_SKY.equals(category)) {
-				continue;
-			}
-			if (!targetDateStr.equals(item.fcstDate())) {
-				continue;
-			}
-
-			final String fcstTime = item.fcstTime();
-			final String fcstValue = item.fcstValue();
-			if (fcstTime == null || fcstValue == null) {
-				continue;
-			}
-
-			final int hour;
-			try {
-				hour = Integer.parseInt(fcstTime) / 100;
-			} catch (NumberFormatException e) {
-				continue;
-			}
-			if (!targetSet.contains(hour)) {
-				continue;
-			}
-
-			final WeatherType weather = convertToWeatherType(category, fcstValue);
-			if (weather == null) {
-				continue;
-			}
-
-			if (CAT_PTY.equals(category)) {
-				if (weather != WeatherType.DEFAULT) {
-					result.put(hour, weather);
-				}
-				continue;
-			}
-			if (!result.containsKey(hour)) {
-				result.put(hour, weather);
-			}
+			processItem(item, targetDateStr, targetSet, result);
 		}
+
 		return result;
 	}
 
+	private void processItem(
+		KmaWeatherResponse.WeatherItem item,
+		String targetDateStr,
+		Set<Integer> targetSet,
+		Map<Integer, WeatherType> result
+	) {
+		if (!isSupportedCategory(item.category())) {
+			return;
+		}
+		if (!targetDateStr.equals(item.fcstDate())) {
+			return;
+		}
+
+		Integer hour = parseHour(item.fcstTime());
+		if (hour == null || !targetSet.contains(hour)) {
+			return;
+		}
+
+		WeatherType weather = convertToWeatherType(item.category(), item.fcstValue());
+		if (weather == null || weather == WeatherType.DEFAULT) {
+			return;
+		}
+
+		if (CAT_PTY.equals(item.category())) {
+			result.put(hour, weather);
+		} else if (!result.containsKey(hour)) {
+			result.put(hour, weather);
+		}
+	}
+
+	private boolean isSupportedCategory(String category) {
+		return CAT_PTY.equals(category) || CAT_SKY.equals(category);
+	}
+
+	private Integer parseHour(String fcstTime) {
+		if (fcstTime == null) {
+			return null;
+		}
+		try {
+			return Integer.parseInt(fcstTime) / 100;
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
 	private WeatherType convertToWeatherType(final String category, final String fcstValue) {
+		if (fcstValue == null) {
+			return null;
+		}
 		try {
 			int value = Integer.parseInt(fcstValue);
 			return switch (category) {
@@ -95,6 +104,20 @@ public class KmaWeatherExtractor {
 		} catch (NumberFormatException e) {
 			return WeatherType.DEFAULT;
 		}
+	}
+
+	private boolean isValidInput(KmaWeatherResponse response, List<Integer> targetHours) {
+		if (!isValidResponse(response)) {
+			return false;
+		}
+		if (targetHours == null || targetHours.isEmpty()) {
+			return false;
+		}
+		var items = response.response().body().items().item();
+		if (items == null || items.isEmpty()) {
+			return false;
+		}
+		return true;
 	}
 
 	private boolean isValidResponse(final KmaWeatherResponse weatherResponse) {
