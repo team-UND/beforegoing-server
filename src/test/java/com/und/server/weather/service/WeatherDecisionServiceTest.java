@@ -88,16 +88,17 @@ class WeatherDecisionServiceTest {
 			weatherApiResult, currentSlot, today);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result).hasSize(3);
-		assertThat(result.get("09")).isNotNull();
-		assertThat(result.get("09").weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.get("09").fineDust()).isEqualTo(FineDustType.GOOD);
-		assertThat(result.get("09").uv()).isEqualTo(UvType.LOW);
-		assertThat(result.get("11")).isNotNull();
-		assertThat(result.get("11").weather()).isEqualTo(WeatherType.RAIN);
-		assertThat(result.get("11").fineDust()).isEqualTo(FineDustType.BAD);
-		assertThat(result.get("11").uv()).isEqualTo(UvType.HIGH);
+		assertThat(result).isNotNull().hasSize(3);
+
+		assertThat(result.get("09"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.SUNNY, FineDustType.GOOD, UvType.LOW);
+
+		assertThat(result.get("11"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.RAIN, FineDustType.BAD, UvType.HIGH);
 	}
 
 
@@ -193,16 +194,19 @@ class WeatherDecisionServiceTest {
 			weatherApiResult, currentSlot, today);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result).hasSize(3);
-		assertThat(result.get("15")).isNotNull();
-		assertThat(result.get("15").weather()).isEqualTo(WeatherType.CLOUDY);
-		assertThat(result.get("15").fineDust()).isEqualTo(FineDustType.NORMAL);
-		assertThat(result.get("15").uv()).isEqualTo(UvType.NORMAL);
-		assertThat(result.get("17")).isNotNull();
-		assertThat(result.get("17").weather()).isEqualTo(WeatherType.RAIN);
-		assertThat(result.get("17").fineDust()).isEqualTo(FineDustType.VERY_BAD);
-		assertThat(result.get("17").uv()).isEqualTo(UvType.VERY_HIGH);
+		assertThat(result)
+			.isNotNull()
+			.hasSize(3);
+
+		assertThat(result.get("15"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.CLOUDY, FineDustType.NORMAL, UvType.NORMAL);
+
+		assertThat(result.get("17"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.RAIN, FineDustType.VERY_BAD, UvType.VERY_HIGH);
 	}
 
 
@@ -288,16 +292,19 @@ class WeatherDecisionServiceTest {
 			weatherApiResult, currentSlot, today);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result).hasSize(3);
-		assertThat(result.get("21")).isNotNull();
-		assertThat(result.get("21").weather()).isEqualTo(WeatherType.DEFAULT);
-		assertThat(result.get("21").fineDust()).isEqualTo(FineDustType.DEFAULT);
-		assertThat(result.get("21").uv()).isEqualTo(UvType.DEFAULT);
-		assertThat(result.get("23")).isNotNull();
-		assertThat(result.get("23").weather()).isEqualTo(WeatherType.DEFAULT);
-		assertThat(result.get("23").fineDust()).isEqualTo(FineDustType.DEFAULT);
-		assertThat(result.get("23").uv()).isEqualTo(UvType.DEFAULT);
+		assertThat(result)
+			.isNotNull()
+			.hasSize(3);
+
+		assertThat(result.get("21"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.DEFAULT, FineDustType.DEFAULT, UvType.DEFAULT);
+
+		assertThat(result.get("23"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.DEFAULT, FineDustType.DEFAULT, UvType.DEFAULT);
 	}
 
 
@@ -340,16 +347,19 @@ class WeatherDecisionServiceTest {
 			weatherApiResult, currentSlot, today);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result).hasSize(3);
-		assertThat(result.get("03")).isNotNull();
-		assertThat(result.get("03").weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.get("03").fineDust()).isEqualTo(FineDustType.GOOD);
-		assertThat(result.get("03").uv()).isEqualTo(UvType.UNKNOWN);
-		assertThat(result.get("05")).isNotNull();
-		assertThat(result.get("05").weather()).isEqualTo(WeatherType.SUNNY);
-		assertThat(result.get("05").fineDust()).isEqualTo(FineDustType.GOOD);
-		assertThat(result.get("05").uv()).isEqualTo(UvType.UNKNOWN);
+		assertThat(result)
+			.isNotNull()
+			.hasSize(3);
+
+		assertThat(result.get("03"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.SUNNY, FineDustType.GOOD, UvType.UNKNOWN);
+
+		assertThat(result.get("05"))
+			.isNotNull()
+			.extracting(WeatherCacheData::weather, WeatherCacheData::fineDust, WeatherCacheData::uv)
+			.containsExactly(WeatherType.SUNNY, FineDustType.GOOD, UvType.UNKNOWN);
 	}
 
 }
