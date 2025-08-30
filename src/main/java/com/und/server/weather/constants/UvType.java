@@ -45,18 +45,4 @@ public enum UvType {
 		return worst;
 	}
 
-	public double getAverageValue() {
-		if (this == UNKNOWN) {
-			return 0.0;
-		}
-		if (maxUvIndex == Integer.MAX_VALUE) {
-			return minUvIndex + 5;
-		}
-		return (double) (minUvIndex + maxUvIndex) / 2;
-	}
-
-	public static UvType fromAverageValue(final double averageValue) {
-		return fromUvIndex(averageValue);
-	}
-
 }
