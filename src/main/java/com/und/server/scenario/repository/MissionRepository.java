@@ -38,6 +38,9 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	@NotNull
 	List<Mission> findMissionsByDate(@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
 
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("DELETE FROM Mission m WHERE m.scenario.id = :scenarioId")
+	int deleteByScenarioId(Long scenarioId);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("""

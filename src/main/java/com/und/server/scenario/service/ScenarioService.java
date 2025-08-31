@@ -191,11 +191,13 @@ public class ScenarioService {
 
 	@Transactional
 	public void deleteScenarioWithAllMissions(final Long memberId, final Long scenarioId) {
-		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+		Scenario scenario = scenarioRepository.findNotificationFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		Notification notification = scenario.getNotification();
 		boolean isNotificationActive = notification.isActive();
+
+		missionService.deleteMissions(scenarioId);
 
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);

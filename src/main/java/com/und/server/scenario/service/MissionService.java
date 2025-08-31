@@ -160,6 +160,12 @@ public class MissionService {
 
 
 	@Transactional
+	public void deleteMissions(final Long scenarioId) {
+		missionRepository.deleteByScenarioId(scenarioId);
+	}
+
+
+	@Transactional
 	public void deleteTodayMission(final Long memberId, final Long missionId) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
