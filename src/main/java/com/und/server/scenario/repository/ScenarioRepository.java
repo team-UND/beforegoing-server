@@ -16,6 +16,21 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long>, Scena
 
 	Optional<Scenario> findByIdAndMemberId(@NotNull Long id, @NotNull Long memberId);
 
+
+	@Query("""
+		SELECT s FROM Scenario s
+		LEFT JOIN FETCH s.notification
+		LEFT JOIN FETCH s.missions m
+		WHERE s.id = :id
+			AND s.member.id = :memberId
+			AND m.missionType = 'BASIC'
+			AND m.useDate IS NULL
+		""")
+	Optional<Scenario> findTodayScenarioFetchByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
+
+
+
+
 	@Query("""
 		SELECT s FROM Scenario s
 		LEFT JOIN FETCH s.notification

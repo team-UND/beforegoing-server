@@ -61,10 +61,10 @@ public class ScenarioService {
 		return ScenarioResponse.listFrom(scenarios);
 	}
 
-
+	//BASIC은 useDate가 Null인것, TODAY는 그냥 요청 날짜
 	@Transactional(readOnly = true)
 	public ScenarioDetailResponse findScenarioDetailByScenarioId(final Long memberId, final Long scenarioId) {
-		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+		Scenario scenario = scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		List<Mission> basicMissions =
@@ -138,7 +138,7 @@ public class ScenarioService {
 		final Long scenarioId,
 		final ScenarioDetailRequest scenarioDetailRequest
 	) {
-		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+		Scenario oldScenario = scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 		Notification oldNotification = oldScenario.getNotification();
 
