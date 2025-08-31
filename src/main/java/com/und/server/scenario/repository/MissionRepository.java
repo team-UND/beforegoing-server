@@ -65,11 +65,20 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	int bulkCloneBasicToYesterday(LocalDate yesterday);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
-	@Query("""
-		DELETE FROM Mission m
-		WHERE m.useDate IS NOT NULL
-		  AND m.useDate < :expireBefore
-		""")
-	int bulkDeleteExpired(LocalDate expireBefore);
+	@Query(value = """
+		DELETE FROM mission
+		WHERE use_date IS NOT NULL
+		  AND use_date < :expireBefore
+		LIMIT :limit
+		""", nativeQuery = true)
+	int bulkDeleteExpired(LocalDate expireBefore, int limit);
+
+//	@Modifying(clearAutomatically = true, flushAutomatically = true)
+//	@Query("""
+//		DELETE FROM Mission m
+//		WHERE m.useDate IS NOT NULL
+//		  AND m.useDate < :expireBefore
+//		""")
+//	int bulkDeleteExpired(LocalDate expireBefore);
 
 }
