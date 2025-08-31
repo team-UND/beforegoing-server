@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.und.server.scenario.entity.Mission;
@@ -36,5 +37,36 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 		""")
 	@NotNull
 	List<Mission> findMissionsByDate(@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
+
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+		UPDATE Mission m
+		SET m.isChecked = false
+		WHERE m.useDate IS NULL
+		  AND m.missionType = 'BASIC'
+		""")
+	int resetBasicIsChecked();
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query(value = """
+		INSERT INTO mission (
+		  scenario_id, content, is_checked, mission_order, use_date, mission_type, created_at, updated_at
+		)
+		SELECT m.scenario_id, m.content, m.is_checked, m.mission_order, :yesterday, m.mission_type,
+		       CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+		FROM mission m
+		WHERE m.use_date IS NULL
+		  AND m.mission_type = 'BASIC'
+		""", nativeQuery = true)
+	int bulkCloneBasicToYesterday(LocalDate yesterday);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+		DELETE FROM Mission m
+		WHERE m.useDate IS NOT NULL
+		  AND m.useDate < :expireBefore
+		""")
+	int bulkDeleteExpired(LocalDate expireBefore);
 
 }
