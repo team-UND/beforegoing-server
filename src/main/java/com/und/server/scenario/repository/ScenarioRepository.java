@@ -16,7 +16,6 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long>, Scena
 
 	Optional<Scenario> findByIdAndMemberId(@NotNull Long id, @NotNull Long memberId);
 
-
 	@Query("""
 		SELECT s FROM Scenario s
 		LEFT JOIN FETCH s.notification
@@ -39,8 +38,13 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long>, Scena
 	Optional<Scenario> findTodayScenarioFetchByIdAndMemberId(
 		@NotNull Long memberId, @NotNull Long id, @NotNull LocalDate date);
 
-
-
+	@Query("""
+		SELECT s FROM Scenario s
+		LEFT JOIN FETCH s.notification
+		WHERE s.id = :id
+			AND s.member.id = :memberId
+		""")
+	Optional<Scenario> findNotificationFetchByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
 
 	@Query("""
 		SELECT s FROM Scenario s
@@ -49,6 +53,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long>, Scena
 		WHERE s.id = :id
 			AND s.member.id = :memberId
 		""")
+		//fixme 안씀
 	Optional<Scenario> findFetchByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
 
 	@Query("""
