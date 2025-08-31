@@ -1,9 +1,9 @@
 package com.und.server.scenario.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -26,7 +26,18 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long>, Scena
 			AND m.missionType = 'BASIC'
 			AND m.useDate IS NULL
 		""")
-	Optional<Scenario> findTodayScenarioFetchByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
+	Optional<Scenario> findScenarioDetailFetchByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
+
+	@Query("""
+		SELECT s FROM Scenario s
+		LEFT JOIN FETCH s.notification
+		LEFT JOIN FETCH s.missions m
+		WHERE s.id = :id
+			AND s.member.id = :memberId
+			AND (m.useDate IS NULL OR m.useDate = :date)
+		""")
+	Optional<Scenario> findTodayScenarioFetchByIdAndMemberId(
+		@NotNull Long memberId, @NotNull Long id, @NotNull LocalDate date);
 
 
 
