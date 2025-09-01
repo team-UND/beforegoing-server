@@ -1,5 +1,6 @@
 package com.und.server.scenario.scheduler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,9 +9,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -29,6 +32,18 @@ class ScenarioMissionDailyJobTest {
 	@InjectMocks
 	private ScenarioMissionDailyJob job;
 
+	private Clock fixedClock;
+
+
+	@BeforeEach
+	void setUp() {
+		fixedClock = Clock.fixed(
+			LocalDate.of(2025, 9, 1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
+			ZoneId.of("Asia/Seoul")
+		);
+		job = new ScenarioMissionDailyJob(missionRepository, fixedClock);
+	}
+
 
 	@Test
 	void Given_NormalCase_When_RunDailyBackupJob_Then_CloneAndResetCalled() {
@@ -41,12 +56,12 @@ class ScenarioMissionDailyJobTest {
 
 		// then
 		ArgumentCaptor<LocalDate> dateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-		verify(missionRepository, times(1)).bulkCloneBasicToYesterday(dateCaptor.capture());
-		verify(missionRepository, times(1)).bulkResetBasicIsChecked();
+		verify(missionRepository).bulkCloneBasicToYesterday(dateCaptor.capture());
+		verify(missionRepository).bulkResetBasicIsChecked();
 
 		LocalDate captured = dateCaptor.getValue();
-		LocalDate expectedYesterday = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
-		org.assertj.core.api.Assertions.assertThat(captured).isEqualTo(expectedYesterday);
+		LocalDate expectedYesterday = LocalDate.of(2025, 8, 31);
+		assertThat(captured).isEqualTo(expectedYesterday);
 	}
 
 
@@ -57,7 +72,8 @@ class ScenarioMissionDailyJobTest {
 			.thenThrow(new RuntimeException("db error"));
 
 		// then
-		assertThatThrownBy(() -> job.runDailyBackupJob()).isInstanceOf(RuntimeException.class);
+		assertThatThrownBy(() -> job.runDailyBackupJob())
+			.isInstanceOf(RuntimeException.class);
 	}
 
 
@@ -82,7 +98,7 @@ class ScenarioMissionDailyJobTest {
 		// when
 		assertThatCode(() -> job.runExpiredMissionCleanupJob()).doesNotThrowAnyException();
 
-		// then: 두 번 호출됨
+		// then
 		verify(missionRepository, times(2)).bulkDeleteExpired(any(LocalDate.class), anyInt());
 	}
 
