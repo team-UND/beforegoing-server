@@ -26,7 +26,8 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 			AND (m.useDate IS NULL OR m.useDate = :date)
 		""")
 	@NotNull
-	List<Mission> findDefaultMissions(@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
+	List<Mission> findTodayAndFutureMissions(
+		@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
 
 	@Query("""
 		SELECT m FROM Mission m
@@ -36,7 +37,8 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 			AND m.useDate = :date
 		""")
 	@NotNull
-	List<Mission> findMissionsByDate(@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
+	List<Mission> findPastMissionsByDate(
+		@NotNull Long memberId, @NotNull Long scenarioId, @NotNull LocalDate date);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("DELETE FROM Mission m WHERE m.scenario.id = :scenarioId")

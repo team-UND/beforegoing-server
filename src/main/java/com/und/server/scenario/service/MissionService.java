@@ -182,11 +182,11 @@ public class MissionService {
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 
 		switch (missionSearchType) {
-			case TODAY -> {
-				return missionRepository.findDefaultMissions(memberId, scenarioId, date);
+			case TODAY, FUTURE -> {
+				return missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date);
 			}
-			case PAST, FUTURE -> {
-				return missionRepository.findMissionsByDate(memberId, scenarioId, date);
+			case PAST -> {
+				return missionRepository.findPastMissionsByDate(memberId, scenarioId, date);
 			}
 		}
 		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
