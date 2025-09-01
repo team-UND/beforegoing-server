@@ -61,6 +61,7 @@ public class ScenarioService {
 		return ScenarioResponse.listFrom(scenarios);
 	}
 
+
 	@Transactional(readOnly = true)
 	public ScenarioDetailResponse findScenarioDetailByScenarioId(final Long memberId, final Long scenarioId) {
 		Scenario scenario = scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId)
