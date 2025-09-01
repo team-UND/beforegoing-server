@@ -1,7 +1,7 @@
 package com.und.server.scenario.scheduler;
 
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,6 +21,7 @@ public class ScenarioMissionDailyJob {
 	private static final int DAYS_TO_SUBTRACT = 1;
 	private static final int MONTHS_TO_SUBTRACT = 1;
 	private final MissionRepository missionRepository;
+	private final Clock clock;
 
 	/**
 	 * Daily job at midnight (00:00) - BASIC 미션 백업, DEFAULT BASIC 미션 체크상태 리셋
@@ -28,7 +29,7 @@ public class ScenarioMissionDailyJob {
 	@Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
 	@Transactional
 	public void runDailyBackupJob() {
-		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		LocalDate today = LocalDate.now(clock);
 		LocalDate yesterday = today.minusDays(DAYS_TO_SUBTRACT);
 
 		try {
@@ -48,7 +49,7 @@ public class ScenarioMissionDailyJob {
 	@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
 	@Transactional
 	public void runExpiredMissionCleanupJob() {
-		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		LocalDate today = LocalDate.now(clock);
 		LocalDate expireBefore = today.minusMonths(MONTHS_TO_SUBTRACT);
 
 		int totalDeleted = 0;
