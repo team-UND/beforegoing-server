@@ -84,7 +84,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = Arrays.asList(basicMission);
 		List<Mission> groupedTodayMissions = Arrays.asList(todayMission);
 
-		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
@@ -98,7 +98,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isNotEmpty();
 		assertThat(result.todayMissions()).isNotEmpty();
-		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.BASIC);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.TODAY);
 	}
@@ -111,7 +111,7 @@ class MissionServiceTest {
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 
-		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
 
 		// when
@@ -121,7 +121,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isEmpty();
 		assertThat(result.todayMissions()).isEmpty();
-		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 	}
 
 
@@ -132,7 +132,7 @@ class MissionServiceTest {
 		Long scenarioId = 1L;
 		LocalDate date = LocalDate.now();
 
-		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
 
 		// when & then
@@ -534,7 +534,8 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = List.of(mission);
 		List<Mission> groupedTodayMissions = List.of();
 
-		when(missionRepository.findDefaultMissions(any(Long.class), any(Long.class), any())).thenReturn(missionList);
+		when(missionRepository.findTodayAndFutureMissions(any(Long.class),
+			any(Long.class), any())).thenReturn(missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
@@ -547,7 +548,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isNotEmpty();
 		assertThat(result.todayMissions()).isEmpty();
-		verify(missionRepository).findDefaultMissions(any(Long.class), any(Long.class), any());
+		verify(missionRepository).findTodayAndFutureMissions(any(Long.class), any(Long.class), any());
 	}
 
 
@@ -569,7 +570,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = List.of();
 		List<Mission> groupedTodayMissions = List.of(mission);
 
-		when(missionRepository.findMissionsByDate(memberId, scenarioId, pastDate)).thenReturn(missionList);
+		when(missionRepository.findPastMissionsByDate(memberId, scenarioId, pastDate)).thenReturn(missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
@@ -582,7 +583,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isEmpty();
 		assertThat(result.todayMissions()).isNotEmpty();
-		verify(missionRepository).findMissionsByDate(memberId, scenarioId, pastDate);
+		verify(missionRepository).findPastMissionsByDate(memberId, scenarioId, pastDate);
 	}
 
 
@@ -604,7 +605,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = List.of();
 		List<Mission> groupedTodayMissions = List.of(mission);
 
-		when(missionRepository.findMissionsByDate(memberId, scenarioId, futureDate)).thenReturn(missionList);
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, futureDate)).thenReturn(missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
@@ -617,7 +618,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isEmpty();
 		assertThat(result.todayMissions()).isNotEmpty();
-		verify(missionRepository).findMissionsByDate(memberId, scenarioId, futureDate);
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
 	}
 
 
