@@ -47,20 +47,20 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 		UPDATE Mission m
 		SET m.isChecked = false
 		WHERE m.useDate IS NULL
-		  AND m.missionType = 'BASIC'
+			AND m.missionType = 'BASIC'
 		""")
-	int resetBasicIsChecked();
+	int bulkResetBasicIsChecked();
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query(value = """
 		INSERT INTO mission (
-		  scenario_id, content, is_checked, mission_order, use_date, mission_type, created_at, updated_at
+			scenario_id, content, is_checked, mission_order, use_date, mission_type, created_at, updated_at
 		)
 		SELECT m.scenario_id, m.content, m.is_checked, m.mission_order, :yesterday, m.mission_type,
-		       CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+			CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 		FROM mission m
 		WHERE m.use_date IS NULL
-		  AND m.mission_type = 'BASIC'
+			AND m.mission_type = 'BASIC'
 		""", nativeQuery = true)
 	int bulkCloneBasicToYesterday(LocalDate yesterday);
 
@@ -68,17 +68,9 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	@Query(value = """
 		DELETE FROM mission
 		WHERE use_date IS NOT NULL
-		  AND use_date < :expireBefore
+			AND use_date < :expireBefore
 		LIMIT :limit
 		""", nativeQuery = true)
 	int bulkDeleteExpired(LocalDate expireBefore, int limit);
-
-//	@Modifying(clearAutomatically = true, flushAutomatically = true)
-//	@Query("""
-//		DELETE FROM Mission m
-//		WHERE m.useDate IS NOT NULL
-//		  AND m.useDate < :expireBefore
-//		""")
-//	int bulkDeleteExpired(LocalDate expireBefore);
 
 }
