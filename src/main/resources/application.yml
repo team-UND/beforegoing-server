@@ -33,3 +33,13 @@ observability:
   prometheus:
     username: ${PROMETHEUS_USERNAME}
     password: ${PROMETHEUS_PASSWORD}
+
+# Weather APIs
+weather:
+  kma:
+    base-url: https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+    service-key: ${KMA_SERVICE_KEY}
+  open-meteo:
+    base-url: https://air-quality-api.open-meteo.com/v1
+  open-meteo-kma:
+    base-url: https://api.open-meteo.com/v1
