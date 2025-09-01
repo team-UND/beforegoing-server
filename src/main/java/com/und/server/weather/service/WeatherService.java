@@ -1,0 +1,96 @@
+package com.und.server.weather.service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+
+import com.und.server.weather.dto.cache.WeatherCacheData;
+import com.und.server.weather.dto.request.WeatherRequest;
+import com.und.server.weather.dto.response.WeatherResponse;
+import com.und.server.weather.exception.WeatherErrorResult;
+import com.und.server.weather.exception.WeatherException;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class WeatherService {
+
+	private static final int MAX_FUTURE_DATE = 3;
+	private final WeatherCacheService weatherCacheService;
+
+
+	public WeatherResponse getWeatherInfo(
+		final WeatherRequest weatherRequest, final LocalDate date
+	) {
+		LocalDateTime nowDateTime = LocalDateTime.now();
+		LocalDate today = nowDateTime.toLocalDate();
+
+		validateLocation(weatherRequest);
+		validateDate(date, today);
+
+		boolean isToday = date.equals(today);
+		if (isToday) {
+			return getTodayWeather(weatherRequest, nowDateTime);
+		} else {
+			return getFutureWeather(weatherRequest, nowDateTime, date);
+		}
+	}
+
+
+	private WeatherResponse getTodayWeather(
+		final WeatherRequest weatherRequest, final LocalDateTime nowDateTime
+	) {
+		WeatherCacheData todayWeatherCache =
+			weatherCacheService.getTodayWeatherCache(weatherRequest, nowDateTime);
+
+		if (todayWeatherCache == null) {
+			return WeatherResponse.from(WeatherCacheData.getDefault());
+		}
+		if (!todayWeatherCache.isValid()) {
+			return WeatherResponse.from(todayWeatherCache.getValidDefault());
+		}
+
+		return WeatherResponse.from(todayWeatherCache);
+	}
+
+	private WeatherResponse getFutureWeather(
+		final WeatherRequest weatherRequest,
+		final LocalDateTime nowDateTime,
+		final LocalDate targetDate
+	) {
+		WeatherCacheData futureWeatherCacheData =
+			weatherCacheService.getFutureWeatherCache(weatherRequest, nowDateTime, targetDate);
+
+		if (futureWeatherCacheData == null) {
+			return WeatherResponse.from(WeatherCacheData.getDefault());
+		}
+		if (!futureWeatherCacheData.isValid()) {
+			return WeatherResponse.from(futureWeatherCacheData.getValidDefault());
+		}
+
+		return WeatherResponse.from(futureWeatherCacheData);
+	}
+
+	private void validateLocation(final WeatherRequest request) {
+		if (request.latitude() < -90
+			|| request.latitude() > 90
+			|| request.longitude() < -180
+			|| request.longitude() > 180
+		) {
+			throw new WeatherException(WeatherErrorResult.INVALID_COORDINATES);
+		}
+	}
+
+	private void validateDate(final LocalDate requestDate, final LocalDate today) {
+		LocalDate maxDate = today.plusDays(MAX_FUTURE_DATE);
+
+		if (requestDate.isBefore(today) || requestDate.isAfter(maxDate)) {
+			throw new WeatherException(WeatherErrorResult.DATE_OUT_OF_RANGE);
+		}
+	}
+
+}
