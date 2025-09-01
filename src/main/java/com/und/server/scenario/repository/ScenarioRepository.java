@@ -48,16 +48,6 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long>, Scena
 
 	@Query("""
 		SELECT s FROM Scenario s
-		LEFT JOIN FETCH s.notification
-		LEFT JOIN FETCH s.missions
-		WHERE s.id = :id
-			AND s.member.id = :memberId
-		""")
-		//fixme 안씀
-	Optional<Scenario> findFetchByIdAndMemberId(@NotNull Long memberId, @NotNull Long id);
-
-	@Query("""
-		SELECT s FROM Scenario s
 		WHERE s.member.id = :memberId
 			AND s.notification.notificationType = :notificationType
 		ORDER BY s.scenarioOrder
