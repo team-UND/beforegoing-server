@@ -22,32 +22,42 @@ public class ScenarioMissionDailyJob {
 	private static final int MONTHS_TO_SUBTRACT = 1;
 	private final MissionRepository missionRepository;
 
-	//테스트를 위해ㅏ며 3분마다
-	@Scheduled(cron = "0 */2 * * * *", zone = "Asia/Seoul")
+	@Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
 	@Transactional
-	public void runDailyJob() {
+	public void runDailyBackupJob() {
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 		LocalDate yesterday = today.minusDays(DAYS_TO_SUBTRACT);
+
+		try {
+			int cloned = missionRepository.bulkCloneBasicToYesterday(yesterday);
+			int reset = missionRepository.bulkResetBasicIsChecked();
+
+			log.info("[MISSION DAILY] Daily Mission Job: cloned={}, reset={}", cloned, reset);
+		} catch (Exception e) {
+			log.error("[MISSION DAILY] Backup and reset failed, rolling back", e);
+			throw e;
+		}
+	}
+
+	@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
+	@Transactional
+	public void runExpiredMissionCleanupJob() {
+		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 		LocalDate expireBefore = today.minusMonths(MONTHS_TO_SUBTRACT);
 
-		// 1. BASIC 백업
-		int cloned = missionRepository.bulkCloneBasicToYesterday(yesterday);
+		try {
+			int totalDeleted = 0;
+			int batchDeleted;
 
-		// 2. BASIC 원본 초기화
-		int reset = missionRepository.resetBasicIsChecked();
+			do {
+				batchDeleted = missionRepository.bulkDeleteExpired(expireBefore, DEFAULT_DELETE_LIMIT);
+				totalDeleted += batchDeleted;
+			} while (batchDeleted == DEFAULT_DELETE_LIMIT);
 
-		// 3. 만료 미션 삭제
-		int deleted = missionRepository.bulkDeleteExpired(expireBefore, DEFAULT_DELETE_LIMIT);
-
-		log.info("[BACK UP] Daily Mission Job: cloned={}, reset={}, deleted={}", cloned, reset, deleted);
+			log.info("[MISSION DAILY] Expired mission cleanup completed: deleted={}", totalDeleted);
+		} catch (Exception e) {
+			log.error("[MISSION DAILY] Expired mission cleanup failed. expireBefore={}", expireBefore, e);
+		}
 	}
-	/**
-	 * 확인해야할 사항
-	 * 1. 미션 백업 - 체크상태는 그대로
-	 * 2. 미션 체크리스트 초기화 - useDate가 null인 경우만
-	 * 3. Today는 그대로인지
-	 *
-	 * 1. 미션 생성
-	 */
 
 }
