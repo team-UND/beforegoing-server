@@ -51,8 +51,9 @@ public class ScenarioMissionDailyJob {
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 		LocalDate expireBefore = today.minusMonths(MONTHS_TO_SUBTRACT);
 
+		int totalDeleted = 0;
+
 		try {
-			int totalDeleted = 0;
 			int batchDeleted;
 
 			do {
@@ -62,7 +63,8 @@ public class ScenarioMissionDailyJob {
 
 			log.info("[MISSION DAILY] Expired mission cleanup completed: deleted={}", totalDeleted);
 		} catch (Exception e) {
-			log.error("[MISSION DAILY] Expired mission cleanup failed. expireBefore={}", expireBefore, e);
+			log.error("[MISSION DAILY] Expired mission cleanup failed. expireBefore={}, deletedUntilError={}",
+				expireBefore, totalDeleted, e);
 		}
 	}
 
