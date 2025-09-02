@@ -75,4 +75,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 		""", nativeQuery = true)
 	int bulkDeleteExpired(LocalDate expireBefore, int limit);
 
+	/// 새롭게 추가한 쿼리들--------------------------------------------
+	Optional<Mission> findByParentMissionIdAndUseDate(Long parentMissionId, LocalDate useDate);
+
 }

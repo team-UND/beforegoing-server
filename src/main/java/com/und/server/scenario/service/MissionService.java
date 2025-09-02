@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -149,11 +150,21 @@ public class MissionService {
 
 	@Transactional
 	public void updateMissionCheck(
-		final Long memberId, final Long missionId, final Boolean isChecked
+		final Long memberId, final Long missionId, final Boolean isChecked, final LocalDate date
 	) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 		missionValidator.validateMissionAccessibleMember(mission, memberId);
+
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(LocalDate.now(), date);
+		if (missionSearchType == MissionSearchType.FUTURE) {
+			Optional<Mission> futureMission = missionRepository.findByParentMissionIdAndUseDate(missionId, date);
+			if (futureMission.isPresent()) {
+				futureMission.get().updateCheckStatus(isChecked);
+				return;
+			}
+			missionRepository.save(mission.getFutureChildMission(isChecked,date));
+		}
 
 		mission.updateCheckStatus(isChecked);
 	}
