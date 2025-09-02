@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -45,16 +46,19 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	int deleteByScenarioId(Long scenarioId);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
-	@Query(value = """
-		UPDATE mission p
-		LEFT JOIN mission c
-		  ON c.parent_mission_id = p.id
-		 AND c.use_date = :today
-		 AND c.mission_type = 'BASIC'
-		SET p.is_checked = COALESCE(c.is_checked, 0)
-		WHERE p.use_date IS NULL
-		  AND p.mission_type = 'BASIC'
-		""", nativeQuery = true)
+	@Query("""
+    UPDATE Mission p
+       SET p.isChecked = COALESCE(
+           (SELECT c.isChecked
+              FROM Mission c
+             WHERE c.parentMissionId = p.id
+               AND c.useDate = :today
+               AND c.missionType = 'BASIC'
+           ), false
+       )
+     WHERE p.useDate IS NULL
+       AND p.missionType = 'BASIC'
+    """)
 	int bulkResetBasicIsChecked(LocalDate today);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
