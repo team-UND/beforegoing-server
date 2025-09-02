@@ -25,6 +25,7 @@ public class ScenarioMissionDailyJob {
 
 	/**
 	 * Daily job at midnight (00:00) - BASIC 미션 백업, DEFAULT BASIC 미션 체크상태 리셋
+	 * 테스트용: 3분마다 실행
 	 */
 	@Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
 	@Transactional
@@ -34,9 +35,11 @@ public class ScenarioMissionDailyJob {
 
 		try {
 			int cloned = missionRepository.bulkCloneBasicToYesterday(yesterday);
-			int reset = missionRepository.bulkResetBasicIsChecked();
+			int reset = missionRepository.bulkResetBasicIsChecked(today);
+			int deleteChildBasic = missionRepository.deleteTodayChildBasics(today);
 
-			log.info("[MISSION DAILY] Daily Mission Job: cloned={}, reset={}", cloned, reset);
+			log.info("[MISSION DAILY] Daily Mission Job: cloned={}, reset={} deleteChildBasic={}",
+				cloned, reset, deleteChildBasic);
 		} catch (Exception e) {
 			log.error("[MISSION DAILY] Backup and reset failed, rolling back", e);
 			throw e;
@@ -46,7 +49,7 @@ public class ScenarioMissionDailyJob {
 	/**
 	 * Daily cleanup job at 1 AM (01:00) - 기간 만료 미션 삭제
 	 */
-	@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
+	@Scheduled(cron = "0 */3 * * * *", zone = "Asia/Seoul")
 	@Transactional
 	public void runExpiredMissionCleanupJob() {
 		LocalDate today = LocalDate.now(clock);

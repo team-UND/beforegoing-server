@@ -45,13 +45,17 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	int deleteByScenarioId(Long scenarioId);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
-	@Query("""
-		UPDATE Mission m
-		SET m.isChecked = false
-		WHERE m.useDate IS NULL
-			AND m.missionType = 'BASIC'
-		""")
-	int bulkResetBasicIsChecked();
+	@Query(value = """
+		UPDATE mission p
+		LEFT JOIN mission c
+		  ON c.parent_mission_id = p.id
+		 AND c.use_date = :today
+		 AND c.mission_type = 'BASIC'
+		SET p.is_checked = COALESCE(c.is_checked, 0)
+		WHERE p.use_date IS NULL
+		  AND p.mission_type = 'BASIC'
+		""", nativeQuery = true)
+	int bulkResetBasicIsChecked(LocalDate today);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query(value = """
@@ -76,6 +80,17 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	int bulkDeleteExpired(LocalDate expireBefore, int limit);
 
 	/// 새롭게 추가한 쿼리들--------------------------------------------
+
+	@Modifying
+	@Query("""
+    DELETE FROM Mission m
+    WHERE m.useDate = :today
+      AND m.parentMissionId IS NOT NULL
+      AND m.missionType = 'BASIC'
+    """)
+	int deleteTodayChildBasics(LocalDate today);
+
+
 	Optional<Mission> findByParentMissionIdAndUseDate(Long parentMissionId, LocalDate useDate);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
