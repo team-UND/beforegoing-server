@@ -52,6 +52,9 @@ public class Mission extends BaseTimeEntity {
 	private Integer missionOrder;
 
 	@Column
+	private Long parentMissionId;
+
+	@Column
 	private LocalDate useDate;
 
 	@Enumerated(EnumType.STRING)
@@ -64,6 +67,17 @@ public class Mission extends BaseTimeEntity {
 
 	public void updateMissionOrder(final Integer missionOrder) {
 		this.missionOrder = missionOrder;
+	}
+
+	public Mission getFutureChildMission(final boolean isChecked, LocalDate future) {
+		return Mission.builder()
+			.scenario(this.scenario)
+			.content(this.content)
+			.isChecked(isChecked)
+			.parentMissionId(this.id)
+			.useDate(future)
+			.missionType(this.missionType)
+			.build();
 	}
 
 }
