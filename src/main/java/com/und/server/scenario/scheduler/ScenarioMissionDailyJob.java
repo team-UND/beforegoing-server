@@ -49,7 +49,7 @@ public class ScenarioMissionDailyJob {
 	/**
 	 * Daily cleanup job at 1 AM (01:00) - 기간 만료 미션 삭제
 	 */
-	@Scheduled(cron = "0 */3 * * * *", zone = "Asia/Seoul")
+	@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
 	@Transactional
 	public void runExpiredMissionCleanupJob() {
 		LocalDate today = LocalDate.now(clock);
