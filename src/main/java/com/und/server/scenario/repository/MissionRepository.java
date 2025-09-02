@@ -78,4 +78,8 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	/// 새롭게 추가한 쿼리들--------------------------------------------
 	Optional<Mission> findByParentMissionIdAndUseDate(Long parentMissionId, LocalDate useDate);
 
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("DELETE FROM Mission m WHERE m.parentMissionId IN :parentMissionIds")
+	void deleteByParentMissionIdIn(@NotNull List<Long> parentMissionIds);
+
 }

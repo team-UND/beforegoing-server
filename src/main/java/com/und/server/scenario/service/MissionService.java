@@ -150,8 +150,9 @@ public class MissionService {
 
 		oldSCenario.getMissions().removeIf(mission ->
 			mission.getMissionType() == MissionType.BASIC
-				&& toDeleteId.contains(mission.getId())
-		);
+				&& toDeleteId.contains(mission.getId()));
+
+		missionRepository.deleteByParentMissionIdIn(toDeleteId);
 		missionRepository.saveAll(toAdd);
 	}
 
