@@ -166,7 +166,7 @@ public class MissionService {
 		missionValidator.validateMissionAccessibleMember(mission, memberId);
 
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(LocalDate.now(), date);
-		if (missionSearchType == MissionSearchType.FUTURE) {
+		if (mission.getMissionType() == MissionType.BASIC && missionSearchType == MissionSearchType.FUTURE) {
 			Optional<Mission> futureMission = missionRepository.findByParentMissionIdAndUseDate(missionId, date);
 			if (futureMission.isPresent()) {
 				futureMission.get().updateCheckStatus(isChecked);
