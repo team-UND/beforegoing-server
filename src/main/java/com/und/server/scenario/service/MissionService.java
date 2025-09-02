@@ -45,7 +45,11 @@ public class MissionService {
 	) {
 		scenarioValidator.validateScenarioExists(scenarioId);
 
-		List<Mission> missions = getMissionsByDate(memberId, scenarioId, date);
+		LocalDate today = LocalDate.now();
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
+
+		System.out.println(missionSearchType);
+		List<Mission> missions = getMissionsByDate(missionSearchType, memberId, scenarioId, date);
 
 		if (missions == null || missions.isEmpty()) {
 			return MissionGroupResponse.from(List.of(), List.of());
@@ -55,6 +59,10 @@ public class MissionService {
 			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
 		List<Mission> groupedTodayMissions =
 			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.TODAY);
+
+		if (missionSearchType == MissionSearchType.FUTURE) {
+			groupedBasicMissions = getFutureCheckStatusMissions(groupedBasicMissions);
+		}
 
 		return MissionGroupResponse.from(scenarioId, groupedBasicMissions, groupedTodayMissions);
 	}
@@ -163,7 +171,8 @@ public class MissionService {
 				futureMission.get().updateCheckStatus(isChecked);
 				return;
 			}
-			missionRepository.save(mission.getFutureChildMission(isChecked,date));
+			missionRepository.save(mission.getFutureChildMission(isChecked, date));
+			return;
 		}
 
 		mission.updateCheckStatus(isChecked);
@@ -187,11 +196,11 @@ public class MissionService {
 
 
 	private List<Mission> getMissionsByDate(
-		final Long memberId, final Long scenarioId, final LocalDate date
+		final MissionSearchType missionSearchType,
+		final Long memberId,
+		final Long scenarioId,
+		final LocalDate date
 	) {
-		LocalDate today = LocalDate.now();
-		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
-
 		switch (missionSearchType) {
 			case TODAY, FUTURE -> {
 				return missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date);
@@ -201,6 +210,21 @@ public class MissionService {
 			}
 		}
 		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
+	}
+
+	private List<Mission> getFutureCheckStatusMissions(List<Mission> groupedBasicMissions) {
+		Map<Long, Mission> overlayMap = groupedBasicMissions.stream()
+			.filter(m -> m.getParentMissionId() != null)
+			.collect(Collectors.toMap(Mission::getParentMissionId, m -> m));
+
+		groupedBasicMissions = groupedBasicMissions.stream()
+			.filter(m -> m.getParentMissionId() == null && m.getUseDate() == null)
+			.peek(tpl -> {
+				Mission overlay = overlayMap.get(tpl.getId());
+				tpl.updateCheckStatus(overlay != null && Boolean.TRUE.equals(overlay.getIsChecked()));
+			})
+			.toList();
+		return groupedBasicMissions;
 	}
 
 }
