@@ -1,6 +1,8 @@
 package com.und.server.scenario.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,6 +51,7 @@ public class ScenarioService {
 	private final ScenarioValidator scenarioValidator;
 	private final EntityManager em;
 	private final NotificationEventPublisher notificationEventPublisher;
+	private final Clock clock;
 
 
 	@Transactional(readOnly = true)
@@ -64,7 +67,7 @@ public class ScenarioService {
 
 	@Transactional(readOnly = true)
 	public ScenarioDetailResponse findScenarioDetailByScenarioId(final Long memberId, final Long scenarioId) {
-		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+		Scenario scenario = scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		List<Mission> basicMissions =
@@ -88,7 +91,7 @@ public class ScenarioService {
 		final TodayMissionRequest todayMissionRequest,
 		final LocalDate date
 	) {
-		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+		Scenario scenario = scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, date)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		return missionService.addTodayMission(scenario, todayMissionRequest, date);
@@ -138,7 +141,7 @@ public class ScenarioService {
 		final Long scenarioId,
 		final ScenarioDetailRequest scenarioDetailRequest
 	) {
-		Scenario oldScenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+		Scenario oldScenario = scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 		Notification oldNotification = oldScenario.getNotification();
 
@@ -157,7 +160,8 @@ public class ScenarioService {
 
 		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
 
-		return missionService.findMissionsByScenarioId(memberId, scenarioId, LocalDate.now());
+		return missionService.findMissionsByScenarioId(
+			memberId, scenarioId, LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))));
 	}
 
 
@@ -192,11 +196,13 @@ public class ScenarioService {
 
 	@Transactional
 	public void deleteScenarioWithAllMissions(final Long memberId, final Long scenarioId) {
-		Scenario scenario = scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId)
+		Scenario scenario = scenarioRepository.findNotificationFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
 
 		Notification notification = scenario.getNotification();
 		boolean isNotificationActive = notification.isActive();
+
+		missionService.deleteMissions(scenarioId);
 
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);

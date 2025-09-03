@@ -8,16 +8,21 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
@@ -32,6 +37,7 @@ import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class MissionServiceTest {
 
 	@Mock
@@ -46,16 +52,27 @@ class MissionServiceTest {
 	@Mock
 	private com.und.server.scenario.util.MissionValidator missionValidator;
 
+	@Mock
+	private Clock clock;
+
 	@InjectMocks
 	private MissionService missionService;
 
+	@BeforeEach
+	void setUp() {
+		// Clock 설정
+		when(clock.withZone(ZoneId.of("Asia/Seoul"))).thenReturn(Clock.fixed(
+			LocalDate.of(2024, 1, 15).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
+			ZoneId.of("Asia/Seoul")
+		));
+	}
 
 	@Test
 	void Given_ValidScenarioId_When_FindMissionsByScenarioId_Then_ReturnMissionGroupResponse() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		Member member = Member.builder()
 			.id(memberId)
@@ -84,7 +101,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = Arrays.asList(basicMission);
 		List<Mission> groupedTodayMissions = Arrays.asList(todayMission);
 
-		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
@@ -98,7 +115,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isNotEmpty();
 		assertThat(result.todayMissions()).isNotEmpty();
-		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.BASIC);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.TODAY);
 	}
@@ -109,9 +126,9 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
-		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
 
 		// when
@@ -121,7 +138,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isEmpty();
 		assertThat(result.todayMissions()).isEmpty();
-		verify(missionRepository).findDefaultMissions(memberId, scenarioId, date);
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 	}
 
 
@@ -130,9 +147,9 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
-		when(missionRepository.findDefaultMissions(memberId, scenarioId, date)).thenReturn(
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
 
 		// when & then
@@ -152,7 +169,7 @@ class MissionServiceTest {
 			.build();
 
 		TodayMissionRequest missionAddInfo = new TodayMissionRequest("오늘 미션");
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		// when
 		missionService.addTodayMission(scenario, missionAddInfo, date);
@@ -534,7 +551,8 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = List.of(mission);
 		List<Mission> groupedTodayMissions = List.of();
 
-		when(missionRepository.findDefaultMissions(any(Long.class), any(Long.class), any())).thenReturn(missionList);
+		when(missionRepository.findTodayAndFutureMissions(any(Long.class),
+			any(Long.class), any())).thenReturn(missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
@@ -547,7 +565,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isNotEmpty();
 		assertThat(result.todayMissions()).isEmpty();
-		verify(missionRepository).findDefaultMissions(any(Long.class), any(Long.class), any());
+		verify(missionRepository).findTodayAndFutureMissions(any(Long.class), any(Long.class), any());
 	}
 
 
@@ -556,7 +574,7 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate pastDate = LocalDate.now().minusDays(1);
+		LocalDate pastDate = LocalDate.of(2024, 1, 14);
 
 		Mission mission = Mission.builder()
 			.id(1L)
@@ -569,7 +587,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = List.of();
 		List<Mission> groupedTodayMissions = List.of(mission);
 
-		when(missionRepository.findMissionsByDate(memberId, scenarioId, pastDate)).thenReturn(missionList);
+		when(missionRepository.findPastMissionsByDate(memberId, scenarioId, pastDate)).thenReturn(missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
@@ -582,7 +600,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isEmpty();
 		assertThat(result.todayMissions()).isNotEmpty();
-		verify(missionRepository).findMissionsByDate(memberId, scenarioId, pastDate);
+		verify(missionRepository).findPastMissionsByDate(memberId, scenarioId, pastDate);
 	}
 
 
@@ -591,7 +609,7 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate futureDate = LocalDate.now().plusDays(1);
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
 
 		Mission mission = Mission.builder()
 			.id(1L)
@@ -604,7 +622,7 @@ class MissionServiceTest {
 		List<Mission> groupedBasicMissions = List.of();
 		List<Mission> groupedTodayMissions = List.of(mission);
 
-		when(missionRepository.findMissionsByDate(memberId, scenarioId, futureDate)).thenReturn(missionList);
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, futureDate)).thenReturn(missionList);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
 			.thenReturn(groupedBasicMissions);
 		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
@@ -617,7 +635,7 @@ class MissionServiceTest {
 		assertThat(result).isNotNull();
 		assertThat(result.basicMissions()).isEmpty();
 		assertThat(result.todayMissions()).isNotEmpty();
-		verify(missionRepository).findMissionsByDate(memberId, scenarioId, futureDate);
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
 	}
 
 

@@ -1,6 +1,8 @@
 package com.und.server.scenario.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,7 @@ public class MissionService {
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final ScenarioValidator scenarioValidator;
 	private final MissionValidator missionValidator;
+	private final Clock clock;
 
 
 	@Transactional(readOnly = true)
@@ -84,7 +87,7 @@ public class MissionService {
 		final TodayMissionRequest todayMissionRequest,
 		final LocalDate date
 	) {
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		missionValidator.validateTodayMissionDateRange(today, date);
 
 		List<Mission> todayMissions = missionTypeGroupSorter.groupAndSortByType(
@@ -160,6 +163,12 @@ public class MissionService {
 
 
 	@Transactional
+	public void deleteMissions(final Long scenarioId) {
+		missionRepository.deleteByScenarioId(scenarioId);
+	}
+
+
+	@Transactional
 	public void deleteTodayMission(final Long memberId, final Long missionId) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
@@ -172,15 +181,15 @@ public class MissionService {
 	private List<Mission> getMissionsByDate(
 		final Long memberId, final Long scenarioId, final LocalDate date
 	) {
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 
 		switch (missionSearchType) {
-			case TODAY -> {
-				return missionRepository.findDefaultMissions(memberId, scenarioId, date);
+			case TODAY, FUTURE -> {
+				return missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date);
 			}
-			case PAST, FUTURE -> {
-				return missionRepository.findMissionsByDate(memberId, scenarioId, date);
+			case PAST -> {
+				return missionRepository.findPastMissionsByDate(memberId, scenarioId, date);
 			}
 		}
 		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);

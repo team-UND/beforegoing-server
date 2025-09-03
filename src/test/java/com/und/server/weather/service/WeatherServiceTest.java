@@ -6,8 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,13 +35,20 @@ class WeatherServiceTest {
 	@Mock
 	private WeatherCacheService weatherCacheService;
 
+	@Mock
+	private Clock clock;
+
 	@InjectMocks
 	private WeatherService weatherService;
 
 
 	@BeforeEach
 	void setUp() {
-		// 기본 설정
+		// Clock 설정
+		when(clock.withZone(ZoneId.of("Asia/Seoul"))).thenReturn(Clock.fixed(
+			LocalDate.of(2024, 1, 15).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
+			ZoneId.of("Asia/Seoul")
+		));
 	}
 
 
@@ -48,8 +57,8 @@ class WeatherServiceTest {
 	void Given_TodayWeatherRequest_When_GetWeatherInfo_Then_ReturnsTodayWeather() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate today = LocalDate.now();
-		LocalDateTime nowDateTime = LocalDateTime.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
+		LocalDateTime nowDateTime = LocalDateTime.of(2024, 1, 15, 12, 0);
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.SUNNY)
 			.fineDust(FineDustType.GOOD)
@@ -60,7 +69,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today);
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();
@@ -74,8 +83,8 @@ class WeatherServiceTest {
 	void Given_FutureWeatherRequest_When_GetWeatherInfo_Then_ReturnsFutureWeather() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate futureDate = LocalDate.now().plusDays(1);
-		LocalDateTime nowDateTime = LocalDateTime.now();
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
+		LocalDateTime nowDateTime = LocalDateTime.of(2024, 1, 15, 12, 0);
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.CLOUDY)
 			.fineDust(FineDustType.NORMAL)
@@ -86,7 +95,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate);
+		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();
@@ -100,13 +109,13 @@ class WeatherServiceTest {
 	void Given_TodayWeatherCacheIsNull_When_GetWeatherInfo_Then_ReturnsDefault() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		when(weatherCacheService.getTodayWeatherCache(eq(request), any(LocalDateTime.class)))
 			.thenReturn(null);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today);
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();
@@ -120,7 +129,7 @@ class WeatherServiceTest {
 	void Given_TodayWeatherCacheIsInvalid_When_GetWeatherInfo_Then_ReturnsValidDefault() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
 		WeatherCacheData invalidCacheData = WeatherCacheData.builder()
 			.weather(null)
 			.fineDust(FineDustType.GOOD)
@@ -131,7 +140,7 @@ class WeatherServiceTest {
 			.thenReturn(invalidCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today);
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();
@@ -145,13 +154,13 @@ class WeatherServiceTest {
 	void Given_FutureWeatherCacheIsNull_When_GetWeatherInfo_Then_ReturnsDefault() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate futureDate = LocalDate.now().plusDays(1);
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
 
 		when(weatherCacheService.getFutureWeatherCache(eq(request), any(LocalDateTime.class), eq(futureDate)))
 			.thenReturn(null);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate);
+		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();
@@ -165,7 +174,7 @@ class WeatherServiceTest {
 	void Given_FutureWeatherCacheIsInvalid_When_GetWeatherInfo_Then_ReturnsValidDefault() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate futureDate = LocalDate.now().plusDays(1);
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
 		WeatherCacheData invalidCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.CLOUDY)
 			.fineDust(null)
@@ -176,7 +185,7 @@ class WeatherServiceTest {
 			.thenReturn(invalidCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate);
+		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();
@@ -190,10 +199,10 @@ class WeatherServiceTest {
 	void Given_LatitudeLessThanMinus90_When_GetWeatherInfo_Then_ThrowsException() {
 		// given
 		WeatherRequest request = new WeatherRequest(-91.0, 126.9780);
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -204,10 +213,10 @@ class WeatherServiceTest {
 	void Given_LatitudeGreaterThan90_When_GetWeatherInfo_Then_ThrowsException() {
 		// given
 		WeatherRequest request = new WeatherRequest(91.0, 126.9780);
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -218,10 +227,10 @@ class WeatherServiceTest {
 	void Given_LongitudeLessThanMinus180_When_GetWeatherInfo_Then_ThrowsException() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, -181.0);
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -232,10 +241,10 @@ class WeatherServiceTest {
 	void Given_LongitudeGreaterThan180_When_GetWeatherInfo_Then_ThrowsException() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 181.0);
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -246,10 +255,10 @@ class WeatherServiceTest {
 	void Given_DateBeforeToday_When_GetWeatherInfo_Then_ThrowsException() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate yesterday = LocalDate.now().minusDays(1);
+		LocalDate yesterday = LocalDate.of(2024, 1, 14);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, yesterday))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, yesterday, "Asia/Seoul"))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.DATE_OUT_OF_RANGE);
 	}
@@ -260,10 +269,10 @@ class WeatherServiceTest {
 	void Given_DateAfterMaxDate_When_GetWeatherInfo_Then_ThrowsException() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate maxDatePlusOne = LocalDate.now().plusDays(4); // MAX_FUTURE_DATE + 1
+		LocalDate maxDatePlusOne = LocalDate.of(2024, 1, 19); // MAX_FUTURE_DATE + 1
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, maxDatePlusOne))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, maxDatePlusOne, "Asia/Seoul"))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.DATE_OUT_OF_RANGE);
 	}
@@ -274,7 +283,7 @@ class WeatherServiceTest {
 	void Given_ValidCoordinatesAndDate_When_GetWeatherInfo_Then_ReturnsWeatherInfo() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.RAIN)
 			.fineDust(FineDustType.BAD)
@@ -285,7 +294,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today);
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();
@@ -299,7 +308,7 @@ class WeatherServiceTest {
 	void Given_MaxAllowedDate_When_GetWeatherInfo_Then_ReturnsWeatherInfo() {
 		// given
 		WeatherRequest request = new WeatherRequest(37.5665, 126.9780);
-		LocalDate maxDate = LocalDate.now().plusDays(3); // MAX_FUTURE_DATE
+		LocalDate maxDate = LocalDate.of(2024, 1, 18); // MAX_FUTURE_DATE
 		WeatherCacheData mockCacheData = WeatherCacheData.builder()
 			.weather(WeatherType.SNOW)
 			.fineDust(FineDustType.VERY_BAD)
@@ -310,7 +319,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, maxDate);
+		WeatherResponse response = weatherService.getWeatherInfo(request, maxDate, "Asia/Seoul");
 
 		// then
 		assertThat(response).isNotNull();

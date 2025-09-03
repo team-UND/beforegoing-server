@@ -11,11 +11,15 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,6 +27,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
@@ -55,6 +61,7 @@ import com.und.server.scenario.util.OrderCalculator;
 import jakarta.persistence.EntityManager;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ScenarioServiceTest {
 
 	@InjectMocks
@@ -84,6 +91,17 @@ class ScenarioServiceTest {
 	@Mock
 	private NotificationEventPublisher notificationEventPublisher;
 
+	@Mock
+	private Clock clock;
+
+	@BeforeEach
+	void setUp() {
+		// Clock 설정
+		when(clock.withZone(ZoneId.of("Asia/Seoul"))).thenReturn(Clock.fixed(
+			LocalDate.of(2024, 1, 15).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
+			ZoneId.of("Asia/Seoul")
+		));
+	}
 
 	@Test
 	void Given_memberId_When_FindScenarios_Then_ReturnScenarios() {
@@ -177,7 +195,7 @@ class ScenarioServiceTest {
 		);
 
 		// mock
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(notifDetail);
 		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
@@ -202,7 +220,7 @@ class ScenarioServiceTest {
 		final Long memberId = 1L;
 		final Long scenarioId = 99L;
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.empty());
 
 		// when & then
@@ -219,7 +237,7 @@ class ScenarioServiceTest {
 		final Long scenarioId = 10L;
 
 		// 다른 사용자의 시나리오는 존재하지 않음 (권한 검증으로 인해)
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.empty());
 
 		// when & then
@@ -245,7 +263,7 @@ class ScenarioServiceTest {
 
 		TodayMissionRequest request = new TodayMissionRequest("Stretch");
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, date))
 			.thenReturn(Optional.of(scenario));
 
 		scenarioService.addTodayMissionToScenario(memberId, scenarioId, request, date);
@@ -262,7 +280,7 @@ class ScenarioServiceTest {
 
 		TodayMissionRequest request = new TodayMissionRequest("Stretch");
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(requestMemberId, scenarioId))
+		Mockito.when(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(requestMemberId, scenarioId, date))
 			.thenReturn(Optional.empty());
 
 		assertThatThrownBy(() ->
@@ -457,7 +475,7 @@ class ScenarioServiceTest {
 
 		TodayMissionRequest request = new TodayMissionRequest("Past Mission");
 
-		given(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		given(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, pastDate))
 			.willReturn(Optional.of(scenario));
 		doThrow(new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE))
 			.when(missionService).addTodayMission(scenario, request, pastDate);
@@ -513,7 +531,7 @@ class ScenarioServiceTest {
 			.notificationCondition(condition)
 			.build();
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(oldScenario));
 		Mockito.doAnswer(invocation -> {
 			Notification target = invocation.getArgument(0);
@@ -698,13 +716,14 @@ class ScenarioServiceTest {
 			.notification(notification)
 			.build();
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findNotificationFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 
 		// when
 		scenarioService.deleteScenarioWithAllMissions(memberId, scenarioId);
 
 		// then
+		verify(missionService).deleteMissions(scenarioId);
 		verify(notificationService).deleteNotification(notification);
 		verify(scenarioRepository).delete(scenario);
 		verify(notificationEventPublisher).publishDeleteEvent(eq(memberId), eq(scenarioId), eq(true));
@@ -730,7 +749,7 @@ class ScenarioServiceTest {
 			.notificationCondition(null)
 			.build();
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.empty());
 
 		// when & then
@@ -767,7 +786,7 @@ class ScenarioServiceTest {
 		Long memberId = 1L;
 		Long scenarioId = 99L;
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findNotificationFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.empty());
 
 		// when & then
@@ -812,7 +831,7 @@ class ScenarioServiceTest {
 			.notificationCondition(null)
 			.build();
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(oldScenario));
 
 		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
@@ -860,7 +879,7 @@ class ScenarioServiceTest {
 			.notificationCondition(null)
 			.build();
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.empty());
 
 		// when & then
@@ -977,7 +996,7 @@ class ScenarioServiceTest {
 			.build();
 
 		// mock - notificationInfo가 null인 경우
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(null);
 		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
@@ -1066,7 +1085,7 @@ class ScenarioServiceTest {
 
 		TodayMissionRequest request = new TodayMissionRequest("Future Mission");
 
-		Mockito.when(scenarioRepository.findFetchByIdAndMemberId(memberId, scenarioId))
+		Mockito.when(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, futureDate))
 			.thenReturn(Optional.of(scenario));
 
 		// when

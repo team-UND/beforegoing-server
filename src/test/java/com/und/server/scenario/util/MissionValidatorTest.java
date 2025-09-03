@@ -27,8 +27,8 @@ class MissionValidatorTest {
 	@Test
 	void Given_TodayDate_When_ValidateTodayMissionDateRange_Then_NoException() {
 		// given
-		LocalDate today = LocalDate.now();
-		LocalDate requestDate = LocalDate.now();
+		LocalDate today = LocalDate.of(2024, 1, 15);
+		LocalDate requestDate = LocalDate.of(2024, 1, 15);
 
 		// when & then
 		assertDoesNotThrow(() -> missionValidator.validateTodayMissionDateRange(today, requestDate));
@@ -37,8 +37,8 @@ class MissionValidatorTest {
 	@Test
 	void Given_FutureDate_When_ValidateTodayMissionDateRange_Then_NoException() {
 		// given
-		LocalDate today = LocalDate.now();
-		LocalDate futureDate = LocalDate.now().plusDays(1);
+		LocalDate today = LocalDate.of(2024, 1, 15);
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
 
 		// when & then
 		assertDoesNotThrow(() -> missionValidator.validateTodayMissionDateRange(today, futureDate));
@@ -47,8 +47,8 @@ class MissionValidatorTest {
 	@Test
 	void Given_PastDate_When_ValidateTodayMissionDateRange_Then_ThrowException() {
 		// given
-		LocalDate today = LocalDate.now();
-		LocalDate pastDate = LocalDate.now().minusDays(1);
+		LocalDate today = LocalDate.of(2024, 1, 15);
+		LocalDate pastDate = LocalDate.of(2024, 1, 14);
 
 		// when & then
 		assertThatThrownBy(() -> missionValidator.validateTodayMissionDateRange(today, pastDate))
