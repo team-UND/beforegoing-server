@@ -54,7 +54,7 @@ public class MissionService {
 		List<Mission> missions = getMissionsByDate(missionSearchType, memberId, scenarioId, date);
 
 		if (missions == null || missions.isEmpty()) {
-			return MissionGroupResponse.from(List.of(), List.of());
+			return MissionGroupResponse.from(scenarioId, List.of(), List.of());
 		}
 
 		List<Mission> groupedBasicMissions =
