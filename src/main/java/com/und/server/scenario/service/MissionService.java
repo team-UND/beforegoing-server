@@ -172,13 +172,9 @@ public class MissionService {
 		missionValidator.validateMissionAccessibleMember(mission, memberId);
 
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(LocalDate.now(), date);
+
 		if (mission.getMissionType() == MissionType.BASIC && missionSearchType == MissionSearchType.FUTURE) {
-			Optional<Mission> futureMission = missionRepository.findByParentMissionIdAndUseDate(missionId, date);
-			if (futureMission.isPresent()) {
-				futureMission.get().updateCheckStatus(isChecked);
-				return;
-			}
-			missionRepository.save(mission.createFutureChildMission(isChecked, date));
+			updateFutureBasicMission(mission, missionId, isChecked, date);
 			return;
 		}
 
@@ -233,6 +229,24 @@ public class MissionService {
 			.toList();
 
 		return groupedBasicMissions;
+	}
+
+	private void updateFutureBasicMission(
+		final Mission mission,
+		final Long missionId,
+		final Boolean isChecked,
+		final LocalDate date
+	) {
+		Optional<Mission> futureMission = missionRepository.findByParentMissionIdAndUseDate(missionId, date);
+		if (futureMission.isPresent()) {
+			if (!isChecked) {
+				missionRepository.delete(futureMission.get());
+			} else {
+				futureMission.get().updateCheckStatus(isChecked);
+			}
+			return;
+		}
+		missionRepository.save(mission.createFutureChildMission(isChecked, date));
 	}
 
 }
