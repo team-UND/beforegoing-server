@@ -1,6 +1,8 @@
 package com.und.server.scenario.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,6 +51,7 @@ public class ScenarioService {
 	private final ScenarioValidator scenarioValidator;
 	private final EntityManager em;
 	private final NotificationEventPublisher notificationEventPublisher;
+	private final Clock clock;
 
 
 	@Transactional(readOnly = true)
@@ -157,7 +160,8 @@ public class ScenarioService {
 
 		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
 
-		return missionService.findMissionsByScenarioId(memberId, scenarioId, LocalDate.now());
+		return missionService.findMissionsByScenarioId(
+			memberId, scenarioId, LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))));
 	}
 
 

@@ -1,6 +1,8 @@
 package com.und.server.scenario.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,7 @@ public class MissionService {
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final ScenarioValidator scenarioValidator;
 	private final MissionValidator missionValidator;
+	private final Clock clock;
 
 
 	@Transactional(readOnly = true)
@@ -84,7 +87,7 @@ public class MissionService {
 		final TodayMissionRequest todayMissionRequest,
 		final LocalDate date
 	) {
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		missionValidator.validateTodayMissionDateRange(today, date);
 
 		List<Mission> todayMissions = missionTypeGroupSorter.groupAndSortByType(
@@ -178,7 +181,7 @@ public class MissionService {
 	private List<Mission> getMissionsByDate(
 		final Long memberId, final Long scenarioId, final LocalDate date
 	) {
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 
 		switch (missionSearchType) {
