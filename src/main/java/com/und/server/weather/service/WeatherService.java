@@ -1,7 +1,9 @@
 package com.und.server.weather.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.stereotype.Service;
 
@@ -21,12 +23,13 @@ public class WeatherService {
 
 	private static final int MAX_FUTURE_DATE = 3;
 	private final WeatherCacheService weatherCacheService;
+	private final Clock clock;
 
 
 	public WeatherResponse getWeatherInfo(
-		final WeatherRequest weatherRequest, final LocalDate date
+		final WeatherRequest weatherRequest, final LocalDate date, final String timezone
 	) {
-		LocalDateTime nowDateTime = LocalDateTime.now();
+		LocalDateTime nowDateTime = LocalDateTime.now(clock.withZone(ZoneId.of(timezone)));
 		LocalDate today = nowDateTime.toLocalDate();
 
 		validateLocation(weatherRequest);

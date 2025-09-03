@@ -29,9 +29,10 @@ public class WeatherController {
 	@PostMapping
 	public ResponseEntity<WeatherResponse> getWeather(
 		@RequestBody @Valid final WeatherRequest request,
-		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") final LocalDate date
+		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") final LocalDate date,
+		@RequestParam(defaultValue = "Asia/Seoul") final String timezone
 	) {
-		final WeatherResponse response = weatherService.getWeatherInfo(request, date);
+		final WeatherResponse response = weatherService.getWeatherInfo(request, date, timezone);
 
 		return ResponseEntity.ok(response);
 	}

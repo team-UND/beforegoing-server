@@ -56,7 +56,7 @@ class WeatherControllerTest {
 			WeatherType.SUNNY, FineDustType.GOOD, UvType.LOW
 		);
 
-		given(weatherService.getWeatherInfo((request), (date)))
+		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -81,7 +81,7 @@ class WeatherControllerTest {
 			WeatherType.RAIN, FineDustType.NORMAL, UvType.NORMAL
 		);
 
-		given(weatherService.getWeatherInfo((request), (date)))
+		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -106,7 +106,7 @@ class WeatherControllerTest {
 			WeatherType.CLOUDY, FineDustType.BAD, UvType.HIGH
 		);
 
-		given(weatherService.getWeatherInfo((request), (date)))
+		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -130,7 +130,7 @@ class WeatherControllerTest {
 			WeatherType.SNOW, FineDustType.GOOD, UvType.VERY_LOW
 		);
 
-		given(weatherService.getWeatherInfo((request), (date)))
+		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -155,7 +155,7 @@ class WeatherControllerTest {
 			WeatherType.SUNNY, FineDustType.GOOD, UvType.VERY_HIGH
 		);
 
-		given(weatherService.getWeatherInfo((request), (date)))
+		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -180,7 +180,7 @@ class WeatherControllerTest {
 			WeatherType.CLOUDY, FineDustType.NORMAL, UvType.LOW
 		);
 
-		given(weatherService.getWeatherInfo((request), (date)))
+		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -205,7 +205,7 @@ class WeatherControllerTest {
 			WeatherType.SNOW, FineDustType.VERY_BAD, UvType.VERY_HIGH
 		);
 
-		given(weatherService.getWeatherInfo((request), (date)))
+		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
 			.willReturn(expectedResponse);
 
 		// when & then

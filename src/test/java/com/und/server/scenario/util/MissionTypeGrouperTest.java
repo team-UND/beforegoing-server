@@ -51,7 +51,7 @@ class MissionTypeGrouperTest {
 	@Test
 	void Given_TodayMissions_When_GroupAndSort_Then_ReturnReverseSortedList() {
 		// given
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.of(2024, 1, 15, 12, 0);
 
 		Mission m1 = Mission.builder()
 			.missionOrder(null)
