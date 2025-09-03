@@ -18,6 +18,8 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	@EntityGraph(attributePaths = {"scenario", "scenario.member"})
 	Optional<Mission> findById(@NotNull Long id);
 
+	Optional<Mission> findByParentMissionIdAndUseDate(Long parentMissionId, LocalDate useDate);
+
 	@Query("""
 		SELECT m FROM Mission m
 		LEFT JOIN m.scenario s
@@ -45,13 +47,33 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	int deleteByScenarioId(Long scenarioId);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("DELETE FROM Mission m WHERE m.parentMissionId IN :parentMissionIds")
+	void deleteByParentMissionIdIn(@NotNull List<Long> parentMissionIds);
+
+	@Modifying
 	@Query("""
-		UPDATE Mission m
-		SET m.isChecked = false
-		WHERE m.useDate IS NULL
+		DELETE FROM Mission m
+		WHERE m.useDate = :today
+			AND m.parentMissionId IS NOT NULL
 			AND m.missionType = 'BASIC'
 		""")
-	int bulkResetBasicIsChecked();
+	int deleteTodayChildBasics(LocalDate today);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+		UPDATE Mission p
+		   SET p.isChecked = COALESCE(
+		       (SELECT c.isChecked
+		          FROM Mission c
+		         WHERE c.parentMissionId = p.id
+		           AND c.useDate = :today
+		           AND c.missionType = 'BASIC'
+		       ), false
+		   )
+		 WHERE p.useDate IS NULL
+		   AND p.missionType = 'BASIC'
+		""")
+	int bulkResetBasicIsChecked(LocalDate today);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query(value = """

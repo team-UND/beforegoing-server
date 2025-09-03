@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,7 +48,10 @@ public class MissionService {
 	) {
 		scenarioValidator.validateScenarioExists(scenarioId);
 
-		List<Mission> missions = getMissionsByDate(memberId, scenarioId, date);
+		LocalDate today = LocalDate.now();
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
+
+		List<Mission> missions = getMissionsByDate(missionSearchType, memberId, scenarioId, date);
 
 		if (missions == null || missions.isEmpty()) {
 			return MissionGroupResponse.from(List.of(), List.of());
@@ -57,6 +61,10 @@ public class MissionService {
 			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
 		List<Mission> groupedTodayMissions =
 			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.TODAY);
+
+		if (missionSearchType == MissionSearchType.FUTURE) {
+			groupedBasicMissions = getFutureCheckStatusMissions(groupedBasicMissions);
+		}
 
 		return MissionGroupResponse.from(scenarioId, groupedBasicMissions, groupedTodayMissions);
 	}
@@ -146,17 +154,33 @@ public class MissionService {
 			mission.getMissionType() == MissionType.BASIC
 				&& toDeleteId.contains(mission.getId())
 		);
+
+		missionRepository.deleteByParentMissionIdIn(toDeleteId);
 		missionRepository.saveAll(toAdd);
 	}
 
 
 	@Transactional
 	public void updateMissionCheck(
-		final Long memberId, final Long missionId, final Boolean isChecked
+		final Long memberId,
+		final Long missionId,
+		final Boolean isChecked,
+		final LocalDate date
 	) {
 		Mission mission = missionRepository.findById(missionId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 		missionValidator.validateMissionAccessibleMember(mission, memberId);
+
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(LocalDate.now(), date);
+		if (mission.getMissionType() == MissionType.BASIC && missionSearchType == MissionSearchType.FUTURE) {
+			Optional<Mission> futureMission = missionRepository.findByParentMissionIdAndUseDate(missionId, date);
+			if (futureMission.isPresent()) {
+				futureMission.get().updateCheckStatus(isChecked);
+				return;
+			}
+			missionRepository.save(mission.createFutureChildMission(isChecked, date));
+			return;
+		}
 
 		mission.updateCheckStatus(isChecked);
 	}
@@ -179,11 +203,11 @@ public class MissionService {
 
 
 	private List<Mission> getMissionsByDate(
-		final Long memberId, final Long scenarioId, final LocalDate date
+		final MissionSearchType missionSearchType,
+		final Long memberId,
+		final Long scenarioId,
+		final LocalDate date
 	) {
-		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
-		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
-
 		switch (missionSearchType) {
 			case TODAY, FUTURE -> {
 				return missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date);
@@ -193,6 +217,22 @@ public class MissionService {
 			}
 		}
 		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
+	}
+
+	private List<Mission> getFutureCheckStatusMissions(List<Mission> groupedBasicMissions) {
+		Map<Long, Mission> overlayMap = groupedBasicMissions.stream()
+			.filter(m -> m.getParentMissionId() != null)
+			.collect(Collectors.toMap(Mission::getParentMissionId, m -> m));
+
+		groupedBasicMissions = groupedBasicMissions.stream()
+			.filter(m -> m.getParentMissionId() == null && m.getUseDate() == null)
+			.peek(tpl -> {
+				Mission overlay = overlayMap.get(tpl.getId());
+				tpl.updateCheckStatus(overlay != null && Boolean.TRUE.equals(overlay.getIsChecked()));
+			})
+			.toList();
+
+		return groupedBasicMissions;
 	}
 
 }
