@@ -2,6 +2,7 @@ package com.und.server.scenario.scheduler;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class ScenarioMissionDailyJob {
 	@Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
 	@Transactional
 	public void runDailyBackupJob() {
-		LocalDate today = LocalDate.now(clock);
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		LocalDate yesterday = today.minusDays(DAYS_TO_SUBTRACT);
 
 		try {
@@ -49,7 +50,7 @@ public class ScenarioMissionDailyJob {
 	@Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul")
 	@Transactional
 	public void runExpiredMissionCleanupJob() {
-		LocalDate today = LocalDate.now(clock);
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		LocalDate expireBefore = today.minusMonths(MONTHS_TO_SUBTRACT);
 
 		int totalDeleted = 0;
