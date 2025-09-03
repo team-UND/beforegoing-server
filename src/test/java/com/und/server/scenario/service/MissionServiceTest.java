@@ -8,16 +8,21 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
@@ -32,6 +37,7 @@ import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class MissionServiceTest {
 
 	@Mock
@@ -46,16 +52,27 @@ class MissionServiceTest {
 	@Mock
 	private com.und.server.scenario.util.MissionValidator missionValidator;
 
+	@Mock
+	private Clock clock;
+
 	@InjectMocks
 	private MissionService missionService;
 
+	@BeforeEach
+	void setUp() {
+		// Clock 설정
+		when(clock.withZone(ZoneId.of("Asia/Seoul"))).thenReturn(Clock.fixed(
+			LocalDate.of(2024, 1, 15).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
+			ZoneId.of("Asia/Seoul")
+		));
+	}
 
 	@Test
 	void Given_ValidScenarioId_When_FindMissionsByScenarioId_Then_ReturnMissionGroupResponse() {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		Member member = Member.builder()
 			.id(memberId)
@@ -109,7 +126,7 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
@@ -130,7 +147,7 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			List.of());
@@ -152,7 +169,7 @@ class MissionServiceTest {
 			.build();
 
 		TodayMissionRequest missionAddInfo = new TodayMissionRequest("오늘 미션");
-		LocalDate date = LocalDate.now();
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		// when
 		missionService.addTodayMission(scenario, missionAddInfo, date);
@@ -557,7 +574,7 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate pastDate = LocalDate.now().minusDays(1);
+		LocalDate pastDate = LocalDate.of(2024, 1, 14);
 
 		Mission mission = Mission.builder()
 			.id(1L)
@@ -592,7 +609,7 @@ class MissionServiceTest {
 		// given
 		Long memberId = 1L;
 		Long scenarioId = 1L;
-		LocalDate futureDate = LocalDate.now().plusDays(1);
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
 
 		Mission mission = Mission.builder()
 			.id(1L)

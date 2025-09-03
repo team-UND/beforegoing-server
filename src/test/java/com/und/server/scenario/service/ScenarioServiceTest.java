@@ -11,11 +11,15 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,6 +27,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.entity.Member;
@@ -55,6 +61,7 @@ import com.und.server.scenario.util.OrderCalculator;
 import jakarta.persistence.EntityManager;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ScenarioServiceTest {
 
 	@InjectMocks
@@ -84,6 +91,17 @@ class ScenarioServiceTest {
 	@Mock
 	private NotificationEventPublisher notificationEventPublisher;
 
+	@Mock
+	private Clock clock;
+
+	@BeforeEach
+	void setUp() {
+		// Clock 설정
+		when(clock.withZone(ZoneId.of("Asia/Seoul"))).thenReturn(Clock.fixed(
+			LocalDate.of(2024, 1, 15).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
+			ZoneId.of("Asia/Seoul")
+		));
+	}
 
 	@Test
 	void Given_memberId_When_FindScenarios_Then_ReturnScenarios() {
