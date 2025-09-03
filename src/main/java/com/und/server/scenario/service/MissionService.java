@@ -220,15 +220,16 @@ public class MissionService {
 			.filter(m -> m.getParentMissionId() != null)
 			.collect(Collectors.toMap(Mission::getParentMissionId, m -> m));
 
-		groupedBasicMissions = groupedBasicMissions.stream()
+		List<Mission> parentMissions = new ArrayList<>();
+		groupedBasicMissions.stream()
 			.filter(m -> m.getParentMissionId() == null && m.getUseDate() == null)
-			.peek(tpl -> {
+			.forEach(tpl -> {
 				Mission overlay = overlayMap.get(tpl.getId());
 				tpl.updateCheckStatus(overlay != null && Boolean.TRUE.equals(overlay.getIsChecked()));
-			})
-			.toList();
+				parentMissions.add(tpl);
+			});
 
-		return groupedBasicMissions;
+		return parentMissions;
 	}
 
 	private void updateFutureBasicMission(
