@@ -174,7 +174,7 @@ public class MissionService {
 			LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))), date);
 
 		if (mission.getMissionType() == MissionType.BASIC && missionSearchType == MissionSearchType.FUTURE) {
-			updateFutureBasicMission(mission, missionId, isChecked, date);
+			updateFutureBasicMission(mission, isChecked, date);
 			return;
 		}
 		mission.updateCheckStatus(isChecked);
@@ -231,11 +231,10 @@ public class MissionService {
 
 	private void updateFutureBasicMission(
 		final Mission mission,
-		final Long missionId,
 		final Boolean isChecked,
 		final LocalDate date
 	) {
-		missionRepository.findByParentMissionIdAndUseDate(missionId, date)
+		missionRepository.findByParentMissionIdAndUseDate(mission.getId(), date)
 			.ifPresentOrElse(
 				future -> {
 					if (isChecked) {
