@@ -47,7 +47,7 @@ public class MissionService {
 	) {
 		scenarioValidator.validateScenarioExists(scenarioId);
 
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 
 		List<Mission> missions = getMissionsByDate(missionSearchType, memberId, scenarioId, date);
@@ -170,7 +170,8 @@ public class MissionService {
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 		missionValidator.validateMissionAccessibleMember(mission, memberId);
 
-		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(LocalDate.now(), date);
+		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(
+			LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))), date);
 
 		if (mission.getMissionType() == MissionType.BASIC && missionSearchType == MissionSearchType.FUTURE) {
 			updateFutureBasicMission(mission, missionId, isChecked, date);
