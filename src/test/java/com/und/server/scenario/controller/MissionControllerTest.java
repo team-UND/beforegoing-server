@@ -170,14 +170,15 @@ class MissionControllerTest {
 		Long memberId = 1L;
 		Long missionId = 1L;
 		Boolean isChecked = true;
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		// when
-		ResponseEntity<Void> response = missionController.updateMissionCheck(memberId, missionId, isChecked);
+		ResponseEntity<Void> response = missionController.updateMissionCheck(memberId, missionId, isChecked, date);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		assertThat(response.getBody()).isNull();
-		verify(missionService).updateMissionCheck(memberId, missionId, isChecked);
+		verify(missionService).updateMissionCheck(memberId, missionId, isChecked, date);
 	}
 
 
@@ -187,14 +188,15 @@ class MissionControllerTest {
 		Long memberId = 1L;
 		Long missionId = 1L;
 		Boolean isChecked = false;
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		// when
-		ResponseEntity<Void> response = missionController.updateMissionCheck(memberId, missionId, isChecked);
+		ResponseEntity<Void> response = missionController.updateMissionCheck(memberId, missionId, isChecked, date);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		assertThat(response.getBody()).isNull();
-		verify(missionService).updateMissionCheck(memberId, missionId, isChecked);
+		verify(missionService).updateMissionCheck(memberId, missionId, isChecked, date);
 	}
 
 }
