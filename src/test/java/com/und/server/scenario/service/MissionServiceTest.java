@@ -114,9 +114,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isNotEmpty();
-		assertThat(result.todayMissions()).isNotEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isNotEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isNotEmpty());
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.BASIC);
 		verify(missionTypeGrouper).groupAndSortByType(missionList, MissionType.TODAY);
@@ -137,9 +138,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isEmpty());
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 	}
 
@@ -157,9 +159,10 @@ class MissionServiceTest {
 		// when & then
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isEmpty());
 	}
 
 
@@ -568,9 +571,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, nullDate);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isNotEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isNotEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isEmpty());
 		verify(missionRepository).findTodayAndFutureMissions(any(Long.class), any(Long.class), any());
 	}
 
@@ -603,9 +607,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, pastDate);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isNotEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isNotEmpty());
 		verify(missionRepository).findPastMissionsByDate(memberId, scenarioId, pastDate);
 	}
 
@@ -638,9 +643,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, futureDate);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isNotEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isNotEmpty());
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
 	}
 
@@ -729,9 +735,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isEmpty());
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 	}
 
@@ -749,9 +756,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).isEmpty())
+			.satisfies(r -> assertThat(r.todayMissions()).isEmpty());
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
 	}
 
@@ -999,8 +1007,9 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, pastDate);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).hasSize(1);
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).hasSize(1));
 		verify(missionRepository).findPastMissionsByDate(memberId, scenarioId, pastDate);
 	}
 
@@ -1043,9 +1052,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, futureDate);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).hasSize(1);
-		assertThat(result.basicMissions().get(0).isChecked()).isTrue();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).hasSize(1))
+			.satisfies(r -> assertThat(r.basicMissions().get(0).isChecked()).isTrue());
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
 	}
 
@@ -1079,9 +1089,10 @@ class MissionServiceTest {
 		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, futureDate);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.basicMissions()).hasSize(1);
-		assertThat(result.basicMissions().get(0).isChecked()).isFalse();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.basicMissions()).hasSize(1))
+			.satisfies(r -> assertThat(r.basicMissions().get(0).isChecked()).isFalse());
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
 	}
 
@@ -1164,10 +1175,11 @@ class MissionServiceTest {
 		MissionResponse response = MissionResponse.from(mission);
 
 		// then
-		assertThat(response.missionId()).isEqualTo(mission.getId());
-		assertThat(response.content()).isEqualTo(mission.getContent());
-		assertThat(response.isChecked()).isEqualTo(mission.getIsChecked());
-		assertThat(response.missionType()).isEqualTo(mission.getMissionType());
+		assertThat(response)
+			.satisfies(r -> assertThat(r.missionId()).isEqualTo(mission.getId()))
+			.satisfies(r -> assertThat(r.content()).isEqualTo(mission.getContent()))
+			.satisfies(r -> assertThat(r.isChecked()).isEqualTo(mission.getIsChecked()))
+			.satisfies(r -> assertThat(r.missionType()).isEqualTo(mission.getMissionType()));
 	}
 
 	@Test
@@ -1186,10 +1198,11 @@ class MissionServiceTest {
 		MissionResponse response = MissionResponse.fromWithOverride(mission, overrideChecked);
 
 		// then
-		assertThat(response.missionId()).isEqualTo(mission.getId());
-		assertThat(response.content()).isEqualTo(mission.getContent());
-		assertThat(response.isChecked()).isEqualTo(overrideChecked);
-		assertThat(response.missionType()).isEqualTo(mission.getMissionType());
+		assertThat(response)
+			.satisfies(r -> assertThat(r.missionId()).isEqualTo(mission.getId()))
+			.satisfies(r -> assertThat(r.content()).isEqualTo(mission.getContent()))
+			.satisfies(r -> assertThat(r.isChecked()).isEqualTo(overrideChecked))
+			.satisfies(r -> assertThat(r.missionType()).isEqualTo(mission.getMissionType()));
 	}
 
 	@Test
@@ -1215,9 +1228,10 @@ class MissionServiceTest {
 		List<MissionResponse> responseList = MissionResponse.listFrom(missionList);
 
 		// then
-		assertThat(responseList).hasSize(2);
-		assertThat(responseList.get(0).missionId()).isEqualTo(mission1.getId());
-		assertThat(responseList.get(1).missionId()).isEqualTo(mission2.getId());
+		assertThat(responseList)
+			.hasSize(2)
+			.satisfies(list -> assertThat(list.get(0).missionId()).isEqualTo(mission1.getId()))
+			.satisfies(list -> assertThat(list.get(1).missionId()).isEqualTo(mission2.getId()));
 	}
 
 	@Test
@@ -1267,10 +1281,11 @@ class MissionServiceTest {
 		MissionGroupResponse response = MissionGroupResponse.from(basicMissions, todayMissions);
 
 		// then
-		assertThat(response.basicMissions()).hasSize(1);
-		assertThat(response.todayMissions()).hasSize(1);
-		assertThat(response.basicMissions().get(0).missionId()).isEqualTo(basicMission.getId());
-		assertThat(response.todayMissions().get(0).missionId()).isEqualTo(todayMission.getId());
+		assertThat(response)
+			.satisfies(r -> assertThat(r.basicMissions()).hasSize(1))
+			.satisfies(r -> assertThat(r.todayMissions()).hasSize(1))
+			.satisfies(r -> assertThat(r.basicMissions().get(0).missionId()).isEqualTo(basicMission.getId()))
+			.satisfies(r -> assertThat(r.todayMissions().get(0).missionId()).isEqualTo(todayMission.getId()));
 	}
 
 	@Test
@@ -1296,9 +1311,10 @@ class MissionServiceTest {
 		MissionGroupResponse response = MissionGroupResponse.from(scenarioId, basicMissions, todayMissions);
 
 		// then
-		assertThat(response.scenarioId()).isEqualTo(scenarioId);
-		assertThat(response.basicMissions()).hasSize(1);
-		assertThat(response.todayMissions()).hasSize(1);
+		assertThat(response)
+			.satisfies(r -> assertThat(r.scenarioId()).isEqualTo(scenarioId))
+			.satisfies(r -> assertThat(r.basicMissions()).hasSize(1))
+			.satisfies(r -> assertThat(r.todayMissions()).hasSize(1));
 	}
 
 	@Test
@@ -1326,11 +1342,12 @@ class MissionServiceTest {
 			MissionGroupResponse.futureFrom(scenarioId, futureBasicResponses, todayMissions);
 
 		// then
-		assertThat(response.scenarioId()).isEqualTo(scenarioId);
-		assertThat(response.basicMissions()).hasSize(1);
-		assertThat(response.basicMissions().get(0).missionId()).isEqualTo(futureBasicResponse.missionId());
-		assertThat(response.todayMissions()).hasSize(1);
-		assertThat(response.todayMissions().get(0).missionId()).isEqualTo(todayMission.getId());
+		assertThat(response)
+			.satisfies(r -> assertThat(r.scenarioId()).isEqualTo(scenarioId))
+			.satisfies(r -> assertThat(r.basicMissions()).hasSize(1))
+			.satisfies(r -> assertThat(r.basicMissions().get(0).missionId()).isEqualTo(futureBasicResponse.missionId()))
+			.satisfies(r -> assertThat(r.todayMissions()).hasSize(1))
+			.satisfies(r -> assertThat(r.todayMissions().get(0).missionId()).isEqualTo(todayMission.getId()));
 	}
 
 }
