@@ -6,7 +6,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -177,7 +176,6 @@ public class MissionService {
 			updateFutureBasicMission(mission, missionId, isChecked, date);
 			return;
 		}
-
 		mission.updateCheckStatus(isChecked);
 	}
 
@@ -236,16 +234,21 @@ public class MissionService {
 		final Boolean isChecked,
 		final LocalDate date
 	) {
-		Optional<Mission> futureMission = missionRepository.findByParentMissionIdAndUseDate(missionId, date);
-		if (futureMission.isPresent()) {
-			if (!isChecked) {
-				missionRepository.delete(futureMission.get());
-			} else {
-				futureMission.get().updateCheckStatus(isChecked);
-			}
-			return;
-		}
-		missionRepository.save(mission.createFutureChildMission(isChecked, date));
+		missionRepository.findByParentMissionIdAndUseDate(missionId, date)
+			.ifPresentOrElse(
+				future -> {
+					if (isChecked) {
+						future.updateCheckStatus(true);
+					} else {
+						missionRepository.delete(future);
+					}
+				},
+				() -> {
+					if (isChecked) {
+						missionRepository.save(mission.createFutureChildMission(true, date));
+					}
+				}
+			);
 	}
 
 }
