@@ -49,7 +49,7 @@ class ScenarioMissionDailyJobTest {
 	void Given_NormalCase_When_RunDailyBackupJob_Then_CloneAndResetCalled() {
 		// given
 		when(missionRepository.bulkCloneBasicToYesterday(any(LocalDate.class))).thenReturn(7);
-		when(missionRepository.bulkResetBasicIsChecked()).thenReturn(100);
+		when(missionRepository.bulkResetBasicIsChecked(any(LocalDate.class))).thenReturn(100);
 
 		// when
 		job.runDailyBackupJob();
@@ -57,7 +57,7 @@ class ScenarioMissionDailyJobTest {
 		// then
 		ArgumentCaptor<LocalDate> dateCaptor = ArgumentCaptor.forClass(LocalDate.class);
 		verify(missionRepository).bulkCloneBasicToYesterday(dateCaptor.capture());
-		verify(missionRepository).bulkResetBasicIsChecked();
+		verify(missionRepository).bulkResetBasicIsChecked(any(LocalDate.class));
 
 		LocalDate captured = dateCaptor.getValue();
 		LocalDate expectedYesterday = LocalDate.of(2025, 8, 31);
