@@ -62,16 +62,16 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("""
 		UPDATE Mission p
-		   SET p.isChecked = COALESCE(
-		       (SELECT c.isChecked
-		          FROM Mission c
-		         WHERE c.parentMissionId = p.id
-		           AND c.useDate = :today
-		           AND c.missionType = 'BASIC'
-		       ), false
-		   )
-		 WHERE p.useDate IS NULL
-		   AND p.missionType = 'BASIC'
+			SET p.isChecked = COALESCE(
+				(SELECT c.isChecked
+				FROM Mission c
+				WHERE c.parentMissionId = p.id
+				AND c.useDate = :today
+				AND c.missionType = 'BASIC'
+				), false
+			)
+			WHERE p.useDate IS NULL
+				AND p.missionType = 'BASIC'
 		""")
 	int bulkResetBasicIsChecked(LocalDate today);
 
