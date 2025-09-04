@@ -46,4 +46,14 @@ public record MissionGroupResponse(
 			.build();
 	}
 
+	public static MissionGroupResponse futureFrom(
+		final Long scenarioId, final List<MissionResponse> futureBasic, final List<Mission> today
+	) {
+		return MissionGroupResponse.builder()
+			.scenarioId(scenarioId)
+			.basicMissions(futureBasic)
+			.todayMissions(MissionResponse.listFrom(today))
+			.build();
+	}
+
 }

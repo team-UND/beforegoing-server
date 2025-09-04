@@ -63,9 +63,9 @@ public class MissionService {
 			missionTypeGroupSorter.groupAndSortByType(missions, MissionType.TODAY);
 
 		if (missionSearchType == MissionSearchType.FUTURE) {
-			groupedBasicMissions = getFutureCheckStatusMissions(groupedBasicMissions);
+			return MissionGroupResponse.futureFrom(
+				scenarioId, getFutureCheckStatusMissions(groupedBasicMissions), groupedTodayMissions);
 		}
-
 		return MissionGroupResponse.from(scenarioId, groupedBasicMissions, groupedTodayMissions);
 	}
 
@@ -215,21 +215,19 @@ public class MissionService {
 		throw new ServerException(ScenarioErrorResult.INVALID_MISSION_FOUND_DATE);
 	}
 
-	private List<Mission> getFutureCheckStatusMissions(List<Mission> groupedBasicMissions) {
+	private List<MissionResponse> getFutureCheckStatusMissions(List<Mission> groupedBasicMissions) {
 		Map<Long, Mission> overlayMap = groupedBasicMissions.stream()
 			.filter(m -> m.getParentMissionId() != null)
 			.collect(Collectors.toMap(Mission::getParentMissionId, m -> m));
 
-		List<Mission> parentMissions = new ArrayList<>();
-		groupedBasicMissions.stream()
+		return groupedBasicMissions.stream()
 			.filter(m -> m.getParentMissionId() == null && m.getUseDate() == null)
-			.forEach(tpl -> {
+			.map(tpl -> {
 				Mission overlay = overlayMap.get(tpl.getId());
-				tpl.updateCheckStatus(overlay != null && Boolean.TRUE.equals(overlay.getIsChecked()));
-				parentMissions.add(tpl);
-			});
-
-		return parentMissions;
+				boolean checked = overlay != null && Boolean.TRUE.equals(overlay.getIsChecked());
+				return MissionResponse.fromWithOverride(tpl, checked);
+			})
+			.toList();
 	}
 
 	private void updateFutureBasicMission(
