@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +31,7 @@ import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
+import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
@@ -418,6 +420,7 @@ class MissionServiceTest {
 		Long memberId = 1L;
 		Long missionId = 1L;
 		Boolean isChecked = true;
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		Member member = Member.builder()
 			.id(memberId)
@@ -439,7 +442,7 @@ class MissionServiceTest {
 		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
 
 		// when
-		missionService.updateMissionCheck(memberId, missionId, isChecked);
+		missionService.updateMissionCheck(memberId, missionId, isChecked, date);
 
 		// then
 		verify(missionRepository).findById(missionId);
@@ -452,11 +455,12 @@ class MissionServiceTest {
 		Long memberId = 1L;
 		Long missionId = 999L;
 		Boolean isChecked = true;
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.empty());
 
 		// when & then
-		assertThatThrownBy(() -> missionService.updateMissionCheck(memberId, missionId, isChecked))
+		assertThatThrownBy(() -> missionService.updateMissionCheck(memberId, missionId, isChecked, date))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.NOT_FOUND_MISSION);
 		verify(missionRepository).findById(missionId);
@@ -469,6 +473,7 @@ class MissionServiceTest {
 		Long unauthorizedMemberId = 2L;
 		Long missionId = 1L;
 		Boolean isChecked = true;
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		Member authorizedMember = Member.builder()
 			.id(authorizedMemberId)
@@ -492,7 +497,7 @@ class MissionServiceTest {
 			.when(missionValidator).validateMissionAccessibleMember(mission, unauthorizedMemberId);
 
 		// when & then
-		assertThatThrownBy(() -> missionService.updateMissionCheck(unauthorizedMemberId, missionId, isChecked))
+		assertThatThrownBy(() -> missionService.updateMissionCheck(unauthorizedMemberId, missionId, isChecked, date))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.UNAUTHORIZED_ACCESS);
 		verify(missionRepository).findById(missionId);
@@ -505,6 +510,7 @@ class MissionServiceTest {
 		Long memberId = 1L;
 		Long missionId = 1L;
 		Boolean isChecked = false;
+		LocalDate date = LocalDate.of(2024, 1, 15);
 
 		Member member = Member.builder()
 			.id(memberId)
@@ -526,7 +532,7 @@ class MissionServiceTest {
 			.thenReturn(Optional.of(mission));
 
 		// when
-		missionService.updateMissionCheck(memberId, missionId, isChecked);
+		missionService.updateMissionCheck(memberId, missionId, isChecked, date);
 
 		// then
 		assertThat(mission.getIsChecked()).isFalse();
@@ -694,6 +700,637 @@ class MissionServiceTest {
 
 		// then
 		verify(missionRepository, org.mockito.Mockito.times(1)).saveAll(anyList());
+	}
+
+	@Test
+	void Given_ScenarioId_When_DeleteMissions_Then_DeleteAllMissions() {
+		// given
+		Long scenarioId = 1L;
+
+		// when
+		missionService.deleteMissions(scenarioId);
+
+		// then
+		verify(missionRepository).deleteByScenarioId(scenarioId);
+	}
+
+	// MissionService 누락 브랜치 커버리지를 위한 추가 테스트들
+	@Test
+	void Given_EmptyMissions_When_FindMissionsByScenarioId_Then_ReturnEmptyResponse() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.of(2024, 1, 15);
+
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date))
+			.thenReturn(List.of());
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isEmpty();
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
+	}
+
+	@Test
+	void Given_NullMissions_When_FindMissionsByScenarioId_Then_ReturnEmptyResponse() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate date = LocalDate.of(2024, 1, 15);
+
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date))
+			.thenReturn(null);
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, date);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissions()).isEmpty();
+		assertThat(result.todayMissions()).isEmpty();
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, date);
+	}
+
+	@Test
+	void Given_EmptyBasicMissionRequests_When_AddBasicMission_Then_ReturnEmptyList() {
+		// given
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.build();
+
+		List<BasicMissionRequest> emptyRequests = List.of();
+
+		// when
+		List<Mission> result = missionService.addBasicMission(scenario, emptyRequests);
+
+		// then
+		assertThat(result).isEmpty();
+		verify(missionRepository, never()).saveAll(anyList());
+	}
+
+	@Test
+	void Given_NewMissionRequest_When_UpdateBasicMission_Then_AddNewMission() {
+		// given
+		Mission existingMission = Mission.builder()
+			.id(1L)
+			.content("기존 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<Mission> missions = new java.util.ArrayList<>();
+		missions.add(existingMission);
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.missions(missions)
+			.build();
+
+		BasicMissionRequest newMissionRequest = BasicMissionRequest.builder()
+			.missionId(null) // 새로운 미션
+			.content("새로운 미션")
+			.build();
+
+		List<BasicMissionRequest> requests = List.of(newMissionRequest);
+
+		when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
+			.thenReturn(List.of(existingMission));
+
+		// when
+		missionService.updateBasicMission(scenario, requests);
+
+		// then
+		verify(missionRepository).saveAll(anyList());
+	}
+
+	@Test
+	void Given_NonExistentMissionId_When_UpdateBasicMission_Then_SkipMission() {
+		// given
+		Mission existingMission = Mission.builder()
+			.id(1L)
+			.content("기존 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		List<Mission> missions = new java.util.ArrayList<>();
+		missions.add(existingMission);
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.missions(missions)
+			.build();
+
+		BasicMissionRequest nonExistentRequest = BasicMissionRequest.builder()
+			.missionId(999L) // 존재하지 않는 미션 ID
+			.content("존재하지 않는 미션")
+			.build();
+
+		List<BasicMissionRequest> requests = List.of(nonExistentRequest);
+
+		when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
+			.thenReturn(List.of(existingMission));
+
+		// when
+		missionService.updateBasicMission(scenario, requests);
+
+		// then
+		verify(missionRepository).saveAll(anyList());
+	}
+
+	@Test
+	void Given_BasicMissionAndFutureDate_When_UpdateMissionCheck_Then_UpdateFutureBasicMission() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+		Boolean isChecked = true;
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
+
+		Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(member)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("기본 미션")
+			.isChecked(false)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+		when(missionRepository.findByParentMissionIdAndUseDate(missionId, futureDate))
+			.thenReturn(Optional.empty());
+
+		// when
+		missionService.updateMissionCheck(memberId, missionId, isChecked, futureDate);
+
+		// then
+		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByParentMissionIdAndUseDate(missionId, futureDate);
+		verify(missionRepository).save(any(Mission.class));
+	}
+
+	@Test
+	void Given_BasicMissionAndFutureDateWithExistingChild_When_UpdateMissionCheckToTrue_Then_UpdateChildMission() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+		Boolean isChecked = true;
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
+
+		Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(member)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("기본 미션")
+			.isChecked(false)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Mission childMission = Mission.builder()
+			.id(2L)
+			.parentMissionId(missionId)
+			.useDate(futureDate)
+			.isChecked(false)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+		when(missionRepository.findByParentMissionIdAndUseDate(missionId, futureDate))
+			.thenReturn(Optional.of(childMission));
+
+		// when
+		missionService.updateMissionCheck(memberId, missionId, isChecked, futureDate);
+
+		// then
+		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByParentMissionIdAndUseDate(missionId, futureDate);
+		assertThat(childMission.getIsChecked()).isTrue();
+	}
+
+	@Test
+	void Given_BasicMissionAndFutureDateWithExistingChild_When_UpdateMissionCheckToFalse_Then_DeleteChildMission() {
+		// given
+		Long memberId = 1L;
+		Long missionId = 1L;
+		Boolean isChecked = false;
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
+
+		Member member = Member.builder()
+			.id(memberId)
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.member(member)
+			.build();
+
+		Mission mission = Mission.builder()
+			.id(missionId)
+			.scenario(scenario)
+			.content("기본 미션")
+			.isChecked(false)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Mission childMission = Mission.builder()
+			.id(2L)
+			.parentMissionId(missionId)
+			.useDate(futureDate)
+			.isChecked(true)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+		when(missionRepository.findByParentMissionIdAndUseDate(missionId, futureDate))
+			.thenReturn(Optional.of(childMission));
+
+		// when
+		missionService.updateMissionCheck(memberId, missionId, isChecked, futureDate);
+
+		// then
+		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByParentMissionIdAndUseDate(missionId, futureDate);
+		verify(missionRepository).delete(childMission);
+	}
+
+	@Test
+	void Given_PastDate_When_FindMissionsByScenarioId_Then_UsePastMissions() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate pastDate = LocalDate.of(2024, 1, 10);
+
+		Mission pastMission = Mission.builder()
+			.id(1L)
+			.content("과거 미션")
+			.missionType(MissionType.BASIC)
+			.useDate(pastDate)
+			.build();
+
+		List<Mission> missionList = List.of(pastMission);
+		List<Mission> groupedBasicMissions = List.of(pastMission);
+		List<Mission> groupedTodayMissions = List.of();
+
+		when(missionRepository.findPastMissionsByDate(memberId, scenarioId, pastDate))
+			.thenReturn(missionList);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(groupedBasicMissions);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(groupedTodayMissions);
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, pastDate);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissions()).hasSize(1);
+		verify(missionRepository).findPastMissionsByDate(memberId, scenarioId, pastDate);
+	}
+
+	@Test
+	void Given_BasicMissionsWithOverlay_When_GetFutureCheckStatusMissions_Then_ReturnOverlayStatus() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
+
+		Mission parentMission = Mission.builder()
+			.id(1L)
+			.content("부모 미션")
+			.missionType(MissionType.BASIC)
+			.parentMissionId(null)
+			.useDate(null)
+			.build();
+
+		Mission overlayMission = Mission.builder()
+			.id(2L)
+			.content("부모 미션")
+			.missionType(MissionType.BASIC)
+			.parentMissionId(1L)
+			.useDate(futureDate)
+			.isChecked(true)
+			.build();
+
+		List<Mission> missionList = List.of(parentMission, overlayMission);
+		List<Mission> groupedBasicMissions = List.of(parentMission, overlayMission);
+		List<Mission> groupedTodayMissions = List.of();
+
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, futureDate))
+			.thenReturn(missionList);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(groupedBasicMissions);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(groupedTodayMissions);
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, futureDate);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissions()).hasSize(1);
+		assertThat(result.basicMissions().get(0).isChecked()).isTrue();
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
+	}
+
+	@Test
+	void Given_BasicMissionsWithoutOverlay_When_GetFutureCheckStatusMissions_Then_ReturnUncheckedMissions() {
+		// given
+		Long memberId = 1L;
+		Long scenarioId = 1L;
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
+
+		Mission parentMission = Mission.builder()
+			.id(1L)
+			.content("부모 미션")
+			.missionType(MissionType.BASIC)
+			.parentMissionId(null)
+			.useDate(null)
+			.build();
+
+		List<Mission> missionList = List.of(parentMission);
+		List<Mission> groupedBasicMissions = List.of(parentMission);
+		List<Mission> groupedTodayMissions = List.of();
+
+		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, futureDate))
+			.thenReturn(missionList);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.BASIC))
+			.thenReturn(groupedBasicMissions);
+		when(missionTypeGrouper.groupAndSortByType(missionList, MissionType.TODAY))
+			.thenReturn(groupedTodayMissions);
+
+		// when
+		MissionGroupResponse result = missionService.findMissionsByScenarioId(memberId, scenarioId, futureDate);
+
+		// then
+		assertThat(result).isNotNull();
+		assertThat(result.basicMissions()).hasSize(1);
+		assertThat(result.basicMissions().get(0).isChecked()).isFalse();
+		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
+	}
+
+	// Mission entity 커버리지 향상을 위한 테스트
+	@Test
+	void Given_Mission_When_UpdateCheckStatus_Then_UpdateIsChecked() {
+		// given
+		Mission mission = Mission.builder()
+			.id(1L)
+			.content("테스트 미션")
+			.isChecked(false)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		// when
+		mission.updateCheckStatus(true);
+
+		// then
+		assertThat(mission.getIsChecked()).isTrue();
+	}
+
+	@Test
+	void Given_Mission_When_UpdateMissionOrder_Then_UpdateOrder() {
+		// given
+		Mission mission = Mission.builder()
+			.id(1L)
+			.content("테스트 미션")
+			.missionOrder(1)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		// when
+		mission.updateMissionOrder(5);
+
+		// then
+		assertThat(mission.getMissionOrder()).isEqualTo(5);
+	}
+
+	@Test
+	void Given_Mission_When_CreateFutureChildMission_Then_CreateChildMission() {
+		// given
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.build();
+
+		Mission parentMission = Mission.builder()
+			.id(1L)
+			.scenario(scenario)
+			.content("부모 미션")
+			.isChecked(false)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		LocalDate futureDate = LocalDate.of(2024, 1, 16);
+
+		// when
+		Mission childMission = parentMission.createFutureChildMission(true, futureDate);
+
+		// then
+		assertThat(childMission.getParentMissionId()).isEqualTo(parentMission.getId());
+		assertThat(childMission.getUseDate()).isEqualTo(futureDate);
+		assertThat(childMission.getIsChecked()).isTrue();
+		assertThat(childMission.getContent()).isEqualTo(parentMission.getContent());
+		assertThat(childMission.getMissionType()).isEqualTo(parentMission.getMissionType());
+		assertThat(childMission.getScenario()).isEqualTo(parentMission.getScenario());
+	}
+
+	// MissionResponse 커버리지 향상을 위한 테스트
+	@Test
+	void Given_Mission_When_From_Then_CreateMissionResponse() {
+		// given
+		Mission mission = Mission.builder()
+			.id(1L)
+			.content("테스트 미션")
+			.isChecked(true)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		// when
+		MissionResponse response = MissionResponse.from(mission);
+
+		// then
+		assertThat(response.missionId()).isEqualTo(mission.getId());
+		assertThat(response.content()).isEqualTo(mission.getContent());
+		assertThat(response.isChecked()).isEqualTo(mission.getIsChecked());
+		assertThat(response.missionType()).isEqualTo(mission.getMissionType());
+	}
+
+	@Test
+	void Given_MissionAndOverrideChecked_When_FromWithOverride_Then_CreateMissionResponseWithOverride() {
+		// given
+		Mission mission = Mission.builder()
+			.id(1L)
+			.content("테스트 미션")
+			.isChecked(false)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Boolean overrideChecked = true;
+
+		// when
+		MissionResponse response = MissionResponse.fromWithOverride(mission, overrideChecked);
+
+		// then
+		assertThat(response.missionId()).isEqualTo(mission.getId());
+		assertThat(response.content()).isEqualTo(mission.getContent());
+		assertThat(response.isChecked()).isEqualTo(overrideChecked);
+		assertThat(response.missionType()).isEqualTo(mission.getMissionType());
+	}
+
+	@Test
+	void Given_MissionList_When_ListFrom_Then_CreateMissionResponseList() {
+		// given
+		Mission mission1 = Mission.builder()
+			.id(1L)
+			.content("미션1")
+			.isChecked(true)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Mission mission2 = Mission.builder()
+			.id(2L)
+			.content("미션2")
+			.isChecked(false)
+			.missionType(MissionType.TODAY)
+			.build();
+
+		List<Mission> missionList = List.of(mission1, mission2);
+
+		// when
+		List<MissionResponse> responseList = MissionResponse.listFrom(missionList);
+
+		// then
+		assertThat(responseList).hasSize(2);
+		assertThat(responseList.get(0).missionId()).isEqualTo(mission1.getId());
+		assertThat(responseList.get(1).missionId()).isEqualTo(mission2.getId());
+	}
+
+	@Test
+	void Given_EmptyMissionList_When_ListFrom_Then_ReturnEmptyList() {
+		// given
+		List<Mission> emptyList = List.of();
+
+		// when
+		List<MissionResponse> responseList = MissionResponse.listFrom(emptyList);
+
+		// then
+		assertThat(responseList).isEmpty();
+	}
+
+	@Test
+	void Given_NullMissionList_When_ListFrom_Then_ReturnEmptyList() {
+		// given
+		List<Mission> nullList = null;
+
+		// when
+		List<MissionResponse> responseList = MissionResponse.listFrom(nullList);
+
+		// then
+		assertThat(responseList).isEmpty();
+	}
+
+	// MissionGroupResponse 커버리지 향상을 위한 테스트
+	@Test
+	void Given_MissionLists_When_From_Then_CreateMissionGroupResponse() {
+		// given
+		Mission basicMission = Mission.builder()
+			.id(1L)
+			.content("기본 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Mission todayMission = Mission.builder()
+			.id(2L)
+			.content("오늘 미션")
+			.missionType(MissionType.TODAY)
+			.build();
+
+		List<Mission> basicMissions = List.of(basicMission);
+		List<Mission> todayMissions = List.of(todayMission);
+
+		// when
+		MissionGroupResponse response = MissionGroupResponse.from(basicMissions, todayMissions);
+
+		// then
+		assertThat(response.basicMissions()).hasSize(1);
+		assertThat(response.todayMissions()).hasSize(1);
+		assertThat(response.basicMissions().get(0).missionId()).isEqualTo(basicMission.getId());
+		assertThat(response.todayMissions().get(0).missionId()).isEqualTo(todayMission.getId());
+	}
+
+	@Test
+	void Given_ScenarioIdAndMissionLists_When_From_Then_CreateMissionGroupResponseWithScenarioId() {
+		// given
+		Long scenarioId = 1L;
+		Mission basicMission = Mission.builder()
+			.id(1L)
+			.content("기본 미션")
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Mission todayMission = Mission.builder()
+			.id(2L)
+			.content("오늘 미션")
+			.missionType(MissionType.TODAY)
+			.build();
+
+		List<Mission> basicMissions = List.of(basicMission);
+		List<Mission> todayMissions = List.of(todayMission);
+
+		// when
+		MissionGroupResponse response = MissionGroupResponse.from(scenarioId, basicMissions, todayMissions);
+
+		// then
+		assertThat(response.scenarioId()).isEqualTo(scenarioId);
+		assertThat(response.basicMissions()).hasSize(1);
+		assertThat(response.todayMissions()).hasSize(1);
+	}
+
+	@Test
+	void Given_ScenarioIdAndFutureBasicAndTodayMissions_When_FutureFrom_Then_CreateFutureMissionGroupResponse() {
+		// given
+		Long scenarioId = 1L;
+		MissionResponse futureBasicResponse = MissionResponse.builder()
+			.missionId(1L)
+			.content("미래 기본 미션")
+			.isChecked(true)
+			.missionType(MissionType.BASIC)
+			.build();
+
+		Mission todayMission = Mission.builder()
+			.id(2L)
+			.content("오늘 미션")
+			.missionType(MissionType.TODAY)
+			.build();
+
+		List<MissionResponse> futureBasicResponses = List.of(futureBasicResponse);
+		List<Mission> todayMissions = List.of(todayMission);
+
+		// when
+		MissionGroupResponse response =
+			MissionGroupResponse.futureFrom(scenarioId, futureBasicResponses, todayMissions);
+
+		// then
+		assertThat(response.scenarioId()).isEqualTo(scenarioId);
+		assertThat(response.basicMissions()).hasSize(1);
+		assertThat(response.basicMissions().get(0).missionId()).isEqualTo(futureBasicResponse.missionId());
+		assertThat(response.todayMissions()).hasSize(1);
+		assertThat(response.todayMissions().get(0).missionId()).isEqualTo(todayMission.getId());
 	}
 
 }
