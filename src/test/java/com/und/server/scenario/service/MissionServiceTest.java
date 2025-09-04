@@ -720,7 +720,7 @@ class MissionServiceTest {
 		verify(missionRepository).deleteByScenarioId(scenarioId);
 	}
 
-	// MissionService 누락 브랜치 커버리지를 위한 추가 테스트들
+
 	@Test
 	void Given_EmptyMissions_When_FindMissionsByScenarioId_Then_ReturnEmptyResponse() {
 		// given
