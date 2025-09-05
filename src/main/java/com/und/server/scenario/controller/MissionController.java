@@ -70,7 +70,7 @@ public class MissionController {
 		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") final LocalDate date
 	) {
 		final MissionResponse missionResponse =
-			scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+			missionService.addTodayMission(memberId, scenarioId, missionAddRequest, date);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(missionResponse);
 	}

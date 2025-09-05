@@ -1,5 +1,6 @@
 package com.und.server.scenario.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.und.server.common.entity.BaseTimeEntity;
@@ -58,7 +59,8 @@ public class Scenario extends BaseTimeEntity {
 	private Notification notification;
 
 	@OneToMany(mappedBy = "scenario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Mission> missions;
+	@Builder.Default
+	private List<Mission> missions = new ArrayList<>();
 
 	public void updateScenarioName(final String scenarioName) {
 		this.scenarioName = scenarioName;
@@ -70,6 +72,14 @@ public class Scenario extends BaseTimeEntity {
 
 	public void updateScenarioOrder(final Integer scenarioOrder) {
 		this.scenarioOrder = scenarioOrder;
+	}
+
+	public boolean addMission(final Mission mission) {
+		if (missions.size() >= 20) {
+			return false;
+		}
+		missions.add(mission);
+		return true;
 	}
 
 }

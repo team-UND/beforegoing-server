@@ -19,11 +19,10 @@ import com.und.server.notification.entity.Notification;
 import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
-import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
-import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -31,6 +30,7 @@ import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ReorderRequiredException;
 import com.und.server.scenario.exception.ScenarioErrorResult;
+import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
 import com.und.server.scenario.util.OrderCalculator;
@@ -46,6 +46,7 @@ public class ScenarioService {
 	private final NotificationService notificationService;
 	private final MissionService missionService;
 	private final ScenarioRepository scenarioRepository;
+	private final MissionRepository missionRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final OrderCalculator orderCalculator;
 	private final ScenarioValidator scenarioValidator;
@@ -85,20 +86,6 @@ public class ScenarioService {
 
 
 	@Transactional
-	public MissionResponse addTodayMissionToScenario(
-		final Long memberId,
-		final Long scenarioId,
-		final TodayMissionRequest todayMissionRequest,
-		final LocalDate date
-	) {
-		Scenario scenario = scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, date)
-			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-
-		return missionService.addTodayMission(scenario, todayMissionRequest, date);
-	}
-
-
-	@Transactional
 	public MissionGroupResponse addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
 		Member member = em.getReference(Member.class, memberId);
 
@@ -124,13 +111,20 @@ public class ScenarioService {
 			.notification(notification)
 			.build();
 
-		scenarioRepository.save(scenario);
-		List<Mission> missions = missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
+		int missionOrder = OrderCalculator.START_ORDER;
+		for (BasicMissionRequest missionInfo : scenarioDetailRequest.basicMissions()) {
+			if (!scenario.addMission(missionInfo.toEntity(scenario, missionOrder))) {
+				throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
+			}
+			missionOrder += OrderCalculator.DEFAULT_ORDER;
+		}
 
-		List<Mission> basicMissions = missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
+		scenarioRepository.save(scenario);
+
+		List<Mission> basicMissions = missionTypeGroupSorter.groupAndSortByType(
+			scenario.getMissions(), MissionType.BASIC);
 
 		notificationEventPublisher.publishCreateEvent(memberId, scenario);
-
 		return MissionGroupResponse.from(scenario.getId(), basicMissions, null);
 	}
 
@@ -159,7 +153,6 @@ public class ScenarioService {
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
 
 		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
-
 		return missionService.findMissionsByScenarioId(
 			memberId, scenarioId, LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))));
 	}
@@ -202,7 +195,7 @@ public class ScenarioService {
 		Notification notification = scenario.getNotification();
 		boolean isNotificationActive = notification.isActive();
 
-		missionService.deleteMissions(scenarioId);
+		missionRepository.deleteByScenarioId(scenarioId);
 
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);

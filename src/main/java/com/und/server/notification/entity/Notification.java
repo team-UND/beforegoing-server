@@ -88,11 +88,17 @@ public class Notification extends BaseTimeEntity {
 			.collect(Collectors.joining(","));
 	}
 
-	public void deleteNotificationMethodType() {
-		this.notificationMethodType = null;
+
+	public void activate(NotificationType type, NotificationMethodType method, List<Integer> daysOfWeek) {
+		this.isActive = true;
+		this.notificationType = type;
+		this.notificationMethodType = method;
+		updateDaysOfWeekOrdinal(daysOfWeek);
 	}
 
-	public void deleteDaysOfWeekOrdinal() {
+	public void deactivate() {
+		this.isActive = false;
+		this.notificationMethodType = null;
 		this.daysOfWeek = null;
 	}
 

@@ -23,6 +23,7 @@ import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
+import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
 import com.und.server.scenario.util.MissionValidator;
 import com.und.server.scenario.util.OrderCalculator;
@@ -35,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class MissionService {
 
 	private final MissionRepository missionRepository;
+	private final ScenarioRepository scenarioRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final ScenarioValidator scenarioValidator;
 	private final MissionValidator missionValidator;
@@ -70,30 +72,15 @@ public class MissionService {
 
 
 	@Transactional
-	public List<Mission> addBasicMission(final Scenario scenario, final List<BasicMissionRequest> missionRequests) {
-		if (missionRequests.isEmpty()) {
-			return List.of();
-		}
-
-		List<Mission> missions = new ArrayList<>();
-
-		int order = OrderCalculator.START_ORDER;
-		for (BasicMissionRequest missionInfo : missionRequests) {
-			missions.add(missionInfo.toEntity(scenario, order));
-			order += OrderCalculator.DEFAULT_ORDER;
-		}
-		missionValidator.validateMaxBasicMissionCount(missions);
-
-		return missionRepository.saveAll(missions);
-	}
-
-
-	@Transactional
 	public MissionResponse addTodayMission(
-		final Scenario scenario,
+		final Long memberId,
+		final Long scenarioId,
 		final TodayMissionRequest todayMissionRequest,
 		final LocalDate date
 	) {
+		Scenario scenario = scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, date)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+
 		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
 		missionValidator.validateTodayMissionDateRange(today, date);
 
@@ -178,12 +165,6 @@ public class MissionService {
 			return;
 		}
 		mission.updateCheckStatus(isChecked);
-	}
-
-
-	@Transactional
-	public void deleteMissions(final Long scenarioId) {
-		missionRepository.deleteByScenarioId(scenarioId);
 	}
 
 
