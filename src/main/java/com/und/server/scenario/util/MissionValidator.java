@@ -20,12 +20,12 @@ public class MissionValidator {
 	private static final int BASIC_MISSION_MAX_COUNT = 20;
 	private static final int TODAY_MISSION_MAX_COUNT = 20;
 
-	public void validateMissionAccessibleMember(final Mission mission, final Long memberId) {
-		Member member = mission.getScenario().getMember();
-		if (!memberId.equals(member.getId())) {
-			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
-		}
-	}
+//	public void validateMissionAccessibleMember(final Mission mission, final Long memberId) {
+//		Member member = mission.getScenario().getMember();
+//		if (!memberId.equals(member.getId())) {
+//			throw new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS);
+//		}
+//	}
 
 	public void validateMaxBasicMissionCount(final List<Mission> missions) {
 		if (missions.size() >= BASIC_MISSION_MAX_COUNT) {

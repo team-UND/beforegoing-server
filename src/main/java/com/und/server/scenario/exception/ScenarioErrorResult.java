@@ -15,8 +15,6 @@ public enum ScenarioErrorResult implements ErrorResult {
 		HttpStatus.NOT_FOUND, "Scenario not found"),
 	NOT_FOUND_MISSION(
 		HttpStatus.NOT_FOUND, "Mission not found"),
-	UNAUTHORIZED_ACCESS(
-		HttpStatus.UNAUTHORIZED, "Unauthorized access"),
 	UNSUPPORTED_MISSION_TYPE(
 		HttpStatus.BAD_REQUEST, "Unsupported mission type"),
 	REORDER_REQUIRED(
