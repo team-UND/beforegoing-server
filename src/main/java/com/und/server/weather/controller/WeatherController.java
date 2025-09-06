@@ -1,6 +1,7 @@
 package com.und.server.weather.controller;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/v1/weather")
-public class WeatherController {
+public class WeatherController implements WeatherApiDocs{
 
 	private final WeatherService weatherService;
 
@@ -30,7 +31,7 @@ public class WeatherController {
 	public ResponseEntity<WeatherResponse> getWeather(
 		@RequestBody @Valid final WeatherRequest request,
 		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") final LocalDate date,
-		@RequestParam(defaultValue = "Asia/Seoul") final String timezone
+		@RequestParam(defaultValue = "Asia/Seoul") final ZoneId timezone
 	) {
 		final WeatherResponse response = weatherService.getWeatherInfo(request, date, timezone);
 
