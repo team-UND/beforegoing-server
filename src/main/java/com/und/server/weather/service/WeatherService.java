@@ -27,9 +27,9 @@ public class WeatherService {
 
 
 	public WeatherResponse getWeatherInfo(
-		final WeatherRequest weatherRequest, final LocalDate date, final String timezone
+		final WeatherRequest weatherRequest, final LocalDate date, final ZoneId timezone
 	) {
-		LocalDateTime nowDateTime = LocalDateTime.now(clock.withZone(ZoneId.of(timezone)));
+		LocalDateTime nowDateTime = LocalDateTime.now(clock.withZone(timezone));
 		LocalDate today = nowDateTime.toLocalDate();
 
 		validateLocation(weatherRequest);
