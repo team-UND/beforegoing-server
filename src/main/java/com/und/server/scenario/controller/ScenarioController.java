@@ -35,16 +35,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/v1")
-public class ScenarioController {
+public class ScenarioController implements ScenarioApiDocs{
 
 	private final ScenarioService scenarioService;
 
 
 	@GetMapping("/scenarios")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Get scenarios successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter")
-	})
 	public ResponseEntity<List<ScenarioResponse>> getScenarios(
 		@AuthMember final Long memberId,
 		@RequestParam(defaultValue = "TIME") final NotificationType notificationType
@@ -57,11 +53,6 @@ public class ScenarioController {
 
 
 	@GetMapping("/scenarios/{scenarioId}")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Get scenario detail successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
-		@ApiResponse(responseCode = "404", description = "Scenario not found")
-	})
 	public ResponseEntity<ScenarioDetailResponse> getScenarioDetail(
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId
@@ -74,10 +65,6 @@ public class ScenarioController {
 
 
 	@PostMapping("/scenarios")
-	@ApiResponses({
-		@ApiResponse(responseCode = "201", description = "Create Scenario successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter")
-	})
 	public ResponseEntity<MissionGroupResponse> addScenario(
 		@AuthMember final Long memberId,
 		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
@@ -90,11 +77,6 @@ public class ScenarioController {
 
 
 	@PutMapping("/scenarios/{scenarioId}")
-	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Update Scenario successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
-		@ApiResponse(responseCode = "404", description = "Scenario not found")
-	})
 	public ResponseEntity<MissionGroupResponse> updateScenario(
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId,
