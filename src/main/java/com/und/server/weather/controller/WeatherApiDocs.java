@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 
 public interface WeatherApiDocs {
 
@@ -91,7 +92,7 @@ public interface WeatherApiDocs {
 		)
 	})
 	ResponseEntity<WeatherResponse> getWeather(
-		@Parameter(description = "Weather request information") final WeatherRequest request,
+		@Parameter(description = "Weather request information") @Valid final WeatherRequest request,
 		@Parameter(description = "Target date for weather information (yyyy-MM-dd)") final LocalDate date,
 		@Parameter(description = "Target TimeZone") final ZoneId timeZone
 	);
