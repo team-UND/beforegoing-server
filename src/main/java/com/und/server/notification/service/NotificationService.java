@@ -93,12 +93,11 @@ public class NotificationService {
 		NotificationType newNotificationtype = notificationRequest.notificationType();
 		boolean isChangeNotificationType = oldNotificationType != newNotificationtype;
 
-		notification.updateNotification(
+		notification.activate(
 			newNotificationtype,
-			notificationRequest.notificationMethodType()
+			notificationRequest.notificationMethodType(),
+			notificationRequest.daysOfWeekOrdinal()
 		);
-		notification.updateActiveStatus(true);
-		notification.updateDaysOfWeekOrdinal(notificationRequest.daysOfWeekOrdinal());
 
 		if (isChangeNotificationType) {
 			notificationConditionSelector.deleteNotificationCondition(oldNotificationType, notification.getId());
@@ -115,9 +114,7 @@ public class NotificationService {
 		notificationConditionSelector.deleteNotificationCondition(
 			oldNotification.getNotificationType(), oldNotification.getId());
 
-		oldNotification.updateActiveStatus(false);
-		oldNotification.deleteNotificationMethodType();
-		oldNotification.deleteDaysOfWeekOrdinal();
+		oldNotification.deactivate();
 	}
 
 }
