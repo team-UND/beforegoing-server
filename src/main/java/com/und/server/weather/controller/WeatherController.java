@@ -23,10 +23,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/v1/weather")
-public class WeatherController {
+public class WeatherController implements WeatherApiDocs {
 
 	private final WeatherService weatherService;
 
+	@Override
 	@PostMapping
 	public ResponseEntity<WeatherResponse> getWeather(
 		@RequestBody @Valid final WeatherRequest request,
