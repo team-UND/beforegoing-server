@@ -86,9 +86,10 @@ public class MissionController {
 	public ResponseEntity<Void> updateMissionCheck(
 		@AuthMember final Long memberId,
 		@PathVariable final Long missionId,
-		@RequestBody @NotNull final Boolean isChecked
+		@RequestBody @NotNull final Boolean isChecked,
+		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") final LocalDate date
 	) {
-		missionService.updateMissionCheck(memberId, missionId, isChecked);
+		missionService.updateMissionCheck(memberId, missionId, isChecked, date);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}

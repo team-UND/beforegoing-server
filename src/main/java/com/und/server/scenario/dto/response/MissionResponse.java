@@ -36,6 +36,15 @@ public record MissionResponse(
 			.build();
 	}
 
+	public static MissionResponse fromWithOverride(final Mission mission, final Boolean overrideChecked) {
+		return MissionResponse.builder()
+			.missionId(mission.getId())
+			.content(mission.getContent())
+			.isChecked(overrideChecked)
+			.missionType(mission.getMissionType())
+			.build();
+	}
+
 	public static List<MissionResponse> listFrom(final List<Mission> missionList) {
 		if (missionList == null || missionList.isEmpty()) {
 			return new ArrayList<>();
