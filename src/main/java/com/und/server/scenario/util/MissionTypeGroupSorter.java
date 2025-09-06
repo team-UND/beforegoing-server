@@ -30,7 +30,8 @@ public class MissionTypeGroupSorter {
 	private Comparator<Mission> getComparatorByType(final MissionType type) {
 		return switch (type) {
 
-			case BASIC -> Comparator.comparing(Mission::getMissionOrder);
+			case BASIC -> Comparator.comparing(Mission::getMissionOrder,
+				Comparator.nullsLast(Comparator.naturalOrder()));
 			case TODAY -> Comparator.comparing(Mission::getCreatedAt).reversed();
 
 			default -> throw new ServerException(ScenarioErrorResult.UNSUPPORTED_MISSION_TYPE);

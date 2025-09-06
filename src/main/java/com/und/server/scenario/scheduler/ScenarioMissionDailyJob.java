@@ -35,9 +35,11 @@ public class ScenarioMissionDailyJob {
 
 		try {
 			int cloned = missionRepository.bulkCloneBasicToYesterday(yesterday);
-			int reset = missionRepository.bulkResetBasicIsChecked();
+			int reset = missionRepository.bulkResetBasicIsChecked(today);
+			int deleteChildBasic = missionRepository.deleteTodayChildBasics(today);
 
-			log.info("[MISSION DAILY] Daily Mission Job: cloned={}, reset={}", cloned, reset);
+			log.info("[MISSION DAILY] Daily Mission Job: cloned={}, reset={} deleteChildBasic={}",
+				cloned, reset, deleteChildBasic);
 		} catch (Exception e) {
 			log.error("[MISSION DAILY] Backup and reset failed, rolling back", e);
 			throw e;
