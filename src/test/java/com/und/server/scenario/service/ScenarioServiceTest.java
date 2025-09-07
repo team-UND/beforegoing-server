@@ -535,8 +535,9 @@ class ScenarioServiceTest {
 			.thenReturn(Optional.of(oldScenario));
 		Mockito.doAnswer(invocation -> {
 			Notification target = invocation.getArgument(0);
-			target.updateNotification(notifRequest.notificationType(), notifRequest.notificationMethodType());
-			target.updateActiveStatus(true);
+			target.activate(notifRequest.notificationType(),
+				notifRequest.notificationMethodType(),
+				notifRequest.daysOfWeekOrdinal());
 			return null;
 		}).when(notificationService).updateNotification(oldNotification, notifRequest, condition);
 
