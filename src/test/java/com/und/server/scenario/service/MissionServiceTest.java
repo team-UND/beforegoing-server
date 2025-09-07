@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -356,13 +355,14 @@ class MissionServiceTest {
 			.missionType(MissionType.TODAY)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(
+			java.util.Optional.of(mission));
 
 		// when
 		missionService.deleteTodayMission(memberId, missionId);
 
 		// then
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 		verify(missionRepository).delete(mission);
 	}
 
@@ -372,13 +372,13 @@ class MissionServiceTest {
 		Long memberId = 1L;
 		Long missionId = 999L;
 
-		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.empty());
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(java.util.Optional.empty());
 
 		// when & then
 		assertThatThrownBy(() -> missionService.deleteTodayMission(memberId, missionId))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.NOT_FOUND_MISSION);
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 		verify(missionRepository, org.mockito.Mockito.never()).delete(any());
 	}
 
@@ -405,15 +405,14 @@ class MissionServiceTest {
 			.missionType(MissionType.TODAY)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
-		doThrow(new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS))
-			.when(missionValidator).validateMissionAccessibleMember(mission, unauthorizedMemberId);
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, unauthorizedMemberId))
+			.thenReturn(java.util.Optional.empty());
 
 		// when & then
 		assertThatThrownBy(() -> missionService.deleteTodayMission(unauthorizedMemberId, missionId))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.UNAUTHORIZED_ACCESS);
-		verify(missionRepository).findById(missionId);
+			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.NOT_FOUND_MISSION);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, unauthorizedMemberId);
 		verify(missionRepository, org.mockito.Mockito.never()).delete(any());
 	}
 
@@ -442,13 +441,14 @@ class MissionServiceTest {
 			.missionType(MissionType.TODAY)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(
+			java.util.Optional.of(mission));
 
 		// when
 		missionService.updateMissionCheck(memberId, missionId, isChecked, date);
 
 		// then
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 		assertThat(mission.getIsChecked()).isEqualTo(isChecked);
 	}
 
@@ -460,13 +460,13 @@ class MissionServiceTest {
 		Boolean isChecked = true;
 		LocalDate date = LocalDate.of(2024, 1, 15);
 
-		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.empty());
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(java.util.Optional.empty());
 
 		// when & then
 		assertThatThrownBy(() -> missionService.updateMissionCheck(memberId, missionId, isChecked, date))
 			.isInstanceOf(ServerException.class)
 			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.NOT_FOUND_MISSION);
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 	}
 
 	@Test
@@ -495,15 +495,14 @@ class MissionServiceTest {
 			.missionType(MissionType.TODAY)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(java.util.Optional.of(mission));
-		doThrow(new ServerException(ScenarioErrorResult.UNAUTHORIZED_ACCESS))
-			.when(missionValidator).validateMissionAccessibleMember(mission, unauthorizedMemberId);
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, unauthorizedMemberId))
+			.thenReturn(java.util.Optional.empty());
 
 		// when & then
 		assertThatThrownBy(() -> missionService.updateMissionCheck(unauthorizedMemberId, missionId, isChecked, date))
 			.isInstanceOf(ServerException.class)
-			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.UNAUTHORIZED_ACCESS);
-		verify(missionRepository).findById(missionId);
+			.hasFieldOrPropertyWithValue("errorResult", ScenarioErrorResult.NOT_FOUND_MISSION);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, unauthorizedMemberId);
 	}
 
 
@@ -531,7 +530,7 @@ class MissionServiceTest {
 			.isChecked(true)
 			.build();
 
-		when(missionRepository.findById(missionId))
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId))
 			.thenReturn(Optional.of(mission));
 
 		// when
@@ -539,7 +538,7 @@ class MissionServiceTest {
 
 		// then
 		assertThat(mission.getIsChecked()).isFalse();
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 	}
 
 
@@ -873,7 +872,7 @@ class MissionServiceTest {
 			.missionType(MissionType.BASIC)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(Optional.of(mission));
 		when(missionRepository.findByParentMissionIdAndUseDate(missionId, futureDate))
 			.thenReturn(Optional.empty());
 
@@ -881,7 +880,7 @@ class MissionServiceTest {
 		missionService.updateMissionCheck(memberId, missionId, isChecked, futureDate);
 
 		// then
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 		verify(missionRepository).findByParentMissionIdAndUseDate(missionId, futureDate);
 		verify(missionRepository).save(any(Mission.class));
 	}
@@ -919,7 +918,7 @@ class MissionServiceTest {
 			.missionType(MissionType.BASIC)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(Optional.of(mission));
 		when(missionRepository.findByParentMissionIdAndUseDate(missionId, futureDate))
 			.thenReturn(Optional.of(childMission));
 
@@ -927,7 +926,7 @@ class MissionServiceTest {
 		missionService.updateMissionCheck(memberId, missionId, isChecked, futureDate);
 
 		// then
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 		verify(missionRepository).findByParentMissionIdAndUseDate(missionId, futureDate);
 		assertThat(childMission.getIsChecked()).isTrue();
 	}
@@ -965,7 +964,7 @@ class MissionServiceTest {
 			.missionType(MissionType.BASIC)
 			.build();
 
-		when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(Optional.of(mission));
 		when(missionRepository.findByParentMissionIdAndUseDate(missionId, futureDate))
 			.thenReturn(Optional.of(childMission));
 
@@ -973,7 +972,7 @@ class MissionServiceTest {
 		missionService.updateMissionCheck(memberId, missionId, isChecked, futureDate);
 
 		// then
-		verify(missionRepository).findById(missionId);
+		verify(missionRepository).findByIdAndScenarioMemberId(missionId, memberId);
 		verify(missionRepository).findByParentMissionIdAndUseDate(missionId, futureDate);
 		verify(missionRepository).delete(childMission);
 	}
