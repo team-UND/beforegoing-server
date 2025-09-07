@@ -168,7 +168,6 @@ public class MissionService {
 	) {
 		Mission mission = missionRepository.findByIdAndScenarioMemberId(missionId, memberId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
-//		missionValidator.validateMissionAccessibleMember(mission, memberId);
 
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(
 			LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))), date);
@@ -191,7 +190,6 @@ public class MissionService {
 	public void deleteTodayMission(final Long memberId, final Long missionId) {
 		Mission mission = missionRepository.findByIdAndScenarioMemberId(missionId, memberId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
-//		missionValidator.validateMissionAccessibleMember(mission, memberId);
 
 		missionRepository.delete(mission);
 	}
