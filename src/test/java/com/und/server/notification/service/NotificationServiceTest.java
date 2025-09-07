@@ -435,7 +435,7 @@ class NotificationServiceTest {
 
 
 	@Test
-	void Given_Notification_When_DeleteDaysOfWeekOrdinal_Then_SetToNull() {
+	void Given_Notification_When_UpdateDaysOfWeekOrdinalWithEmptyList_Then_SetToNull() {
 		// given
 		Notification notification = Notification.builder()
 			.id(1L)
@@ -445,7 +445,7 @@ class NotificationServiceTest {
 			.build();
 
 		// when
-		notification.deleteDaysOfWeekOrdinal();
+		notification.updateDaysOfWeekOrdinal(List.of());
 
 		// then
 		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
@@ -454,7 +454,7 @@ class NotificationServiceTest {
 
 
 	@Test
-	void Given_Notification_When_DeleteNotificationMethodType_Then_SetToNull() {
+	void Given_Notification_When_DeactivateNotification_Then_SetMethodTypeToNull() {
 		// given
 		Notification notification = Notification.builder()
 			.id(1L)
@@ -464,10 +464,11 @@ class NotificationServiceTest {
 			.build();
 
 		// when
-		notification.deleteNotificationMethodType();
+		notification.deactivate();
 
 		// then
 		assertThat(notification.getNotificationMethodType()).isNull();
+		assertThat(notification.isActive()).isFalse();
 	}
 
 }
