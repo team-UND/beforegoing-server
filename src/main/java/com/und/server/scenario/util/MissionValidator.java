@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.und.server.common.exception.ServerException;
-import com.und.server.member.entity.Member;
 import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.exception.ScenarioErrorResult;
