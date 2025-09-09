@@ -56,6 +56,23 @@ public class Notification extends BaseTimeEntity {
 		return days.size() == 7;
 	}
 
+	public void activate(
+		final NotificationType notificationType,
+		final NotificationMethodType notificationMethodType,
+		final List<Integer> daysOfWeek
+	) {
+		this.isActive = true;
+		this.notificationType = notificationType;
+		this.notificationMethodType = notificationMethodType;
+		updateDaysOfWeekOrdinal(daysOfWeek);
+	}
+
+	public void deactivate() {
+		this.isActive = false;
+		this.notificationMethodType = null;
+		this.daysOfWeek = null;
+	}
+
 	public List<Integer> getDaysOfWeekOrdinalList() {
 		if (daysOfWeek == null || daysOfWeek.isEmpty()) {
 			return List.of();
@@ -66,19 +83,7 @@ public class Notification extends BaseTimeEntity {
 			.collect(Collectors.toList());
 	}
 
-	public void updateActiveStatus(final Boolean isActive) {
-		this.isActive = isActive;
-	}
-
-	public void updateNotification(
-		final NotificationType notificationType,
-		final NotificationMethodType notificationMethodType
-	) {
-		this.notificationType = notificationType;
-		this.notificationMethodType = notificationMethodType;
-	}
-
-	public void updateDaysOfWeekOrdinal(List<Integer> daysOfWeekOrdinal) {
+	public void updateDaysOfWeekOrdinal(final List<Integer> daysOfWeekOrdinal) {
 		if (!isActive || daysOfWeekOrdinal == null || daysOfWeekOrdinal.isEmpty()) {
 			this.daysOfWeek = null;
 			return;
@@ -86,14 +91,6 @@ public class Notification extends BaseTimeEntity {
 		this.daysOfWeek = daysOfWeekOrdinal.stream()
 			.map(String::valueOf)
 			.collect(Collectors.joining(","));
-	}
-
-	public void deleteNotificationMethodType() {
-		this.notificationMethodType = null;
-	}
-
-	public void deleteDaysOfWeekOrdinal() {
-		this.daysOfWeek = null;
 	}
 
 }

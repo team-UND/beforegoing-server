@@ -69,7 +69,7 @@ public class Mission extends BaseTimeEntity {
 		this.missionOrder = missionOrder;
 	}
 
-	public Mission createFutureChildMission(final boolean isChecked, LocalDate future) {
+	public Mission createFutureChildMission(final boolean isChecked, final LocalDate future) {
 		return Mission.builder()
 			.scenario(this.scenario)
 			.content(this.content)

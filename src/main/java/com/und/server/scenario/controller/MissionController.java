@@ -23,8 +23,6 @@ import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.service.MissionService;
 import com.und.server.scenario.service.ScenarioService;
 
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -33,18 +31,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/v1")
-public class MissionController {
+public class MissionController implements MissionApiDocs {
 
 	private final ScenarioService scenarioService;
 	private final MissionService missionService;
 
 
+	@Override
 	@GetMapping("/scenarios/{scenarioId}/missions")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Get missions successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
-		@ApiResponse(responseCode = "404", description = "Scenario not found")
-	})
 	public ResponseEntity<MissionGroupResponse> getMissionsByScenarioId(
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId,
@@ -57,12 +51,8 @@ public class MissionController {
 	}
 
 
+	@Override
 	@PostMapping("/scenarios/{scenarioId}/missions/today")
-	@ApiResponses({
-		@ApiResponse(responseCode = "201", description = "Create Today Mission successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
-		@ApiResponse(responseCode = "404", description = "Scenario not found")
-	})
 	public ResponseEntity<MissionResponse> addTodayMissionToScenario(
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId,
@@ -76,13 +66,8 @@ public class MissionController {
 	}
 
 
+	@Override
 	@PatchMapping("/missions/{missionId}/check")
-	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Update check status successful"),
-		@ApiResponse(responseCode = "400", description = "Invalid parameter"),
-		@ApiResponse(responseCode = "401", description = "Unauthorized access"),
-		@ApiResponse(responseCode = "404", description = "Mission not found")
-	})
 	public ResponseEntity<Void> updateMissionCheck(
 		@AuthMember final Long memberId,
 		@PathVariable final Long missionId,
@@ -95,12 +80,8 @@ public class MissionController {
 	}
 
 
+	@Override
 	@DeleteMapping("/missions/{missionId}")
-	@ApiResponses({
-		@ApiResponse(responseCode = "204", description = "Delete Today Mission successful"),
-		@ApiResponse(responseCode = "401", description = "Unauthorized access"),
-		@ApiResponse(responseCode = "404", description = "Mission not found")
-	})
 	public ResponseEntity<Void> deleteTodayMissionById(
 		@AuthMember final Long memberId,
 		@PathVariable final Long missionId
