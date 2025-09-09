@@ -222,7 +222,7 @@ public class ScenarioService {
 			List<Scenario> scenarios =
 				scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
 
-			return orderCalculator.getMaxOrderAfterReorder(scenarios);
+			return orderCalculator.getMinOrderAfterReorder(scenarios);
 		}
 	}
 
