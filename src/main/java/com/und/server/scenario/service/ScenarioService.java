@@ -111,7 +111,7 @@ public class ScenarioService {
 
 		int order = orders.isEmpty()
 			? OrderCalculator.START_ORDER
-			: getValidScenarioOrder(Collections.max(orders), memberId, notificationType);
+			: getValidScenarioOrder(Collections.min(orders), memberId, notificationType);
 
 		Notification notification = notificationService.addNotification(
 			notificationRequest, scenarioDetailRequest.notificationCondition());
@@ -212,12 +212,12 @@ public class ScenarioService {
 
 
 	private int getValidScenarioOrder(
-		final int maxScenarioOrder,
+		final int minScenarioOrder,
 		final Long memberId,
 		final NotificationType notificationType
 	) {
 		try {
-			return orderCalculator.getOrder(maxScenarioOrder, null);
+			return orderCalculator.getOrder(null, minScenarioOrder);
 		} catch (ReorderRequiredException e) {
 			List<Scenario> scenarios =
 				scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
