@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,7 +57,7 @@ class WeatherControllerTest {
 			WeatherType.SUNNY, FineDustType.GOOD, UvType.LOW
 		);
 
-		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
+		given(weatherService.getWeatherInfo((request), (date), ZoneId.of("Asia/Seoul")))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -81,7 +82,7 @@ class WeatherControllerTest {
 			WeatherType.RAIN, FineDustType.NORMAL, UvType.NORMAL
 		);
 
-		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
+		given(weatherService.getWeatherInfo((request), (date), ZoneId.of("Asia/Seoul")))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -106,7 +107,7 @@ class WeatherControllerTest {
 			WeatherType.CLOUDY, FineDustType.BAD, UvType.HIGH
 		);
 
-		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
+		given(weatherService.getWeatherInfo((request), (date), ZoneId.of("Asia/Seoul")))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -130,7 +131,7 @@ class WeatherControllerTest {
 			WeatherType.SNOW, FineDustType.GOOD, UvType.VERY_LOW
 		);
 
-		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
+		given(weatherService.getWeatherInfo((request), (date), ZoneId.of("Asia/Seoul")))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -155,7 +156,7 @@ class WeatherControllerTest {
 			WeatherType.SUNNY, FineDustType.GOOD, UvType.VERY_HIGH
 		);
 
-		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
+		given(weatherService.getWeatherInfo((request), (date), ZoneId.of("Asia/Seoul")))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -180,7 +181,7 @@ class WeatherControllerTest {
 			WeatherType.CLOUDY, FineDustType.NORMAL, UvType.LOW
 		);
 
-		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
+		given(weatherService.getWeatherInfo((request), (date), ZoneId.of("Asia/Seoul")))
 			.willReturn(expectedResponse);
 
 		// when & then
@@ -205,7 +206,7 @@ class WeatherControllerTest {
 			WeatherType.SNOW, FineDustType.VERY_BAD, UvType.VERY_HIGH
 		);
 
-		given(weatherService.getWeatherInfo((request), (date), "Asia/Seoul"))
+		given(weatherService.getWeatherInfo((request), (date), ZoneId.of("Asia/Seoul")))
 			.willReturn(expectedResponse);
 
 		// when & then

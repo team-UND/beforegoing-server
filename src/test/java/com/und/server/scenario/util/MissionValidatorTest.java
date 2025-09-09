@@ -13,9 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.common.exception.ServerException;
-import com.und.server.member.entity.Member;
 import com.und.server.scenario.entity.Mission;
-import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,32 +54,6 @@ class MissionValidatorTest {
 			.hasMessageContaining(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE.getMessage());
 	}
 
-	@Test
-	void Given_SameMemberId_When_ValidateMissionAccessibleMember_Then_NoException() {
-		// given
-		Long memberId = 1L;
-		Member member = Member.builder().id(memberId).build();
-		Scenario scenario = Scenario.builder().member(member).build();
-		Mission mission = Mission.builder().scenario(scenario).build();
-
-		// when & then
-		assertDoesNotThrow(() -> missionValidator.validateMissionAccessibleMember(mission, memberId));
-	}
-
-	@Test
-	void Given_DifferentMemberId_When_ValidateMissionAccessibleMember_Then_ThrowException() {
-		// given
-		Long memberId = 1L;
-		Long otherMemberId = 2L;
-		Member member = Member.builder().id(memberId).build();
-		Scenario scenario = Scenario.builder().member(member).build();
-		Mission mission = Mission.builder().scenario(scenario).build();
-
-		// when & then
-		assertThatThrownBy(() -> missionValidator.validateMissionAccessibleMember(mission, otherMemberId))
-			.isInstanceOf(ServerException.class)
-			.hasMessageContaining(ScenarioErrorResult.UNAUTHORIZED_ACCESS.getMessage());
-	}
 
 	@Test
 	void Given_BasicMissionListBelowMaxCount_When_ValidateMaxBasicMissionCount_Then_NoException() {

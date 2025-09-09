@@ -69,7 +69,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();
@@ -95,7 +95,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();
@@ -115,7 +115,7 @@ class WeatherServiceTest {
 			.thenReturn(null);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();
@@ -140,7 +140,7 @@ class WeatherServiceTest {
 			.thenReturn(invalidCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();
@@ -160,7 +160,7 @@ class WeatherServiceTest {
 			.thenReturn(null);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();
@@ -185,7 +185,7 @@ class WeatherServiceTest {
 			.thenReturn(invalidCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, futureDate, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();
@@ -202,7 +202,7 @@ class WeatherServiceTest {
 		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul")))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -216,7 +216,7 @@ class WeatherServiceTest {
 		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul")))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -230,7 +230,7 @@ class WeatherServiceTest {
 		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul")))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -244,7 +244,7 @@ class WeatherServiceTest {
 		LocalDate today = LocalDate.of(2024, 1, 15);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, "Asia/Seoul"))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul")))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.INVALID_COORDINATES);
 	}
@@ -258,7 +258,7 @@ class WeatherServiceTest {
 		LocalDate yesterday = LocalDate.of(2024, 1, 14);
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, yesterday, "Asia/Seoul"))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, yesterday, ZoneId.of("Asia/Seoul")))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.DATE_OUT_OF_RANGE);
 	}
@@ -272,7 +272,7 @@ class WeatherServiceTest {
 		LocalDate maxDatePlusOne = LocalDate.of(2024, 1, 19); // MAX_FUTURE_DATE + 1
 
 		// when & then
-		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, maxDatePlusOne, "Asia/Seoul"))
+		assertThatThrownBy(() -> weatherService.getWeatherInfo(request, maxDatePlusOne, ZoneId.of("Asia/Seoul")))
 			.isInstanceOf(WeatherException.class)
 			.hasFieldOrPropertyWithValue("errorResult", WeatherErrorResult.DATE_OUT_OF_RANGE);
 	}
@@ -294,7 +294,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, today, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, today, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();
@@ -319,7 +319,7 @@ class WeatherServiceTest {
 			.thenReturn(mockCacheData);
 
 		// when
-		WeatherResponse response = weatherService.getWeatherInfo(request, maxDate, "Asia/Seoul");
+		WeatherResponse response = weatherService.getWeatherInfo(request, maxDate, ZoneId.of("Asia/Seoul"));
 
 		// then
 		assertThat(response).isNotNull();

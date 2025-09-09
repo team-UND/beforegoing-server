@@ -15,8 +15,8 @@ import jakarta.validation.constraints.NotNull;
 
 public interface MissionRepository extends JpaRepository<Mission, Long> {
 
-	@EntityGraph(attributePaths = {"scenario", "scenario.member"})
-	Optional<Mission> findById(@NotNull Long id);
+	@EntityGraph(attributePaths = {"scenario"})
+	Optional<Mission> findByIdAndScenarioMemberId(Long missionId, Long memberId);
 
 	Optional<Mission> findByParentMissionIdAndUseDate(Long parentMissionId, LocalDate useDate);
 

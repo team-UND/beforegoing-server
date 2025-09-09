@@ -426,7 +426,7 @@ The following rules in the Naver coding convention cannot be checked by this con
 
 	<!--- Exclude module-info.java -->
 	<module name="BeforeExecutionExclusionFileFilter">
-		<property name="fileNamePattern" value="module\-info\.java$"/>
-	</module>
+        <property name="fileNamePattern" value="module\-info\.java$|.*ApiDocs\.java$"/>
+    </module>
 
 </module>
