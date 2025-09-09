@@ -2,7 +2,6 @@ package com.und.server.scenario.service;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,7 +21,6 @@ import com.und.server.scenario.constants.MissionType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
-import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
@@ -99,7 +97,7 @@ public class ScenarioService {
 
 
 	@Transactional
-	public MissionGroupResponse addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
+	public List<ScenarioResponse> addScenario(final Long memberId, final ScenarioDetailRequest scenarioDetailRequest) {
 		Member member = em.getReference(Member.class, memberId);
 
 		NotificationRequest notificationRequest = scenarioDetailRequest.notification();
@@ -125,18 +123,15 @@ public class ScenarioService {
 			.build();
 
 		scenarioRepository.save(scenario);
-		List<Mission> missions = missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
-
-		List<Mission> basicMissions = missionTypeGroupSorter.groupAndSortByType(missions, MissionType.BASIC);
+		missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
 
 		notificationEventPublisher.publishCreateEvent(memberId, scenario);
-
-		return MissionGroupResponse.from(scenario.getId(), basicMissions, null);
+		return findScenariosByMemberId(memberId, notificationType);
 	}
 
 
 	@Transactional
-	public MissionGroupResponse updateScenario(
+	public List<ScenarioResponse> updateScenario(
 		final Long memberId,
 		final Long scenarioId,
 		final ScenarioDetailRequest scenarioDetailRequest
@@ -159,9 +154,7 @@ public class ScenarioService {
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
 
 		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
-
-		return missionService.findMissionsByScenarioId(
-			memberId, scenarioId, LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))));
+		return findScenariosByMemberId(memberId, scenarioDetailRequest.notification().notificationType());
 	}
 
 
