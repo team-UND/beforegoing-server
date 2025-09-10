@@ -163,4 +163,44 @@ class NotificationEventPublisherTest {
 		verify(eventPublisher).publishEvent(any(ScenarioDeleteEvent.class));
 	}
 
+
+	@Test
+	void Given_ValidMemberIdAndActiveTrue_When_PublishActiveUpdateEvent_Then_PublishActiveUpdateEvent() {
+		// given
+		boolean isActive = true;
+
+		// when
+		notificationEventPublisher.publishActiveUpdateEvent(memberId, isActive);
+
+		// then
+		verify(eventPublisher).publishEvent(any(ActiveUpdateEvent.class));
+	}
+
+
+	@Test
+	void Given_ValidMemberIdAndActiveFalse_When_PublishActiveUpdateEvent_Then_PublishActiveUpdateEvent() {
+		// given
+		boolean isActive = false;
+
+		// when
+		notificationEventPublisher.publishActiveUpdateEvent(memberId, isActive);
+
+		// then
+		verify(eventPublisher).publishEvent(any(ActiveUpdateEvent.class));
+	}
+
+
+	@Test
+	void Given_DifferentMemberId_When_PublishActiveUpdateEvent_Then_PublishActiveUpdateEvent() {
+		// given
+		Long differentMemberId = 2L;
+		boolean isActive = true;
+
+		// when
+		notificationEventPublisher.publishActiveUpdateEvent(differentMemberId, isActive);
+
+		// then
+		verify(eventPublisher).publishEvent(any(ActiveUpdateEvent.class));
+	}
+
 }

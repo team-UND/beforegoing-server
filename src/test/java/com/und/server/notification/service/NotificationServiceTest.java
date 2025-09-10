@@ -2,7 +2,10 @@ package com.und.server.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,7 +24,10 @@ import com.und.server.notification.dto.request.TimeNotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.repository.NotificationRepository;
+import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.repository.ScenarioRepository;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -31,6 +37,12 @@ class NotificationServiceTest {
 
 	@Mock
 	private NotificationConditionSelector notificationConditionSelector;
+
+	@Mock
+	private ScenarioRepository scenarioRepository;
+
+	@Mock
+	private NotificationEventPublisher notificationEventPublisher;
 
 	@InjectMocks
 	private NotificationService notificationService;
@@ -469,6 +481,216 @@ class NotificationServiceTest {
 		// then
 		assertThat(notification.getNotificationMethodType()).isNull();
 		assertThat(notification.isActive()).isFalse();
+	}
+
+
+	@Test
+	void Given_MemberWithActiveNotis_When_UpdateNotiActiveStatusToFalse_Then_DeactivateNotisAndPublishEvent() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = false;
+
+		Notification notification1 = Notification.builder()
+			.id(1L)
+			.isActive(true)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Notification notification2 = Notification.builder()
+			.id(2L)
+			.isActive(true)
+			.notificationType(NotificationType.LOCATION)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.daysOfWeek("0,1,2,3,4")
+			.build();
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(notification1)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(notification2)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(notification1.isActive()).isFalse();
+		assertThat(notification2.isActive()).isFalse();
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithInactiveNotis_When_UpdateNotiActiveStatusToTrue_Then_ActivateNotisAndPublishEvent() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		Notification notification1 = Notification.builder()
+			.id(1L)
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Notification notification2 = Notification.builder()
+			.id(2L)
+			.isActive(false)
+			.notificationType(NotificationType.LOCATION)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.daysOfWeek("0,1,2,3,4")
+			.build();
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(notification1)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(notification2)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(notification1.isActive()).isTrue();
+		assertThat(notification2.isActive()).isTrue();
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithMixedNotis_When_UpdateNotiActiveStatusToFalse_Then_OnlyDeactivateActiveNotis() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = false;
+
+		Notification activeNotification = Notification.builder()
+			.id(1L)
+			.isActive(true)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Notification inactiveNotification = Notification.builder()
+			.id(2L)
+			.isActive(false)
+			.notificationType(NotificationType.LOCATION)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.daysOfWeek("0,1,2,3,4")
+			.build();
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(activeNotification)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(inactiveNotification)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(activeNotification.isActive()).isFalse();
+		assertThat(inactiveNotification.isActive()).isFalse(); // Should remain false
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithNoScenarios_When_UpdateNotificationActiveStatus_Then_DoNothing() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of());
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		verify(notificationEventPublisher, never()).publishActiveUpdateEvent(anyLong(), anyBoolean());
+	}
+
+
+	@Test
+	void Given_MemberWithScenariosButNoNotifications_When_UpdateNotificationActiveStatus_Then_PublishEvent() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(null)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(null)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithNotisWithoutConditions_When_UpdateNotiActiveStatusToTrue_Then_ActivateNotis() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		Notification notification = Notification.builder()
+			.id(1L)
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.notification(notification)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(notification.isActive()).isTrue();
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
 	}
 
 }
