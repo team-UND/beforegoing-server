@@ -46,7 +46,6 @@ import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
-import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -77,7 +76,7 @@ class ScenarioServiceTest {
 	private ScenarioRepository scenarioRepository;
 
 	@Mock
-	private MissionTypeGroupSorter missionTypeGrouper;
+	private MissionTypeGroupSorter missionTypeGroupSorter;
 
 	@Mock
 	private OrderCalculator orderCalculator;
@@ -151,9 +150,10 @@ class ScenarioServiceTest {
 
 		//then
 		assertNotNull(result);
-		assertThat(result.size()).isEqualTo(2);
-		assertThat(result.get(0).scenarioName()).isEqualTo("시나리오A");
-		assertThat(result.get(1).scenarioName()).isEqualTo("시나리오B");
+		assertThat(result)
+			.hasSize(2)
+			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("시나리오A"))
+			.satisfies(r -> assertThat(r.get(1).scenarioName()).isEqualTo("시나리오B"));
 	}
 
 
@@ -198,7 +198,7 @@ class ScenarioServiceTest {
 		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(notifDetail);
-		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
+		Mockito.when(missionTypeGroupSorter.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
 			.thenReturn(List.of());
 
 		// when
@@ -206,11 +206,14 @@ class ScenarioServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertThat(response.scenarioId()).isEqualTo(scenarioId);
-		assertThat(response.notificationCondition()).isInstanceOf(TimeNotificationResponse.class);
-		TimeNotificationResponse detail = (TimeNotificationResponse) response.notificationCondition();
-		assertThat(detail.startHour()).isEqualTo(8);
-		assertThat(detail.startMinute()).isEqualTo(30);
+		assertThat(response)
+			.satisfies(r -> assertThat(r.scenarioId()).isEqualTo(scenarioId))
+			.satisfies(r -> assertThat(r.notificationCondition()).isInstanceOf(TimeNotificationResponse.class))
+			.satisfies(r -> {
+				TimeNotificationResponse detail = (TimeNotificationResponse) r.notificationCondition();
+				assertThat(detail.startHour()).isEqualTo(8);
+				assertThat(detail.startMinute()).isEqualTo(30);
+			});
 	}
 
 
@@ -360,31 +363,44 @@ class ScenarioServiceTest {
 
 		given(missionService.addBasicMission(any(Scenario.class), eq(missionList)))
 			.willReturn(savedMissions);
-		given(missionTypeGrouper.groupAndSortByType(savedMissions, MissionType.BASIC))
-			.willReturn(groupedBasicMissions);
+
+		// Mock findScenariosByMemberId to return the created scenario
+		Scenario createdScenario = Scenario.builder()
+			.id(1L)
+			.scenarioName("Morning")
+			.memo("Routine")
+			.scenarioOrder(calculatedOrder)
+			.notification(savedNotification)
+			.member(member)
+			.build();
+		List<ScenarioResponse> expectedResponse = List.of(ScenarioResponse.from(createdScenario));
+		given(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(List.of(createdScenario));
 
 		// when
-		MissionGroupResponse result = scenarioService.addScenario(memberId, scenarioRequest);
+		List<ScenarioResponse> result = scenarioService.addScenario(memberId, scenarioRequest);
 
 		// then
 		verify(notificationService).addNotification(notifRequest, condition);
 		verify(missionService).addBasicMission(any(Scenario.class), eq(missionList));
 		verify(scenarioRepository).save(scenarioCaptor.capture());
-		verify(missionTypeGrouper).groupAndSortByType(savedMissions, MissionType.BASIC);
 		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
 
 		Scenario saved = scenarioCaptor.getValue();
 
-		assertThat(saved.getScenarioName()).isEqualTo("Morning");
-		assertThat(saved.getMemo()).isEqualTo("Routine");
-		assertThat(saved.getScenarioOrder()).isEqualTo(calculatedOrder);
-		assertThat(saved.getNotification()).isEqualTo(savedNotification);
-		assertThat(saved.getMember().getId()).isEqualTo(member.getId());
+		assertThat(saved)
+			.satisfies(s -> assertThat(s.getScenarioName()).isEqualTo("Morning"))
+			.satisfies(s -> assertThat(s.getMemo()).isEqualTo("Routine"))
+			.satisfies(s -> assertThat(s.getScenarioOrder()).isEqualTo(calculatedOrder))
+			.satisfies(s -> assertThat(s.getNotification()).isEqualTo(savedNotification))
+			.satisfies(s -> assertThat(s.getMember().getId()).isEqualTo(member.getId()));
 
-		assertThat(result).isNotNull();
-		assertThat(result.scenarioId()).isEqualTo(saved.getId());
-		assertThat(result.basicMissions()).hasSize(2);
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.hasSize(1)
+			.satisfies(r -> assertThat(r.get(0).scenarioId()).isEqualTo(1L))
+			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("Morning"))
+			.satisfies(r -> assertThat(r.get(0).memo()).isEqualTo("Routine"));
 	}
 
 
@@ -436,30 +452,40 @@ class ScenarioServiceTest {
 		Scenario s1 = Scenario.builder().id(1L).scenarioOrder(10_000_000).build();
 		given(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
 			.willReturn(List.of(s1));
-		given(orderCalculator.getMaxOrderAfterReorder(List.of(s1)))
+		given(orderCalculator.getMinOrderAfterReorder(List.of(s1)))
 			.willReturn(reorderedOrder);
 
 		ArgumentCaptor<Scenario> captor = ArgumentCaptor.forClass(Scenario.class);
 
 		given(missionService.addBasicMission(any(Scenario.class), eq(List.of())))
 			.willReturn(List.of());
-		given(missionTypeGrouper.groupAndSortByType(List.of(), MissionType.BASIC))
-			.willReturn(List.of());
+
+		// Mock findScenariosByMemberId to return the created scenario
+		Scenario createdScenario = Scenario.builder()
+			.id(1L)
+			.scenarioName("Morning")
+			.memo("Routine")
+			.scenarioOrder(reorderedOrder)
+			.notification(savedNotification)
+			.member(member)
+			.build();
+		given(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(List.of(createdScenario));
 
 		// when
-		MissionGroupResponse result = scenarioService.addScenario(memberId, scenarioRequest);
+		List<ScenarioResponse> result = scenarioService.addScenario(memberId, scenarioRequest);
 
 		// then
 		verify(scenarioRepository).save(captor.capture());
-		verify(missionTypeGrouper).groupAndSortByType(List.of(), MissionType.BASIC);
 		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
 
 		Scenario saved = captor.getValue();
-		assertThat(saved.getScenarioOrder()).isEqualTo(reorderedOrder);
-		assertThat(result).isNotNull();
-		assertThat(result.scenarioId()).isEqualTo(saved.getId());
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.hasSize(1)
+			.satisfies(r -> assertThat(r.get(0).scenarioId()).isEqualTo(1L))
+			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("Morning"))
+			.satisfies(r -> assertThat(r.get(0).memo()).isEqualTo("Routine"));
 	}
 
 	@Test
@@ -541,33 +567,39 @@ class ScenarioServiceTest {
 			return null;
 		}).when(notificationService).updateNotification(oldNotification, notifRequest, condition);
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(scenarioId)
-			.basicMissions(List.of())
-			.todayMissions(List.of())
+		// Mock findScenariosByMemberId to return the updated scenario
+		Scenario updatedScenario = Scenario.builder()
+			.id(scenarioId)
+			.scenarioName("수정할 시나리오")
+			.memo("수정할 메모")
+			.notification(oldNotification)
+			.member(member)
 			.build();
-
-		given(missionService.findMissionsByScenarioId(eq(memberId), eq(scenarioId), any(LocalDate.class)))
-			.willReturn(expectedResponse);
+		given(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(List.of(updatedScenario));
 
 		// when
-		MissionGroupResponse result = scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+		List<ScenarioResponse> result = scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
-		assertThat(oldScenario.getScenarioName()).isEqualTo("수정된 시나리오");
-		assertThat(oldScenario.getMemo()).isEqualTo("수정된 메모");
-		assertThat(oldScenario.getNotification().getNotificationType()).isEqualTo(notifRequest.notificationType());
-		assertThat(oldScenario.getNotification().getNotificationMethodType())
-			.isEqualTo(notifRequest.notificationMethodType());
-		assertThat(oldScenario.getNotification().isActive()).isTrue();
+		assertThat(oldScenario)
+			.satisfies(s -> assertThat(s.getScenarioName()).isEqualTo("수정된 시나리오"))
+			.satisfies(s -> assertThat(s.getMemo()).isEqualTo("수정된 메모"))
+			.satisfies(
+				s -> assertThat(s.getNotification().getNotificationType()).isEqualTo(notifRequest.notificationType()))
+			.satisfies(s -> assertThat(s.getNotification().getNotificationMethodType())
+				.isEqualTo(notifRequest.notificationMethodType()))
+			.satisfies(s -> assertThat(s.getNotification().isActive()).isTrue());
 		verify(notificationService).updateNotification(oldNotification, notifRequest, condition);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
 		verify(notificationEventPublisher).publishUpdateEvent(eq(memberId), eq(oldScenario), eq(true));
 
-		assertThat(result).isNotNull();
-		assertThat(result.scenarioId()).isEqualTo(scenarioId);
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.hasSize(1)
+			.satisfies(r -> assertThat(r.get(0).scenarioId()).isEqualTo(scenarioId))
+			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("수정할 시나리오"))
+			.satisfies(r -> assertThat(r.get(0).memo()).isEqualTo("수정할 메모"));
 	}
 
 
@@ -607,10 +639,11 @@ class ScenarioServiceTest {
 
 		// then
 		assertThat(scenario.getScenarioOrder()).isEqualTo(newOrder);
-		assertThat(response.isReorder()).isFalse();
-		assertThat(response.orderUpdates()).hasSize(1);
-		assertThat(response.orderUpdates().get(0).id()).isEqualTo(scenarioId);
-		assertThat(response.orderUpdates().get(0).newOrder()).isEqualTo(newOrder);
+		assertThat(response)
+			.satisfies(r -> assertThat(r.isReorder()).isFalse())
+			.satisfies(r -> assertThat(r.orderUpdates()).hasSize(1))
+			.satisfies(r -> assertThat(r.orderUpdates().get(0).id()).isEqualTo(scenarioId))
+			.satisfies(r -> assertThat(r.orderUpdates().get(0).newOrder()).isEqualTo(newOrder));
 		verify(orderCalculator).getOrder(1000, 2000);
 	}
 
@@ -658,8 +691,9 @@ class ScenarioServiceTest {
 		OrderUpdateResponse response = scenarioService.updateScenarioOrder(memberId, scenarioId, orderRequest);
 
 		// then
-		assertThat(response.isReorder()).isTrue();
-		assertThat(response.orderUpdates()).hasSize(2);
+		assertThat(response)
+			.satisfies(r -> assertThat(r.isReorder()).isTrue())
+			.satisfies(r -> assertThat(r.orderUpdates()).hasSize(2));
 		verify(orderCalculator).reorder(anyList(), eq(scenarioId), eq(errorOrder));
 	}
 
@@ -835,29 +869,34 @@ class ScenarioServiceTest {
 		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(oldScenario));
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(scenarioId)
-			.basicMissions(List.of())
-			.todayMissions(List.of())
+		// Mock findScenariosByMemberId to return the updated scenario
+		Scenario updatedScenario = Scenario.builder()
+			.id(scenarioId)
+			.scenarioName("수정할 시나리오")
+			.memo("수정할 메모")
+			.notification(oldNotification)
+			.member(member)
 			.build();
-
-		given(missionService.findMissionsByScenarioId(eq(memberId), eq(scenarioId), any(LocalDate.class)))
-			.willReturn(expectedResponse);
+		given(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
+			.willReturn(List.of(updatedScenario));
 
 		// when
-		MissionGroupResponse result = scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
+		List<ScenarioResponse> result = scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
-		assertThat(oldScenario.getScenarioName()).isEqualTo("수정된 시나리오");
-		assertThat(oldScenario.getMemo()).isEqualTo("수정된 메모");
+		assertThat(oldScenario)
+			.satisfies(s -> assertThat(s.getScenarioName()).isEqualTo("수정된 시나리오"))
+			.satisfies(s -> assertThat(s.getMemo()).isEqualTo("수정된 메모"));
 		verify(notificationService).updateNotification(oldNotification, notificationRequest, null);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
 		verify(notificationEventPublisher).publishUpdateEvent(eq(memberId), eq(oldScenario), eq(false));
 
-		assertThat(result).isNotNull();
-		assertThat(result.scenarioId()).isEqualTo(scenarioId);
-		assertThat(result.basicMissions()).isEmpty();
-		assertThat(result.todayMissions()).isEmpty();
+		assertThat(result)
+			.isNotNull()
+			.hasSize(1)
+			.satisfies(r -> assertThat(r.get(0).scenarioId()).isEqualTo(scenarioId))
+			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("수정할 시나리오"))
+			.satisfies(r -> assertThat(r.get(0).memo()).isEqualTo("수정할 메모"));
 	}
 
 
@@ -1000,7 +1039,7 @@ class ScenarioServiceTest {
 		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(null);
-		Mockito.when(missionTypeGrouper.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
+		Mockito.when(missionTypeGroupSorter.groupAndSortByType(scenario.getMissions(), MissionType.BASIC))
 			.thenReturn(List.of());
 
 		// when
@@ -1008,10 +1047,11 @@ class ScenarioServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertThat(response.scenarioId()).isEqualTo(scenarioId);
-		assertThat(response.notification().isEveryDay()).isNull();
-		assertThat(response.notification().daysOfWeekOrdinal()).isNull();
-		assertThat(response.notificationCondition()).isNull();
+		assertThat(response)
+			.satisfies(r -> assertThat(r.scenarioId()).isEqualTo(scenarioId))
+			.satisfies(r -> assertThat(r.notification().isEveryDay()).isNull())
+			.satisfies(r -> assertThat(r.notification().daysOfWeekOrdinal()).isNull())
+			.satisfies(r -> assertThat(r.notificationCondition()).isNull());
 	}
 
 

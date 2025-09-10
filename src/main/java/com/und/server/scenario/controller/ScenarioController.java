@@ -20,7 +20,6 @@ import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
-import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -66,28 +65,28 @@ public class ScenarioController implements ScenarioApiDocs {
 
 	@Override
 	@PostMapping("/scenarios")
-	public ResponseEntity<MissionGroupResponse> addScenario(
+	public ResponseEntity<List<ScenarioResponse>> addScenario(
 		@AuthMember final Long memberId,
 		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
 	) {
-		final MissionGroupResponse missionGroupResponse =
+		final List<ScenarioResponse> scenarios =
 			scenarioService.addScenario(memberId, scenarioRequest);
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(missionGroupResponse);
+		return ResponseEntity.status(HttpStatus.CREATED).body(scenarios);
 	}
 
 
 	@Override
 	@PutMapping("/scenarios/{scenarioId}")
-	public ResponseEntity<MissionGroupResponse> updateScenario(
+	public ResponseEntity<List<ScenarioResponse>> updateScenario(
 		@AuthMember final Long memberId,
 		@PathVariable final Long scenarioId,
 		@RequestBody @Valid final ScenarioDetailRequest scenarioRequest
 	) {
-		MissionGroupResponse missionGroupResponse =
+		final List<ScenarioResponse> scenarios =
 			scenarioService.updateScenario(memberId, scenarioId, scenarioRequest);
 
-		return ResponseEntity.ok().body(missionGroupResponse);
+		return ResponseEntity.ok().body(scenarios);
 	}
 
 

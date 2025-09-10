@@ -199,38 +199,11 @@ public interface ScenarioApiDocs {
 	@ApiResponses({
 			@ApiResponse(
 					responseCode = "201",
-					description = "Create Scenario successful",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = MissionGroupResponse.class),
-							examples = @ExampleObject(
-									name = "Basic missions only",
-									value = """
-										{
-										  "scenarioId": 2,
-										  "basicMissions": [
-										    {
-										      "missionId": 3,
-										      "content": "Lock door",
-										      "isChecked": false,
-										      "missionType": "BASIC"
-										    },
-										    {
-										      "missionId": 4,
-										      "content": "Open door",
-										      "isChecked": false,
-										      "missionType": "BASIC"
-										    }
-										  ],
-										  "todayMissions": []
-										}
-										"""
-							)
-					)
+					description = "Create Scenario successful"
 			),
 			@ApiResponse(
 					responseCode = "400",
-					description = "Bad request - invalid parameters",
+					description = "Bad request",
 					content = @Content(
 							mediaType = "application/json",
 							schema = @Schema(implementation = ErrorResponse.class),
@@ -319,7 +292,7 @@ public interface ScenarioApiDocs {
 					)
 			)
 	})
-	ResponseEntity<MissionGroupResponse> addScenario(
+	ResponseEntity<List<ScenarioResponse>> addScenario(
 			@Parameter(hidden = true) Long memberId,
 			@RequestBody(
 					description = "Scenario detail request",
@@ -380,15 +353,11 @@ public interface ScenarioApiDocs {
 	@ApiResponses({
 			@ApiResponse(
 					responseCode = "200",
-					description = "Update Scenario successful",
-					content = @Content(
-							mediaType = "application/json",
-							schema = @Schema(implementation = MissionGroupResponse.class)
-					)
+					description = "Update Scenario successful"
 			),
 			@ApiResponse(
 					responseCode = "400",
-					description = "Bad request - invalid parameters",
+					description = "Bad request",
 					content = @Content(
 							mediaType = "application/json",
 							schema = @Schema(implementation = ErrorResponse.class),
@@ -494,7 +463,7 @@ public interface ScenarioApiDocs {
 					)
 			)
 	})
-	ResponseEntity<MissionGroupResponse> updateScenario(
+	ResponseEntity<List<ScenarioResponse>> updateScenario(
 			@Parameter(hidden = true) Long memberId,
 			@Parameter(description = "Scenario ID") Long scenarioId,
 			@RequestBody(

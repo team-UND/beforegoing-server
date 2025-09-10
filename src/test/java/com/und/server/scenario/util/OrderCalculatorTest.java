@@ -84,7 +84,6 @@ class OrderCalculatorTest {
 
 		// then
 		assertThat(result).hasSize(3);
-		// 순서가 재정렬되었는지 확인
 		assertThat(result.get(0).getScenarioOrder()).isEqualTo(OrderCalculator.START_ORDER);
 		assertThat(result.get(1).getScenarioOrder()).isEqualTo(
 			OrderCalculator.START_ORDER + OrderCalculator.DEFAULT_ORDER);
@@ -93,19 +92,19 @@ class OrderCalculatorTest {
 	}
 
 	@Test
-	void Given_EmptyScenarioList_When_GetMaxOrderAfterReorder_Then_ReturnStartOrder() {
+	void Given_EmptyScenarioList_When_GetMinOrderAfterReorder_Then_ReturnStartOrder() {
 		// given
 		List<Scenario> emptyScenarios = List.of();
 
 		// when
-		Integer result = orderCalculator.getMaxOrderAfterReorder(emptyScenarios);
+		Integer result = orderCalculator.getMinOrderAfterReorder(emptyScenarios);
 
 		// then
 		assertThat(result).isEqualTo(OrderCalculator.START_ORDER);
 	}
 
 	@Test
-	void Given_ScenarioList_When_GetMaxOrderAfterReorder_Then_ReturnMaxOrderPlusDefault() {
+	void Given_ScenarioList_When_GetMinOrderAfterReorder_Then_ReturnMinOrderMinusDefault() {
 		// given
 		Scenario scenario1 = Scenario.builder()
 			.id(1L)
@@ -120,12 +119,10 @@ class OrderCalculatorTest {
 		List<Scenario> scenarios = new java.util.ArrayList<>(List.of(scenario1, scenario2));
 
 		// when
-		Integer result = orderCalculator.getMaxOrderAfterReorder(scenarios);
+		Integer result = orderCalculator.getMinOrderAfterReorder(scenarios);
 
 		// then
-		// 리오더링 후 마지막 시나리오의 order + DEFAULT_ORDER
-		assertThat(result).isEqualTo(
-			OrderCalculator.START_ORDER + OrderCalculator.DEFAULT_ORDER + OrderCalculator.DEFAULT_ORDER);
+		assertThat(result).isEqualTo(OrderCalculator.START_ORDER - OrderCalculator.DEFAULT_ORDER);
 	}
 
 }

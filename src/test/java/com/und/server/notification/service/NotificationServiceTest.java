@@ -2,7 +2,10 @@ package com.und.server.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,7 +24,10 @@ import com.und.server.notification.dto.request.TimeNotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.repository.NotificationRepository;
+import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.repository.ScenarioRepository;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -31,6 +37,12 @@ class NotificationServiceTest {
 
 	@Mock
 	private NotificationConditionSelector notificationConditionSelector;
+
+	@Mock
+	private ScenarioRepository scenarioRepository;
+
+	@Mock
+	private NotificationEventPublisher notificationEventPublisher;
 
 	@InjectMocks
 	private NotificationService notificationService;
@@ -90,10 +102,11 @@ class NotificationServiceTest {
 		Notification result = notificationService.addNotification(notificationInfo, conditionInfo);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.getNotificationType()).isEqualTo(NotificationType.TIME);
-		assertThat(result.getNotificationMethodType()).isEqualTo(NotificationMethodType.PUSH);
-		assertThat(result.getIsActive()).isTrue();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.getNotificationType()).isEqualTo(NotificationType.TIME))
+			.satisfies(r -> assertThat(r.getNotificationMethodType()).isEqualTo(NotificationMethodType.PUSH))
+			.satisfies(r -> assertThat(r.getIsActive()).isTrue());
 		verify(notificationRepository).save(any(Notification.class));
 		verify(notificationConditionSelector)
 			.addNotificationCondition(any(Notification.class), eq(conditionInfo));
@@ -126,9 +139,10 @@ class NotificationServiceTest {
 		notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
 
 		// then
-		assertThat(oldNotification.getNotificationType()).isEqualTo(NotificationType.TIME);
-		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM);
-		assertThat(oldNotification.isActive()).isTrue();
+		assertThat(oldNotification)
+			.satisfies(n -> assertThat(n.getNotificationType()).isEqualTo(NotificationType.TIME))
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM))
+			.satisfies(n -> assertThat(n.isActive()).isTrue());
 		verify(notificationConditionSelector)
 			.updateNotificationCondition(oldNotification, conditionInfo);
 	}
@@ -160,9 +174,10 @@ class NotificationServiceTest {
 		notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
 
 		// then
-		assertThat(oldNotification.getNotificationType()).isEqualTo(NotificationType.LOCATION);
-		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM);
-		assertThat(oldNotification.isActive()).isTrue();
+		assertThat(oldNotification)
+			.satisfies(n -> assertThat(n.getNotificationType()).isEqualTo(NotificationType.LOCATION))
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM))
+			.satisfies(n -> assertThat(n.isActive()).isTrue());
 		verify(notificationConditionSelector).deleteNotificationCondition(
 			NotificationType.TIME, oldNotification.getId());
 		verify(notificationConditionSelector)
@@ -189,8 +204,9 @@ class NotificationServiceTest {
 		notificationService.updateNotification(oldNotification, notificationRequest, null);
 
 		// then
-		assertThat(oldNotification.isActive()).isFalse();
-		assertThat(oldNotification.getNotificationMethodType()).isNull();
+		assertThat(oldNotification)
+			.satisfies(n -> assertThat(n.isActive()).isFalse())
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isNull());
 		verify(notificationConditionSelector)
 			.deleteNotificationCondition(NotificationType.TIME, oldNotification.getId());
 	}
@@ -216,8 +232,9 @@ class NotificationServiceTest {
 		Notification result = notificationService.addNotification(request, null);
 
 		// then
-		assertThat(result.getNotificationType()).isEqualTo(type);
-		assertThat(result.getIsActive()).isFalse();
+		assertThat(result)
+			.satisfies(r -> assertThat(r.getNotificationType()).isEqualTo(type))
+			.satisfies(r -> assertThat(r.getIsActive()).isFalse());
 		verify(notificationRepository).save(any(Notification.class));
 	}
 
@@ -261,9 +278,10 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isTrue();
-		assertThat(notification.getDaysOfWeekOrdinalList()).hasSize(7);
-		assertThat(notification.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6);
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isTrue())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).hasSize(7))
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6));
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -290,9 +308,10 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isFalse();
-		assertThat(notification.getDaysOfWeekOrdinalList()).hasSize(3);
-		assertThat(notification.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 2, 4);
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).hasSize(3))
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 2, 4));
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -319,8 +338,9 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isFalse();
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty());
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -347,8 +367,9 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isFalse();
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty());
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -369,9 +390,10 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(newDays);
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).hasSize(3);
-		assertThat(notification.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(1, 3, 5);
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).hasSize(3))
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(1, 3, 5))
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -391,8 +413,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(newDays);
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -410,8 +433,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(null);
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -429,8 +453,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(List.of());
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -448,8 +473,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(List.of());
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -467,8 +493,219 @@ class NotificationServiceTest {
 		notification.deactivate();
 
 		// then
-		assertThat(notification.getNotificationMethodType()).isNull();
-		assertThat(notification.isActive()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isNull())
+			.satisfies(n -> assertThat(n.isActive()).isFalse());
+	}
+
+
+	@Test
+	void Given_MemberWithActiveNotis_When_UpdateNotiActiveStatusToFalse_Then_DeactivateNotisAndPublishEvent() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = false;
+
+		Notification notification1 = Notification.builder()
+			.id(1L)
+			.isActive(true)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Notification notification2 = Notification.builder()
+			.id(2L)
+			.isActive(true)
+			.notificationType(NotificationType.LOCATION)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.daysOfWeek("0,1,2,3,4")
+			.build();
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(notification1)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(notification2)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(notification1.isActive()).isFalse();
+		assertThat(notification2.isActive()).isFalse();
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithInactiveNotis_When_UpdateNotiActiveStatusToTrue_Then_ActivateNotisAndPublishEvent() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		Notification notification1 = Notification.builder()
+			.id(1L)
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Notification notification2 = Notification.builder()
+			.id(2L)
+			.isActive(false)
+			.notificationType(NotificationType.LOCATION)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.daysOfWeek("0,1,2,3,4")
+			.build();
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(notification1)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(notification2)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(notification1.isActive()).isTrue();
+		assertThat(notification2.isActive()).isTrue();
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithMixedNotis_When_UpdateNotiActiveStatusToFalse_Then_OnlyDeactivateActiveNotis() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = false;
+
+		Notification activeNotification = Notification.builder()
+			.id(1L)
+			.isActive(true)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Notification inactiveNotification = Notification.builder()
+			.id(2L)
+			.isActive(false)
+			.notificationType(NotificationType.LOCATION)
+			.notificationMethodType(NotificationMethodType.ALARM)
+			.daysOfWeek("0,1,2,3,4")
+			.build();
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(activeNotification)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(inactiveNotification)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(activeNotification.isActive()).isFalse();
+		assertThat(inactiveNotification.isActive()).isFalse(); // Should remain false
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithNoScenarios_When_UpdateNotificationActiveStatus_Then_DoNothing() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of());
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		verify(notificationEventPublisher, never()).publishActiveUpdateEvent(anyLong(), anyBoolean());
+	}
+
+
+	@Test
+	void Given_MemberWithScenariosButNoNotifications_When_UpdateNotificationActiveStatus_Then_PublishEvent() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		Scenario scenario1 = Scenario.builder()
+			.id(1L)
+			.notification(null)
+			.build();
+
+		Scenario scenario2 = Scenario.builder()
+			.id(2L)
+			.notification(null)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario1, scenario2));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_MemberWithNotisWithoutConditions_When_UpdateNotiActiveStatusToTrue_Then_ActivateNotis() {
+		// given
+		Long memberId = 1L;
+		Boolean isActive = true;
+
+		Notification notification = Notification.builder()
+			.id(1L)
+			.isActive(false)
+			.notificationType(NotificationType.TIME)
+			.notificationMethodType(NotificationMethodType.PUSH)
+			.daysOfWeek("0,1,2")
+			.build();
+
+		Scenario scenario = Scenario.builder()
+			.id(1L)
+			.notification(notification)
+			.build();
+
+		when(scenarioRepository.findByMemberId(memberId))
+			.thenReturn(List.of(scenario));
+
+		// when
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		// then
+		assertThat(notification.isActive()).isTrue();
+		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
 	}
 
 }
