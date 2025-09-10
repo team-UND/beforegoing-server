@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.und.server.common.exception.ServerException;
 import com.und.server.scenario.constants.MissionSearchType;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.MissionUpdatePlanDto;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
@@ -116,53 +118,30 @@ public class MissionService {
 
 
 	@Transactional
-	public void updateBasicMission(final Scenario oldSCenario, final List<BasicMissionRequest> missionRequests) {
-		List<Mission> oldMissions =
-			missionTypeGroupSorter.groupAndSortByType(oldSCenario.getMissions(), MissionType.BASIC);
+	public void updateBasicMission(final Scenario scenario, final List<BasicMissionRequest> missionRequests) {
+		List<Mission> existingMissions =
+			missionTypeGroupSorter.groupAndSortByType(scenario.getMissions(), MissionType.BASIC);
 
 		if (missionRequests.isEmpty()) {
-			oldSCenario.getMissions().removeIf(mission ->
-				mission.getMissionType() == MissionType.BASIC
-			);
+			scenario.getMissions().removeIf(mission -> mission.getMissionType() == MissionType.BASIC);
 			return;
 		}
 
-		Map<Long, Mission> existingMissions = oldMissions.stream()
-			.collect(Collectors.toMap(Mission::getId, mission -> mission));
-		Set<Long> existingMissionIds = existingMissions.keySet();
-		List<Long> requestedMissionIds = new ArrayList<>();
+		MissionUpdatePlanDto updatePlan = createMissionUpdatePlan(scenario, existingMissions, missionRequests);
+		missionValidator.validateMaxBasicMissionCount(updatePlan.missionsToSave());
 
-		List<Mission> toAdd = new ArrayList<>();
+		List<Mission> missionsToSave = updatePlan.missionsToSave();
+		List<Long> missionsToDelete = updatePlan.missionsToDelete();
 
-		int order = OrderCalculator.START_ORDER;
-		for (BasicMissionRequest missionInfo : missionRequests) {
-			Long missionId = missionInfo.missionId();
-
-			if (missionId == null) {
-				toAdd.add(missionInfo.toEntity(oldSCenario, order));
-			} else {
-				Mission existingMission = existingMissions.get(missionId);
-				if (existingMission != null) {
-					existingMission.updateMissionOrder(order);
-					toAdd.add(existingMission);
-					requestedMissionIds.add(missionId);
-				}
-			}
-			order += OrderCalculator.DEFAULT_ORDER;
-		}
-		missionValidator.validateMaxBasicMissionCount(toAdd);
-
-		List<Long> toDeleteId = existingMissionIds.stream()
-			.filter(id -> !requestedMissionIds.contains(id))
-			.toList();
-
-		oldSCenario.getMissions().removeIf(mission ->
+		scenario.getMissions().removeIf(mission ->
 			mission.getMissionType() == MissionType.BASIC
-				&& toDeleteId.contains(mission.getId())
+				&& missionsToDelete.contains(mission.getId())
 		);
 
-		missionRepository.deleteByParentMissionIdIn(toDeleteId);
-		missionRepository.saveAll(toAdd);
+		if (!missionsToDelete.isEmpty()) {
+			missionRepository.deleteByParentMissionIdIn(missionsToDelete);
+		}
+		missionRepository.saveAll(missionsToSave);
 	}
 
 
@@ -248,6 +227,45 @@ public class MissionService {
 					}
 				}
 			);
+	}
+
+	private MissionUpdatePlanDto createMissionUpdatePlan(
+		final Scenario scenario,
+		final List<Mission> existingMissions,
+		final List<BasicMissionRequest> missionRequests
+	) {
+		Map<Long, Mission> existingMissionMap = existingMissions.stream()
+			.collect(Collectors.toMap(Mission::getId, mission -> mission));
+
+		List<Integer> newOrders = orderCalculator.generateMissionOrders(missionRequests.size());
+		List<Mission> missionsToSave = new ArrayList<>();
+		Set<Long> requestedMissionIds = new HashSet<>();
+
+		for (int i = 0; i < missionRequests.size(); i++) {
+			BasicMissionRequest request = missionRequests.get(i);
+			Integer newOrder = newOrders.get(i);
+			Long missionId = request.missionId();
+
+			if (missionId == null) {
+				missionsToSave.add(request.toEntity(scenario, newOrder));
+			} else {
+				Mission existingMission = existingMissionMap.get(missionId);
+				if (existingMission != null) {
+					existingMission.updateMissionOrder(newOrder);
+					missionsToSave.add(existingMission);
+					requestedMissionIds.add(missionId);
+				}
+			}
+		}
+
+		List<Long> missionsToDelete = existingMissionMap.keySet().stream()
+			.filter(id -> !requestedMissionIds.contains(id))
+			.toList();
+
+		return MissionUpdatePlanDto.builder()
+			.missionsToSave(missionsToSave)
+			.missionsToDelete(missionsToDelete)
+			.build();
 	}
 
 }
