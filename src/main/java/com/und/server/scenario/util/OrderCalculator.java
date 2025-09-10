@@ -2,6 +2,7 @@ package com.und.server.scenario.util;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
@@ -67,6 +68,14 @@ public class OrderCalculator {
 		Scenario firstScenario = scenarios.get(0);
 
 		return calculateStartOrder(firstScenario.getScenarioOrder());
+	}
+
+
+	public List<Integer> generateMissionOrders(int count) {
+		return IntStream.range(0, count)
+			.map(i -> OrderCalculator.START_ORDER + (i * DEFAULT_ORDER))
+			.boxed()
+			.toList();
 	}
 
 
