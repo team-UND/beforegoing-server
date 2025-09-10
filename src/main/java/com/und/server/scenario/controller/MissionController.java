@@ -21,7 +21,6 @@ import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.service.MissionService;
-import com.und.server.scenario.service.ScenarioService;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -33,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/v1")
 public class MissionController implements MissionApiDocs {
 
-	private final ScenarioService scenarioService;
 	private final MissionService missionService;
 
 
@@ -60,7 +58,7 @@ public class MissionController implements MissionApiDocs {
 		@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") final LocalDate date
 	) {
 		final MissionResponse missionResponse =
-			scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+			missionService.addTodayMission(memberId, scenarioId, missionAddRequest, date);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(missionResponse);
 	}
