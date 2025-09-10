@@ -131,7 +131,7 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-          wait-for-minutes: 8
+          wait-for-minutes: 15
 
       - name: Check for Rollback
         id: check-rollback
