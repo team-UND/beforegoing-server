@@ -100,26 +100,11 @@ jobs:
           role-to-assume: ${{ env.AWS_IAM_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Log Current Service State
-        run: |
-          echo "Checking current service state before deployment..."
-          aws ecs describe-services --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }} --query 'services[0].deployments' --output table
-
-      - name: Backup Current Task Definition
-        run: |
-          echo "Backing up current task definition to task-def-backup.json"
-          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-def-backup.json
-          if [ ! -f task-def-backup.json ]; then
-            echo "::error::Failed to backup task definition."
-            exit 1
-          fi
-          echo "Backup successful."
-
       - name: Render New Task Definition with New Image
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: task-def-backup.json
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ needs.build.outputs.image_tag }}
 
@@ -135,18 +120,19 @@ jobs:
 
       - name: Check for Rollback
         id: check-rollback
+        env:
+          NEW_TASK_DEF_ARN: ${{ steps.deploy.outputs.task-definition-arn }}
         run: |
-          ORIGINAL_TASK_DEF_ARN=$(jq -r '.taskDefinitionArn' task-def-backup.json)
           DEPLOYED_TASK_DEF_ARN=$(aws ecs describe-services \
             --cluster ${{ env.ECS_CLUSTER }} \
             --services ${{ env.ECS_SERVICE }} \
             --query "services[0].taskDefinition" \
             --output text)
 
-          echo "Original Task Definition ARN: $ORIGINAL_TASK_DEF_ARN"
+          echo "New Task Definition ARN: $NEW_TASK_DEF_ARN"
           echo "Currently Deployed Task Definition ARN: $DEPLOYED_TASK_DEF_ARN"
 
-          if [ "$ORIGINAL_TASK_DEF_ARN" == "$DEPLOYED_TASK_DEF_ARN" ]; then
+          if [ "$NEW_TASK_DEF_ARN" != "$DEPLOYED_TASK_DEF_ARN" ]; then
             echo "rollback_occurred=true" >> $GITHUB_OUTPUT
           else
             echo "rollback_occurred=false" >> $GITHUB_OUTPUT
