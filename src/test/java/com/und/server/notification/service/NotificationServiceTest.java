@@ -102,10 +102,11 @@ class NotificationServiceTest {
 		Notification result = notificationService.addNotification(notificationInfo, conditionInfo);
 
 		// then
-		assertThat(result).isNotNull();
-		assertThat(result.getNotificationType()).isEqualTo(NotificationType.TIME);
-		assertThat(result.getNotificationMethodType()).isEqualTo(NotificationMethodType.PUSH);
-		assertThat(result.getIsActive()).isTrue();
+		assertThat(result)
+			.isNotNull()
+			.satisfies(r -> assertThat(r.getNotificationType()).isEqualTo(NotificationType.TIME))
+			.satisfies(r -> assertThat(r.getNotificationMethodType()).isEqualTo(NotificationMethodType.PUSH))
+			.satisfies(r -> assertThat(r.getIsActive()).isTrue());
 		verify(notificationRepository).save(any(Notification.class));
 		verify(notificationConditionSelector)
 			.addNotificationCondition(any(Notification.class), eq(conditionInfo));
@@ -138,9 +139,10 @@ class NotificationServiceTest {
 		notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
 
 		// then
-		assertThat(oldNotification.getNotificationType()).isEqualTo(NotificationType.TIME);
-		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM);
-		assertThat(oldNotification.isActive()).isTrue();
+		assertThat(oldNotification)
+			.satisfies(n -> assertThat(n.getNotificationType()).isEqualTo(NotificationType.TIME))
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM))
+			.satisfies(n -> assertThat(n.isActive()).isTrue());
 		verify(notificationConditionSelector)
 			.updateNotificationCondition(oldNotification, conditionInfo);
 	}
@@ -172,9 +174,10 @@ class NotificationServiceTest {
 		notificationService.updateNotification(oldNotification, notificationInfo, conditionInfo);
 
 		// then
-		assertThat(oldNotification.getNotificationType()).isEqualTo(NotificationType.LOCATION);
-		assertThat(oldNotification.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM);
-		assertThat(oldNotification.isActive()).isTrue();
+		assertThat(oldNotification)
+			.satisfies(n -> assertThat(n.getNotificationType()).isEqualTo(NotificationType.LOCATION))
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isEqualTo(NotificationMethodType.ALARM))
+			.satisfies(n -> assertThat(n.isActive()).isTrue());
 		verify(notificationConditionSelector).deleteNotificationCondition(
 			NotificationType.TIME, oldNotification.getId());
 		verify(notificationConditionSelector)
@@ -201,8 +204,9 @@ class NotificationServiceTest {
 		notificationService.updateNotification(oldNotification, notificationRequest, null);
 
 		// then
-		assertThat(oldNotification.isActive()).isFalse();
-		assertThat(oldNotification.getNotificationMethodType()).isNull();
+		assertThat(oldNotification)
+			.satisfies(n -> assertThat(n.isActive()).isFalse())
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isNull());
 		verify(notificationConditionSelector)
 			.deleteNotificationCondition(NotificationType.TIME, oldNotification.getId());
 	}
@@ -228,8 +232,9 @@ class NotificationServiceTest {
 		Notification result = notificationService.addNotification(request, null);
 
 		// then
-		assertThat(result.getNotificationType()).isEqualTo(type);
-		assertThat(result.getIsActive()).isFalse();
+		assertThat(result)
+			.satisfies(r -> assertThat(r.getNotificationType()).isEqualTo(type))
+			.satisfies(r -> assertThat(r.getIsActive()).isFalse());
 		verify(notificationRepository).save(any(Notification.class));
 	}
 
@@ -273,9 +278,10 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isTrue();
-		assertThat(notification.getDaysOfWeekOrdinalList()).hasSize(7);
-		assertThat(notification.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6);
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isTrue())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).hasSize(7))
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6));
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -302,9 +308,10 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isFalse();
-		assertThat(notification.getDaysOfWeekOrdinalList()).hasSize(3);
-		assertThat(notification.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 2, 4);
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).hasSize(3))
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(0, 2, 4));
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -331,8 +338,9 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isFalse();
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty());
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -359,8 +367,9 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(result).isEqualTo(expectedInfo);
-		assertThat(notification.isEveryDay()).isFalse();
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse())
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty());
 		verify(notificationConditionSelector).findNotificationCondition(notification);
 	}
 
@@ -381,9 +390,10 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(newDays);
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).hasSize(3);
-		assertThat(notification.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(1, 3, 5);
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).hasSize(3))
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).containsExactlyInAnyOrder(1, 3, 5))
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -403,8 +413,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(newDays);
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -422,8 +433,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(null);
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -441,8 +453,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(List.of());
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -460,8 +473,9 @@ class NotificationServiceTest {
 		notification.updateDaysOfWeekOrdinal(List.of());
 
 		// then
-		assertThat(notification.getDaysOfWeekOrdinalList()).isEmpty();
-		assertThat(notification.isEveryDay()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getDaysOfWeekOrdinalList()).isEmpty())
+			.satisfies(n -> assertThat(n.isEveryDay()).isFalse());
 	}
 
 
@@ -479,8 +493,9 @@ class NotificationServiceTest {
 		notification.deactivate();
 
 		// then
-		assertThat(notification.getNotificationMethodType()).isNull();
-		assertThat(notification.isActive()).isFalse();
+		assertThat(notification)
+			.satisfies(n -> assertThat(n.getNotificationMethodType()).isNull())
+			.satisfies(n -> assertThat(n.isActive()).isFalse());
 	}
 
 
