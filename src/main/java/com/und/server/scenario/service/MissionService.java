@@ -23,6 +23,7 @@ import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
+import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
 import com.und.server.scenario.util.MissionValidator;
 import com.und.server.scenario.util.OrderCalculator;
@@ -34,8 +35,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MissionService {
 
+	private static final String ZONE_ID = "Asia/Seoul";
 	private final MissionRepository missionRepository;
+	private final ScenarioRepository scenarioRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
+	private final OrderCalculator orderCalculator;
 	private final ScenarioValidator scenarioValidator;
 	private final MissionValidator missionValidator;
 	private final Clock clock;
@@ -47,7 +51,7 @@ public class MissionService {
 	) {
 		scenarioValidator.validateScenarioExists(scenarioId);
 
-		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of(ZONE_ID)));
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(today, date);
 
 		List<Mission> missions = getMissionsByDate(missionSearchType, memberId, scenarioId, date);
@@ -76,11 +80,10 @@ public class MissionService {
 		}
 
 		List<Mission> missions = new ArrayList<>();
+		List<Integer> orders = orderCalculator.generateMissionOrders(missionRequests.size());
 
-		int order = OrderCalculator.START_ORDER;
-		for (BasicMissionRequest missionInfo : missionRequests) {
-			missions.add(missionInfo.toEntity(scenario, order));
-			order += OrderCalculator.DEFAULT_ORDER;
+		for (int i = 0; i < missionRequests.size(); i++) {
+			missions.add(missionRequests.get(i).toEntity(scenario, orders.get(i)));
 		}
 		missionValidator.validateMaxBasicMissionCount(missions);
 
@@ -90,11 +93,15 @@ public class MissionService {
 
 	@Transactional
 	public MissionResponse addTodayMission(
-		final Scenario scenario,
+		final Long memberId,
+		final Long scenarioId,
 		final TodayMissionRequest todayMissionRequest,
 		final LocalDate date
 	) {
-		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
+		Scenario scenario = scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, date)
+			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
+
+		LocalDate today = LocalDate.now(clock.withZone(ZoneId.of(ZONE_ID)));
 		missionValidator.validateTodayMissionDateRange(today, date);
 
 		List<Mission> todayMissions = missionTypeGroupSorter.groupAndSortByType(
@@ -170,19 +177,13 @@ public class MissionService {
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 
 		MissionSearchType missionSearchType = MissionSearchType.getMissionSearchType(
-			LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul"))), date);
+			LocalDate.now(clock.withZone(ZoneId.of(ZONE_ID))), date);
 
 		if (mission.getMissionType() == MissionType.BASIC && missionSearchType == MissionSearchType.FUTURE) {
 			updateFutureBasicMission(mission, isChecked, date);
 			return;
 		}
 		mission.updateCheckStatus(isChecked);
-	}
-
-
-	@Transactional
-	public void deleteMissions(final Long scenarioId) {
-		missionRepository.deleteByScenarioId(scenarioId);
 	}
 
 
