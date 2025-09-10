@@ -131,16 +131,22 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
-          wait-for-minutes: 10
+          wait-for-minutes: 12
 
       - name: Check for Rollback
         id: check-rollback
         run: |
           ORIGINAL_TASK_DEF_ARN=$(jq -r '.taskDefinitionArn' task-def-backup.json)
-          FINAL_TASK_DEF_ARN="${{ steps.deploy.outputs.task-definition-arn }}"
+          DEPLOYED_TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --query "services[0].taskDefinition" \
+            --output text)
+
           echo "Original Task Definition ARN: $ORIGINAL_TASK_DEF_ARN"
-          echo "Final Task Definition ARN: $FINAL_TASK_DEF_ARN"
-          if [ "$ORIGINAL_TASK_DEF_ARN" == "$FINAL_TASK_DEF_ARN" ]; then
+          echo "Currently Deployed Task Definition ARN: $DEPLOYED_TASK_DEF_ARN"
+
+          if [ "$ORIGINAL_TASK_DEF_ARN" == "$DEPLOYED_TASK_DEF_ARN" ]; then
             echo "rollback_occurred=true" >> $GITHUB_OUTPUT
           else
             echo "rollback_occurred=false" >> $GITHUB_OUTPUT
