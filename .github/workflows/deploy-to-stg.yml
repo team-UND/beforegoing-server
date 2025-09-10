@@ -114,7 +114,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: task-def-backup.json
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ needs.build.outputs.image_tag }}
 
@@ -130,6 +130,8 @@ jobs:
 
       - name: Check for Rollback
         id: check-rollback
+        env:
+          NEW_TASK_DEF_ARN: ${{ steps.deploy.outputs.task-definition-arn }}
         run: |
           FINAL_TASK_DEF_ARN="${{ steps.deploy.outputs.task-definition-arn }}"
           EXPECTED_IMAGE_TAG="${{ needs.build.outputs.image_tag }}"
