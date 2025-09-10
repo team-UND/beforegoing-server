@@ -40,6 +40,7 @@ public class ScenarioService {
 
 	private final NotificationService notificationService;
 	private final MissionService missionService;
+	private final MissionCacheService missionCacheService;
 	private final ScenarioRepository scenarioRepository;
 	private final MissionRepository missionRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
@@ -136,6 +137,8 @@ public class ScenarioService {
 		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
 
+		// 캐시 무효화: 특정 시나리오의 모든 날짜 무효화
+		missionCacheService.evictUserMissionCache(memberId, scenarioId);
 		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
 		return findScenariosByMemberId(memberId, scenarioDetailRequest.notification().notificationType());
 	}
@@ -182,6 +185,8 @@ public class ScenarioService {
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);
 
+		// 캐시 무효화: 특정 시나리오의 모든 날짜 무효화
+		missionCacheService.evictUserMissionCache(memberId, scenarioId);
 		notificationEventPublisher.publishDeleteEvent(memberId, scenarioId, isNotificationActive);
 	}
 

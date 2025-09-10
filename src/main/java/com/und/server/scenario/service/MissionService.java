@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class MissionService {
 
 	private static final String ZONE_ID = "Asia/Seoul";
+	private final MissionCacheService missionCacheService;
 	private final MissionRepository missionRepository;
 	private final ScenarioRepository scenarioRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
@@ -48,6 +50,10 @@ public class MissionService {
 
 
 	@Transactional(readOnly = true)
+	@Cacheable(
+		value = "missions", key = "#memberId + ':' + #scenarioId + ':' + #date",
+		cacheManager = "missionCacheManager"
+	)
 	public MissionGroupResponse findMissionsByScenarioId(
 		final Long memberId, final Long scenarioId, final LocalDate date
 	) {
@@ -113,6 +119,8 @@ public class MissionService {
 		Mission newMission = todayMissionRequest.toEntity(scenario, date);
 		missionRepository.save(newMission);
 
+		// 캐시 무효화: 특정 시나리오의 특정 날짜만
+		missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
 		return MissionResponse.from(newMission);
 	}
 
@@ -163,6 +171,9 @@ public class MissionService {
 			return;
 		}
 		mission.updateCheckStatus(isChecked);
+
+		// 캐시 무효화: 특정 시나리오의 특정 날짜만
+		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId(), date);
 	}
 
 
@@ -171,7 +182,18 @@ public class MissionService {
 		Mission mission = missionRepository.findByIdAndScenarioMemberId(missionId, memberId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_MISSION));
 
+		Long scenarioId = mission.getScenario().getId();
+		LocalDate useDate = mission.getUseDate();
+		
 		missionRepository.delete(mission);
+
+		// 캐시 무효화: 특정 시나리오의 특정 날짜만 (useDate가 있는 경우만)
+		if (useDate != null) {
+			missionCacheService.evictUserMissionCache(memberId, scenarioId, useDate);
+		} else {
+			// useDate가 없는 경우 해당 시나리오의 모든 캐시 무효화
+			missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		}
 	}
 
 
