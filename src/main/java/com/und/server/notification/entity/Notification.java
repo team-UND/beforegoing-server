@@ -56,6 +56,14 @@ public class Notification extends BaseTimeEntity {
 		return days.size() == 7;
 	}
 
+	public boolean hasNotificationCondition() {
+		return notificationMethodType != null && daysOfWeek != null;
+	}
+
+	public void updateActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
 	public void activate(
 		final NotificationType notificationType,
 		final NotificationMethodType notificationMethodType,

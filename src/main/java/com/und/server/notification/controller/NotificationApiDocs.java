@@ -13,8 +13,40 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.constraints.NotNull;
 
 public interface NotificationApiDocs {
+
+	@Operation(summary = "Update Notification Active Status API")
+	@ApiResponses({
+			@ApiResponse(
+					responseCode = "204",
+					description = "Successfully updated notification active status",
+					content = @Content
+			),
+			@ApiResponse(
+					responseCode = "401",
+					description = "Unauthorized access",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ErrorResponse.class),
+							examples = @ExampleObject(
+									name = "Unauthorized access",
+									value = """
+										{
+										  "code": "UNAUTHORIZED_ACCESS",
+										  "message": "Unauthorized access"
+										}
+										"""
+							)
+					)
+			)
+	})
+	ResponseEntity<Void> updateNotificationActive(
+		@Parameter(hidden = true) final Long memberId,
+		@Parameter(description = "Notification active status") @NotNull final Boolean isActive
+	);
+
 
 	@Operation(summary = "Get Scenario Notification List API")
 	@ApiResponses({

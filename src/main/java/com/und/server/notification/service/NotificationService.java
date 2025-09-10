@@ -1,5 +1,8 @@
 package com.und.server.notification.service;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,7 +11,10 @@ import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.entity.Notification;
+import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.repository.NotificationRepository;
+import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.repository.ScenarioRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +23,9 @@ import lombok.RequiredArgsConstructor;
 public class NotificationService {
 
 	private final NotificationRepository notificationRepository;
+	private final ScenarioRepository scenarioRepository;
 	private final NotificationConditionSelector notificationConditionSelector;
+	private final NotificationEventPublisher notificationEventPublisher;
 
 
 	@Transactional(readOnly = true)
@@ -52,6 +60,29 @@ public class NotificationService {
 		} else {
 			updateWithoutNotification(notification);
 		}
+	}
+
+
+	@Transactional
+	public void updateNotificationActiveStatus(final Long memberId, final Boolean isActive) {
+		List<Scenario> scenarios = scenarioRepository.findByMemberId(memberId);
+
+		if (scenarios.isEmpty()) {
+			return;
+		}
+		scenarios.stream()
+			.map(Scenario::getNotification)
+			.filter(Objects::nonNull)
+			.filter(notification -> {
+				if (!isActive) {
+					return notification.isActive() && notification.hasNotificationCondition();
+				} else {
+					return notification.hasNotificationCondition();
+				}
+			})
+			.forEach(notification -> notification.updateActive(isActive));
+
+		notificationEventPublisher.publishActiveUpdateEvent(memberId, isActive);
 	}
 
 

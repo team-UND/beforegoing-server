@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -15,6 +16,9 @@ import jakarta.validation.constraints.NotNull;
 public interface ScenarioRepository extends JpaRepository<Scenario, Long>, ScenarioRepositoryCustom {
 
 	Optional<Scenario> findByIdAndMemberId(@NotNull Long id, @NotNull Long memberId);
+
+	@EntityGraph(attributePaths = {"notification"})
+	List<Scenario> findByMemberId(Long memberId);
 
 	@Query("""
 		SELECT s FROM Scenario s
