@@ -38,4 +38,10 @@ public class NotificationEventPublisher {
 		eventPublisher.publishEvent(event);
 	}
 
+	public void publishActiveUpdateEvent(final Long memberId, final boolean isActive) {
+		ActiveUpdateEvent event = new ActiveUpdateEvent(memberId, isActive);
+
+		eventPublisher.publishEvent(event);
+	}
+
 }

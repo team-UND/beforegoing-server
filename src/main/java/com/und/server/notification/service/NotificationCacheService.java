@@ -154,7 +154,7 @@ public class NotificationCacheService {
 		return false;
 	}
 
-	private void refreshCacheFromDatabase(Long memberId) {
+	public void refreshCacheFromDatabase(Long memberId) {
 		List<ScenarioNotificationResponse> scenarioNotifications =
 			scenarioNotificationService.getScenarioNotifications(memberId);
 

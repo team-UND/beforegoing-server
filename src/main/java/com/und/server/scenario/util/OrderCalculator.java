@@ -57,16 +57,16 @@ public class OrderCalculator {
 	}
 
 
-	public Integer getMaxOrderAfterReorder(final List<Scenario> scenarios) {
+	public Integer getMinOrderAfterReorder(final List<Scenario> scenarios) {
 		if (scenarios.isEmpty()) {
 			return START_ORDER;
 		}
 		scenarios.sort(Comparator.comparing(Scenario::getScenarioOrder));
 
 		assignSequentialOrders(scenarios);
-		Scenario lastScenario = scenarios.get(scenarios.size() - 1);
+		Scenario firstScenario = scenarios.get(0);
 
-		return calculateLastOrder(lastScenario.getScenarioOrder());
+		return calculateStartOrder(firstScenario.getScenarioOrder());
 	}
 
 

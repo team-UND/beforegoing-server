@@ -3,7 +3,9 @@ package com.und.server.notification.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,8 +14,10 @@ import com.und.server.auth.filter.AuthMember;
 import com.und.server.notification.dto.response.ScenarioNotificationListResponse;
 import com.und.server.notification.dto.response.ScenarioNotificationResponse;
 import com.und.server.notification.service.NotificationCacheService;
+import com.und.server.notification.service.NotificationService;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -21,7 +25,20 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/v1")
 public class NotificationController implements NotificationApiDocs {
 
+	private final NotificationService notificationService;
 	private final NotificationCacheService notificationCacheService;
+
+
+	@Override
+	@PatchMapping("notifications/active")
+	public ResponseEntity<Void> updateNotificationActive(
+		@AuthMember final Long memberId,
+		@RequestBody @NotNull final Boolean isActive
+	) {
+		notificationService.updateNotificationActiveStatus(memberId, isActive);
+
+		return ResponseEntity.noContent().build();
+	}
 
 
 	@Override

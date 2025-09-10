@@ -20,6 +20,7 @@ import com.und.server.notification.dto.response.ScenarioNotificationResponse;
 import com.und.server.notification.exception.NotificationCacheErrorResult;
 import com.und.server.notification.exception.NotificationCacheException;
 import com.und.server.notification.service.NotificationCacheService;
+import com.und.server.notification.service.NotificationService;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationControllerTest {
@@ -29,6 +30,9 @@ class NotificationControllerTest {
 
 	@Mock
 	private NotificationCacheService notificationCacheService;
+
+	@Mock
+	private NotificationService notificationService;
 
 	private final Long memberId = 1L;
 	private final Long scenarioId = 10L;
@@ -212,6 +216,52 @@ class NotificationControllerTest {
 		assertThat(response.getBody().scenarioId()).isEqualTo(differentScenarioId);
 		assertThat(response.getBody().scenarioName()).isEqualTo("다른 루틴");
 		verify(notificationCacheService).getSingleScenarioNotificationCache(memberId, differentScenarioId);
+	}
+
+
+	@Test
+	void Given_ValidRequest_When_UpdateNotificationActive_Then_ReturnNoContent() {
+		// given
+		Boolean isActive = true;
+
+		// when
+		ResponseEntity<Void> response = notificationController.updateNotificationActive(memberId, isActive);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(notificationService).updateNotificationActiveStatus(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_ValidRequestWithFalse_When_UpdateNotificationActive_Then_ReturnNoContent() {
+		// given
+		Boolean isActive = false;
+
+		// when
+		ResponseEntity<Void> response = notificationController.updateNotificationActive(memberId, isActive);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(notificationService).updateNotificationActiveStatus(memberId, isActive);
+	}
+
+
+	@Test
+	void Given_DifferentMemberId_When_UpdateNotificationActive_Then_ReturnNoContent() {
+		// given
+		Long differentMemberId = 2L;
+		Boolean isActive = true;
+
+		// when
+		ResponseEntity<Void> response = notificationController.updateNotificationActive(differentMemberId, isActive);
+
+		// then
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+		verify(notificationService).updateNotificationActiveStatus(differentMemberId, isActive);
 	}
 
 }

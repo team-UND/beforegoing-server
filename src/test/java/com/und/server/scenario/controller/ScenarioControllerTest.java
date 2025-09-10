@@ -19,7 +19,6 @@ import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
-import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
@@ -101,17 +100,19 @@ class ScenarioControllerTest {
 			.memo("새 시나리오 설명")
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(expectedScenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(expectedScenarioId)
+				.scenarioName("새 시나리오")
+				.memo("새 시나리오 설명")
+				.build()
+		);
 
 		when(scenarioService.addScenario(memberId, scenarioRequest))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<List<ScenarioResponse>> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -138,17 +139,19 @@ class ScenarioControllerTest {
 			.notificationCondition(null)
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(expectedScenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(expectedScenarioId)
+				.scenarioName("새 시나리오")
+				.memo("메모")
+				.build()
+		);
 
 		when(scenarioService.addScenario(memberId, request))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, request);
+		ResponseEntity<List<ScenarioResponse>> response = scenarioController.addScenario(memberId, request);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -175,17 +178,19 @@ class ScenarioControllerTest {
 			.notificationCondition(null)
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(scenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(scenarioId)
+				.scenarioName("수정 시나리오")
+				.memo("메모")
+				.build()
+		);
 
 		when(scenarioService.updateScenario(memberId, scenarioId, request))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response = scenarioController
+		ResponseEntity<List<ScenarioResponse>> response = scenarioController
 			.updateScenario(memberId, scenarioId, request);
 
 		// then
@@ -205,17 +210,19 @@ class ScenarioControllerTest {
 			.memo("빈 제목 시나리오")
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(expectedScenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(expectedScenarioId)
+				.scenarioName("")
+				.memo("빈 제목 시나리오")
+				.build()
+		);
 
 		when(scenarioService.addScenario(memberId, scenarioRequest))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<List<ScenarioResponse>> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -234,17 +241,19 @@ class ScenarioControllerTest {
 			.memo("수정된 시나리오 설명")
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(scenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(scenarioId)
+				.scenarioName("수정된 시나리오")
+				.memo("수정된 시나리오 설명")
+				.build()
+		);
 
 		when(scenarioService.updateScenario(memberId, scenarioId, scenarioRequest))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response =
+		ResponseEntity<List<ScenarioResponse>> response =
 			scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
@@ -264,17 +273,19 @@ class ScenarioControllerTest {
 			.memo("수정된 빈 제목 시나리오")
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(scenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(scenarioId)
+				.scenarioName("")
+				.memo("수정된 빈 제목 시나리오")
+				.build()
+		);
 
 		when(scenarioService.updateScenario(memberId, scenarioId, scenarioRequest))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response =
+		ResponseEntity<List<ScenarioResponse>> response =
 			scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
@@ -294,17 +305,19 @@ class ScenarioControllerTest {
 			.memo("긴 제목 시나리오")
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(expectedScenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(expectedScenarioId)
+				.scenarioName("매우 긴 시나리오 제목입니다")
+				.memo("긴 제목 시나리오")
+				.build()
+		);
 
 		when(scenarioService.addScenario(memberId, scenarioRequest))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response = scenarioController.addScenario(memberId, scenarioRequest);
+		ResponseEntity<List<ScenarioResponse>> response = scenarioController.addScenario(memberId, scenarioRequest);
 
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -323,17 +336,19 @@ class ScenarioControllerTest {
 			.memo("긴 제목 수정 시나리오")
 			.build();
 
-		MissionGroupResponse expectedResponse = MissionGroupResponse.builder()
-			.scenarioId(scenarioId)
-			.basicMissions(List.of())
-			.todayMissions(null)
-			.build();
+		List<ScenarioResponse> expectedResponse = List.of(
+			ScenarioResponse.builder()
+				.scenarioId(scenarioId)
+				.scenarioName("매우 긴 수정된 시나리오 제목입니다")
+				.memo("긴 제목 수정 시나리오")
+				.build()
+		);
 
 		when(scenarioService.updateScenario(memberId, scenarioId, scenarioRequest))
 			.thenReturn(expectedResponse);
 
 		// when
-		ResponseEntity<MissionGroupResponse> response =
+		ResponseEntity<List<ScenarioResponse>> response =
 			scenarioController.updateScenario(memberId, scenarioId, scenarioRequest);
 
 		// then
