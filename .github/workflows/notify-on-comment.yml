@@ -29,7 +29,7 @@ jobs:
                 },
                 "title": "Comment on PR #${{ github.event.issue.number }}: ${{ github.event.issue.title }}",
                 "color": 10478271,
-                "description": "${{ github.event.comment.body }}\n\n[View Comment](${{ github.event.comment.html_url }})",
+                "description": ${{ toJSON(format('{0}\n\n[View Comment]({1})', github.event.comment.body, github.event.comment.html_url)) }},
                 "fields": [
                   {
                     "name": "Pull Request",
@@ -55,7 +55,7 @@ jobs:
                 },
                 "title": "Comment on Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}",
                 "color": 10478271,
-                "description": "${{ github.event.comment.body }}\n\n[View Comment](${{ github.event.comment.html_url }})",
+                "description": ${{ toJSON(format('{0}\n\n[View Comment]({1})', github.event.comment.body, github.event.comment.html_url)) }},
                 "fields": [
                   {
                     "name": "Issue",
