@@ -133,8 +133,21 @@ jobs:
           wait-for-service-stability: true
           wait-for-minutes: 10
 
+      - name: Check for Rollback
+        id: check-rollback
+        run: |
+          ORIGINAL_TASK_DEF_ARN=$(jq -r '.taskDefinitionArn' task-def-backup.json)
+          FINAL_TASK_DEF_ARN="${{ steps.deploy.outputs.task-definition-arn }}"
+          echo "Original Task Definition ARN: $ORIGINAL_TASK_DEF_ARN"
+          echo "Final Task Definition ARN: $FINAL_TASK_DEF_ARN"
+          if [ "$ORIGINAL_TASK_DEF_ARN" == "$FINAL_TASK_DEF_ARN" ]; then
+            echo "rollback_occurred=true" >> $GITHUB_OUTPUT
+          else
+            echo "rollback_occurred=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Notify Success to Discord
-        if: success()
+        if: success() && steps.check-rollback.outputs.rollback_occurred == 'false'
         uses: Ilshidur/action-discord@0.3.2
         with:
           args: "A new version (`${{ needs.build.outputs.short_sha }}`) has been deployed to Production Server 🚀"
@@ -155,32 +168,38 @@ jobs:
               }
             ]
 
-      - name: Rollback to Previous Task Definition on Failure
-        if: failure()
-        run: |
-          echo "::error::Deployment failed. Initiating rollback..."
-          if [ ! -f task-def-backup.json ]; then
-            echo "::error::Cannot find backup task definition file. Manual rollback required."
-            exit 1
-          fi
-
-          BACKUP_TASK_DEF_ARN=$(jq -r '.taskDefinitionArn' task-def-backup.json)
-          echo "Rolling back to task definition: $BACKUP_TASK_DEF_ARN"
-
-          aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE }} \
-            --task-definition "$BACKUP_TASK_DEF_ARN" \
-            --force-new-deployment
-
-          echo "Rollback initiated. Waiting for service to stabilize..."
-          aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }}
-
-      - name: Notify Failure to Discord
-        if: failure()
+      - name: Notify Rollback to Discord
+        if: steps.check-rollback.outputs.rollback_occurred == 'true'
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: "Deployment to Production Server failed 😢"
+          args: "Deployment to Production Server failed and was rolled back 😢"
+        env:
+          DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
+          DISCORD_EMBEDS: |
+            [
+              {
+                "author": { "name": "${{ github.actor }}" },
+                "title": "Deployment Failed & Rolled Back",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: [View on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n**Action**: The deployment failed and the service was automatically rolled back to the previous stable task definition.",
+                "color": 13458524,
+                "fields": [
+                  { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
+                  { "name": "Image Attempted", "value": "`${{ needs.build.outputs.short_sha }}`", "inline": true }
+                ]
+              }
+            ]
+
+      - name: Fail job on rollback
+        if: steps.check-rollback.outputs.rollback_occurred == 'true'
+        run: |
+          echo "::error::Deployment failed and was rolled back by ECS. Failing the workflow."
+          exit 1
+
+      - name: Notify on Other Failures
+        if: failure() && steps.check-rollback.outputs.rollback_occurred != 'true'
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: "Deployment to Production Server failed for an unexpected reason 🚨"
         env:
           DISCORD_WEBHOOK: ${{ env.DISCORD_WEBHOOK }}
           DISCORD_EMBEDS: |
@@ -188,7 +207,7 @@ jobs:
               {
                 "author": { "name": "${{ github.actor }}" },
                 "title": "Deployment Failed",
-                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: [View on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n**Action**: Attempted to roll back to the previous stable task definition.",
+                "description": "Branch: `${{ github.ref_name }}`\nWorkflow: [View on GitHub](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n**Action**: The workflow failed unexpectedly. Manual investigation is required.",
                 "color": 13458524,
                 "fields": [
                   { "name": "Service", "value": "`${{ env.ECS_SERVICE }}`", "inline": true },
