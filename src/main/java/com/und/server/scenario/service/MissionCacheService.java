@@ -40,11 +40,8 @@ public class MissionCacheService {
 			String key = "missions::" + memberId + ":" + scenarioId + ":" + date;
 			Boolean deleted = redisTemplate.delete(key);
 
-			if (Boolean.TRUE.equals(deleted)) {
-				log.debug("Evicted specific mission cache: {}", key);
-			}
 		} catch (Exception e) {
-			log.warn("Failed to evict specific mission cache for member: {}, scenario: {}, date: {}",
+			log.error("Failed to evict specific mission cache for member: {}, scenario: {}, date: {}",
 				memberId, scenarioId, date, e);
 		}
 	}
@@ -68,10 +65,9 @@ public class MissionCacheService {
 
 			if (keys != null && !keys.isEmpty()) {
 				redisTemplate.delete(keys);
-				log.debug("Evicted {} mission cache keys for {}", keys.size(), description);
 			}
 		} catch (Exception e) {
-			log.warn("Failed to evict mission cache for {}", description, e);
+			log.error("Failed to evict mission cache for {}", description, e);
 		}
 	}
 
