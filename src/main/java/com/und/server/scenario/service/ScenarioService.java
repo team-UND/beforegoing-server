@@ -182,8 +182,9 @@ public class ScenarioService {
 				scenarioRepository.findByMemberIdAndNotificationType(memberId, notification.getNotificationType());
 			scenarios = orderCalculator.reorder(scenarios, scenarioId, errorOrder);
 
-			scenarioCacheService.evictUserScenarioCache(memberId);
 			return OrderUpdateResponse.from(scenarios, true);
+		} finally {
+			scenarioCacheService.evictUserScenarioCache(memberId);
 		}
 	}
 
@@ -199,7 +200,7 @@ public class ScenarioService {
 		missionRepository.deleteByScenarioId(scenarioId);
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);
-		
+
 		missionCacheService.evictUserMissionCache(memberId, scenarioId);
 		scenarioCacheService.evictUserScenarioCache(memberId, notification.getNotificationType());
 		notificationEventPublisher.publishDeleteEvent(memberId, scenarioId, isNotificationActive);
