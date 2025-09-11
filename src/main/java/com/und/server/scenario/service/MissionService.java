@@ -52,7 +52,7 @@ public class MissionService {
 	@Transactional(readOnly = true)
 	@Cacheable(
 		value = "missions", key = "#memberId + ':' + #scenarioId + ':' + #date",
-		cacheManager = "missionCacheManager"
+		cacheManager = "scenarioCacheManager"
 	)
 	public MissionGroupResponse findMissionsByScenarioId(
 		final Long memberId, final Long scenarioId, final LocalDate date
