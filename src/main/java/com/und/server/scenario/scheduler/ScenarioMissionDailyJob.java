@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.und.server.scenario.repository.MissionRepository;
+import com.und.server.scenario.service.MissionCacheService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class ScenarioMissionDailyJob {
 	private static final int DEFAULT_DELETE_LIMIT = 10_000;
 	private static final int DAYS_TO_SUBTRACT = 1;
 	private static final int MONTHS_TO_SUBTRACT = 1;
+	private final MissionCacheService missionCacheService;
 	private final MissionRepository missionRepository;
 	private final Clock clock;
 
@@ -37,6 +39,8 @@ public class ScenarioMissionDailyJob {
 			int cloned = missionRepository.bulkCloneBasicToYesterday(yesterday);
 			int reset = missionRepository.bulkResetBasicIsChecked(today);
 			int deleteChildBasic = missionRepository.deleteTodayChildBasics(today);
+
+			missionCacheService.evictAllMissionCache();
 
 			log.info("[MISSION DAILY] Daily Mission Job: cloned={}, reset={} deleteChildBasic={}",
 				cloned, reset, deleteChildBasic);
