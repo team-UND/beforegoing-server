@@ -3,6 +3,7 @@ package com.und.server.scenario.service;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import com.und.server.notification.entity.Notification;
 import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.ScenarioResponseListWrapper;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
@@ -41,6 +43,7 @@ public class ScenarioService {
 	private final NotificationService notificationService;
 	private final MissionService missionService;
 	private final MissionCacheService missionCacheService;
+	private final ScenarioCacheService scenarioCacheService;
 	private final ScenarioRepository scenarioRepository;
 	private final MissionRepository missionRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
@@ -51,13 +54,18 @@ public class ScenarioService {
 
 
 	@Transactional(readOnly = true)
-	public List<ScenarioResponse> findScenariosByMemberId(
+	@Cacheable(
+		value = "scenarios", key = "#memberId + ':' + #notificationType",
+		cacheManager = "scenarioCacheManager"
+	)
+	public ScenarioResponseListWrapper findScenariosByMemberId(
 		final Long memberId, final NotificationType notificationType
 	) {
 		List<Scenario> scenarios =
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType);
 
-		return ScenarioResponse.listFrom(scenarios);
+		List<ScenarioResponse> scenarioResponses = ScenarioResponse.listFrom(scenarios);
+		return ScenarioResponseListWrapper.from(scenarioResponses);
 	}
 
 
@@ -109,8 +117,10 @@ public class ScenarioService {
 		scenarioRepository.save(scenario);
 		missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
 
+		scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
 		notificationEventPublisher.publishCreateEvent(memberId, scenario);
-		return findScenariosByMemberId(memberId, notificationType);
+		return ScenarioResponse.listFrom(
+			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType));
 	}
 
 
@@ -137,9 +147,14 @@ public class ScenarioService {
 		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
 		oldScenario.updateMemo(scenarioDetailRequest.memo());
 
+		scenarioRepository.save(oldScenario);
+
+		NotificationType newNotificationType = scenarioDetailRequest.notification().notificationType();
 		missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		scenarioCacheService.evictUserScenarioCache(memberId, newNotificationType);
 		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
-		return findScenariosByMemberId(memberId, scenarioDetailRequest.notification().notificationType());
+		return ScenarioResponse.listFrom(
+			scenarioRepository.findByMemberIdAndNotificationType(memberId, newNotificationType));
 	}
 
 
@@ -167,6 +182,7 @@ public class ScenarioService {
 				scenarioRepository.findByMemberIdAndNotificationType(memberId, notification.getNotificationType());
 			scenarios = orderCalculator.reorder(scenarios, scenarioId, errorOrder);
 
+			scenarioCacheService.evictUserScenarioCache(memberId);
 			return OrderUpdateResponse.from(scenarios, true);
 		}
 	}
@@ -183,8 +199,9 @@ public class ScenarioService {
 		missionRepository.deleteByScenarioId(scenarioId);
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);
-
+		
 		missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		scenarioCacheService.evictUserScenarioCache(memberId, notification.getNotificationType());
 		notificationEventPublisher.publishDeleteEvent(memberId, scenarioId, isNotificationActive);
 	}
 

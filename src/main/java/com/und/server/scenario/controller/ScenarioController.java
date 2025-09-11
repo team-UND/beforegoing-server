@@ -44,7 +44,8 @@ public class ScenarioController implements ScenarioApiDocs {
 		@RequestParam(defaultValue = "TIME") final NotificationType notificationType
 	) {
 		final List<ScenarioResponse> scenarios =
-			scenarioService.findScenariosByMemberId(memberId, notificationType);
+			scenarioService.findScenariosByMemberId(memberId, notificationType)
+				.scenarioResponses();
 
 		return ResponseEntity.ok().body(scenarios);
 	}
