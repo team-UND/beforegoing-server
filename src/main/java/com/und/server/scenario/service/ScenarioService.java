@@ -132,9 +132,12 @@ public class ScenarioService {
 	) {
 		Scenario oldScenario = scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId)
 			.orElseThrow(() -> new ServerException(ScenarioErrorResult.NOT_FOUND_SCENARIO));
-		Notification oldNotification = oldScenario.getNotification();
 
+		Notification oldNotification = oldScenario.getNotification();
 		Boolean isOldScenarioNotificationActive = oldNotification.isActive();
+
+		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
+		oldScenario.updateMemo(scenarioDetailRequest.memo());
 
 		notificationService.updateNotification(
 			oldNotification,
@@ -143,11 +146,6 @@ public class ScenarioService {
 		);
 
 		missionService.updateBasicMission(oldScenario, scenarioDetailRequest.basicMissions());
-
-		oldScenario.updateScenarioName(scenarioDetailRequest.scenarioName());
-		oldScenario.updateMemo(scenarioDetailRequest.memo());
-
-		scenarioRepository.save(oldScenario);
 
 		NotificationType newNotificationType = scenarioDetailRequest.notification().notificationType();
 		missionCacheService.evictUserMissionCache(memberId, scenarioId);
