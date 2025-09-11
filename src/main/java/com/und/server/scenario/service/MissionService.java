@@ -182,7 +182,6 @@ public class MissionService {
 
 		missionRepository.delete(mission);
 
-		//오늘만 미션 삭제가 보장된다면 +date로 해도 ㄱㅊ을듯
 		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId());
 	}
 
