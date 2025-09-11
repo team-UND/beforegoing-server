@@ -11,9 +11,9 @@ import com.und.server.notification.dto.request.NotificationConditionRequest;
 import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.entity.Notification;
-import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.repository.NotificationRepository;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.event.NotificationEventPublisher;
 import com.und.server.scenario.repository.ScenarioRepository;
 
 import lombok.RequiredArgsConstructor;

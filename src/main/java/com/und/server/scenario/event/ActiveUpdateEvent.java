@@ -1,4 +1,4 @@
-package com.und.server.notification.event;
+package com.und.server.scenario.event;
 
 public record ActiveUpdateEvent(
 

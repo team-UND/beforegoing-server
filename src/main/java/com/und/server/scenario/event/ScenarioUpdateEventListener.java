@@ -1,4 +1,4 @@
-package com.und.server.notification.event;
+package com.und.server.scenario.event;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -15,34 +15,43 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class ScenarioCreateEventListener {
+public class ScenarioUpdateEventListener {
 
 	private final NotificationCacheService notificationCacheService;
 
 	@Async
 	@TransactionalEventListener
-	public void handleCreate(final ScenarioCreateEvent event) {
+	public void handleUpdate(final ScenarioUpdateEvent event) {
 		final Long memberId = event.memberId();
-		final Scenario scenario = event.scenario();
-		final Notification notification = scenario.getNotification();
+		final Boolean isOldScenarioNotificationActive = event.isOldScenarioNotificationActive();
+		final Scenario updatedScenario = event.updatedScenario();
+		final Notification notification = updatedScenario.getNotification();
 
 		try {
 			if (notification == null || !notification.isActive()) {
+				if (!isOldScenarioNotificationActive) {
+					return;
+				}
+				processWithoutNotification(memberId, updatedScenario);
 				return;
 			}
-			processWithNotification(memberId, scenario);
+			processWithNotification(memberId, updatedScenario);
 
 		} catch (NotificationCacheException e) {
-			log.error("Failed to process scenario create event due to cache error: {}", event, e);
+			log.error("Failed to process scenario update event due to cache error: {}", event, e);
 			notificationCacheService.deleteMemberAllCache(memberId);
 		} catch (Exception e) {
-			log.error("Failed to process scenario create event due to an unexpected error: {}", event, e);
+			log.error("Failed to process scenario update event due to an unexpected error: {}", event, e);
 			notificationCacheService.deleteMemberAllCache(memberId);
 		}
 	}
 
 	private void processWithNotification(final Long memberId, final Scenario scenario) {
 		notificationCacheService.updateCache(memberId, scenario);
+	}
+
+	private void processWithoutNotification(final Long memberId, final Scenario scenario) {
+		notificationCacheService.deleteCache(memberId, scenario.getId());
 	}
 
 }

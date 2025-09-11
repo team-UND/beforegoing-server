@@ -1,4 +1,4 @@
-package com.und.server.notification.event;
+package com.und.server.scenario.event;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
