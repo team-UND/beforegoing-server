@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 public class MissionService {
 
 	private static final String ZONE_ID = "Asia/Seoul";
-	private final MissionCacheService missionCacheService;
 	private final MissionRepository missionRepository;
 	private final ScenarioRepository scenarioRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
@@ -121,8 +120,7 @@ public class MissionService {
 		Mission newMission = todayMissionRequest.toEntity(scenario, date);
 		missionRepository.save(newMission);
 
-//		missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
-		scenarioEventPublisher.publishMissionCreateEvent(memberId,scenarioId,date);
+		scenarioEventPublisher.publishMissionCreateEvent(memberId, scenarioId, date);
 		return MissionResponse.from(newMission);
 	}
 
@@ -174,7 +172,6 @@ public class MissionService {
 			mission.updateCheckStatus(isChecked);
 		}
 
-//		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId(), date);
 		scenarioEventPublisher.publishMissionCheckUpdateEvent(memberId, mission.getScenario().getId(), date);
 	}
 
@@ -186,7 +183,6 @@ public class MissionService {
 
 		missionRepository.delete(mission);
 
-//		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId());
 		scenarioEventPublisher.publishTodayMissionDeleteEvent(memberId, mission.getScenario().getId());
 	}
 

@@ -42,14 +42,12 @@ public class ScenarioService {
 
 	private final NotificationService notificationService;
 	private final MissionService missionService;
-	private final MissionCacheService missionCacheService;
-	private final ScenarioCacheService scenarioCacheService;
 	private final ScenarioRepository scenarioRepository;
 	private final MissionRepository missionRepository;
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final OrderCalculator orderCalculator;
 	private final ScenarioValidator scenarioValidator;
-	private final ScenarioEventPublisher notificationEventPublisher;
+	private final ScenarioEventPublisher scenarioEventPublisher;
 	private final EntityManager em;
 
 
@@ -117,8 +115,7 @@ public class ScenarioService {
 		scenarioRepository.save(scenario);
 		missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
 
-//		scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
-		notificationEventPublisher.publishCreateEvent(memberId, scenario, notificationType);
+		scenarioEventPublisher.publishScenarioCreateEvent(memberId, scenario, notificationType);
 		return ScenarioResponse.listFrom(
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType));
 	}
@@ -148,9 +145,7 @@ public class ScenarioService {
 		missionService.updateBasicMission(oldScenario, scenarioDetailRequest.basicMissions());
 
 		NotificationType newNotificationType = scenarioDetailRequest.notification().notificationType();
-//		missionCacheService.evictUserMissionCache(memberId, scenarioId);
-//		scenarioCacheService.evictUserScenarioCache(memberId, newNotificationType);
-		notificationEventPublisher.publishUpdateEvent(
+		scenarioEventPublisher.publishScenarioUpdateEvent(
 			memberId, oldScenario, isOldScenarioNotificationActive, newNotificationType);
 		return ScenarioResponse.listFrom(
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, newNotificationType));
@@ -183,8 +178,7 @@ public class ScenarioService {
 
 			return OrderUpdateResponse.from(scenarios, true);
 		} finally {
-//			scenarioCacheService.evictUserScenarioCache(memberId);
-			notificationEventPublisher.publishScenarioOrderUpdateEvent(memberId);
+			scenarioEventPublisher.publishScenarioOrderUpdateEvent(memberId);
 		}
 	}
 
@@ -201,9 +195,7 @@ public class ScenarioService {
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);
 
-//		missionCacheService.evictUserMissionCache(memberId, scenarioId);
-//		scenarioCacheService.evictUserScenarioCache(memberId, notification.getNotificationType());
-		notificationEventPublisher.publishDeleteEvent(
+		scenarioEventPublisher.publishScenarioDeleteEvent(
 			memberId, scenarioId, isNotificationActive, notification.getNotificationType());
 	}
 
