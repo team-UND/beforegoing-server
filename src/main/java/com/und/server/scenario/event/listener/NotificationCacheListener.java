@@ -74,7 +74,7 @@ public class NotificationCacheListener {
 	}
 
 	@Async
-	@TransactionalEventListener
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void onActiveUpdate(final ActiveUpdateEvent event) {
 		final Long memberId = event.memberId();
 		final boolean isActive = event.isActive();
