@@ -24,6 +24,7 @@ import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.event.publisher.ScenarioEventPublisher;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.repository.ScenarioRepository;
@@ -46,6 +47,7 @@ public class MissionService {
 	private final OrderCalculator orderCalculator;
 	private final ScenarioValidator scenarioValidator;
 	private final MissionValidator missionValidator;
+	private final ScenarioEventPublisher scenarioEventPublisher;
 	private final Clock clock;
 
 
@@ -119,7 +121,8 @@ public class MissionService {
 		Mission newMission = todayMissionRequest.toEntity(scenario, date);
 		missionRepository.save(newMission);
 
-		missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
+//		missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
+		scenarioEventPublisher.publishMissionCreateEvent(memberId,scenarioId,date);
 		return MissionResponse.from(newMission);
 	}
 
@@ -171,7 +174,8 @@ public class MissionService {
 			mission.updateCheckStatus(isChecked);
 		}
 
-		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId(), date);
+//		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId(), date);
+		scenarioEventPublisher.publishMissionCheckUpdateEvent(memberId, mission.getScenario().getId(), date);
 	}
 
 
@@ -182,7 +186,8 @@ public class MissionService {
 
 		missionRepository.delete(mission);
 
-		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId());
+//		missionCacheService.evictUserMissionCache(memberId, mission.getScenario().getId());
+		scenarioEventPublisher.publishTodayMissionDeleteEvent(memberId, mission.getScenario().getId());
 	}
 
 

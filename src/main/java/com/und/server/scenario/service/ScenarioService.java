@@ -24,7 +24,7 @@ import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
-import com.und.server.scenario.event.NotificationEventPublisher;
+import com.und.server.scenario.event.publisher.ScenarioEventPublisher;
 import com.und.server.scenario.exception.ReorderRequiredException;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
@@ -49,7 +49,7 @@ public class ScenarioService {
 	private final MissionTypeGroupSorter missionTypeGroupSorter;
 	private final OrderCalculator orderCalculator;
 	private final ScenarioValidator scenarioValidator;
-	private final NotificationEventPublisher notificationEventPublisher;
+	private final ScenarioEventPublisher notificationEventPublisher;
 	private final EntityManager em;
 
 
@@ -117,8 +117,8 @@ public class ScenarioService {
 		scenarioRepository.save(scenario);
 		missionService.addBasicMission(scenario, scenarioDetailRequest.basicMissions());
 
-		scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
-		notificationEventPublisher.publishCreateEvent(memberId, scenario);
+//		scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
+		notificationEventPublisher.publishCreateEvent(memberId, scenario, notificationType);
 		return ScenarioResponse.listFrom(
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, notificationType));
 	}
@@ -148,9 +148,10 @@ public class ScenarioService {
 		missionService.updateBasicMission(oldScenario, scenarioDetailRequest.basicMissions());
 
 		NotificationType newNotificationType = scenarioDetailRequest.notification().notificationType();
-		missionCacheService.evictUserMissionCache(memberId, scenarioId);
-		scenarioCacheService.evictUserScenarioCache(memberId, newNotificationType);
-		notificationEventPublisher.publishUpdateEvent(memberId, oldScenario, isOldScenarioNotificationActive);
+//		missionCacheService.evictUserMissionCache(memberId, scenarioId);
+//		scenarioCacheService.evictUserScenarioCache(memberId, newNotificationType);
+		notificationEventPublisher.publishUpdateEvent(
+			memberId, oldScenario, isOldScenarioNotificationActive, newNotificationType);
 		return ScenarioResponse.listFrom(
 			scenarioRepository.findByMemberIdAndNotificationType(memberId, newNotificationType));
 	}
@@ -182,7 +183,8 @@ public class ScenarioService {
 
 			return OrderUpdateResponse.from(scenarios, true);
 		} finally {
-			scenarioCacheService.evictUserScenarioCache(memberId);
+//			scenarioCacheService.evictUserScenarioCache(memberId);
+			notificationEventPublisher.publishScenarioOrderUpdateEvent(memberId);
 		}
 	}
 
@@ -199,9 +201,10 @@ public class ScenarioService {
 		notificationService.deleteNotification(notification);
 		scenarioRepository.delete(scenario);
 
-		missionCacheService.evictUserMissionCache(memberId, scenarioId);
-		scenarioCacheService.evictUserScenarioCache(memberId, notification.getNotificationType());
-		notificationEventPublisher.publishDeleteEvent(memberId, scenarioId, isNotificationActive);
+//		missionCacheService.evictUserMissionCache(memberId, scenarioId);
+//		scenarioCacheService.evictUserScenarioCache(memberId, notification.getNotificationType());
+		notificationEventPublisher.publishDeleteEvent(
+			memberId, scenarioId, isNotificationActive, notification.getNotificationType());
 	}
 
 
