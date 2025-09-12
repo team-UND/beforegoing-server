@@ -50,7 +50,7 @@ public class NotificationCacheListener {
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void onUpdate(final ScenarioUpdateEvent event) {
 		final Long memberId = event.memberId();
-		final Boolean isOldScenarioNotificationActive = event.isOldScenarioNotificationActive();
+		final boolean isOldScenarioNotificationActive = event.isOldScenarioNotificationActive();
 		final Scenario updatedScenario = event.updatedScenario();
 		final Notification notification = updatedScenario.getNotification();
 
@@ -96,7 +96,7 @@ public class NotificationCacheListener {
 	public void onDelete(final ScenarioDeleteEvent event) {
 		final Long memberId = event.memberId();
 		final Long scenarioId = event.scenarioId();
-		final Boolean isNotificationActive = event.isNotificationActive();
+		final boolean isNotificationActive = event.isNotificationActive();
 
 		try {
 			if (!isNotificationActive) {
