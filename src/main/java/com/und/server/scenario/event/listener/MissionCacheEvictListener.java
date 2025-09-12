@@ -29,7 +29,11 @@ public class MissionCacheEvictListener {
 		final Long scenarioId = event.scenarioId();
 		final LocalDate date = event.date();
 
-		missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
+		try {
+			missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
+		} catch (Exception e) {
+			log.error("Failed to evict mission cache after mission creation - event: {}", event, e);
+		}
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -37,7 +41,11 @@ public class MissionCacheEvictListener {
 		final Long memberId = event.memberId();
 		final Long scenarioId = event.updatedScenario().getId();
 
-		missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		try {
+			missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		} catch (Exception e) {
+			log.error("Failed to evict mission cache after scenario update - event: {}", event, e);
+		}
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -46,7 +54,11 @@ public class MissionCacheEvictListener {
 		final Long scenarioId = event.scenarioId();
 		final LocalDate date = event.date();
 
-		missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
+		try {
+			missionCacheService.evictUserMissionCache(memberId, scenarioId, date);
+		} catch (Exception e) {
+			log.error("Failed to evict mission cache after mission check update - event: {}", event, e);
+		}
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -54,7 +66,11 @@ public class MissionCacheEvictListener {
 		final Long memberId = event.memberId();
 		final Long scenarioId = event.scenarioId();
 
-		missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		try {
+			missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		} catch (Exception e) {
+			log.error("Failed to evict mission cache after scenario deletion - event: {}", event, e);
+		}
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -62,7 +78,11 @@ public class MissionCacheEvictListener {
 		final Long memberId = event.memberId();
 		final Long scenarioId = event.scenarioId();
 
-		missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		try {
+			missionCacheService.evictUserMissionCache(memberId, scenarioId);
+		} catch (Exception e) {
+			log.error("Failed to evict mission cache after mission deletion - event: {}", event, e);
+		}
 	}
 
 }

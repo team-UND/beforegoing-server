@@ -38,7 +38,7 @@ public class MissionCacheService {
 	public void evictUserMissionCache(final Long memberId, final Long scenarioId, final LocalDate date) {
 		try {
 			String key = "missions::" + memberId + ":" + scenarioId + ":" + date;
-			Boolean deleted = redisTemplate.delete(key);
+			redisTemplate.delete(key);
 
 		} catch (Exception e) {
 			log.error("Failed to evict specific mission cache for member: {}, scenario: {}, date: {}",
