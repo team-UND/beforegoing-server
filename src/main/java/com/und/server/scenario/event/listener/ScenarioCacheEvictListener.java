@@ -26,7 +26,11 @@ public class ScenarioCacheEvictListener {
 		final Long memberId = event.memberId();
 		final NotificationType notificationType = event.notificationType();
 
-		scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
+		try {
+			scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
+		} catch (Exception e) {
+			log.error("Failed to evict scenario cache after scenario creation - event: {}", event, e);
+		}
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -34,14 +38,22 @@ public class ScenarioCacheEvictListener {
 		final Long memberId = event.memberId();
 		final NotificationType notificationType = event.newNotificationType();
 
-		scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
+		try {
+			scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
+		} catch (Exception e) {
+			log.error("Failed to evict scenario cache after scenario update - event: {}", event, e);
+		}
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void onScenarioOrderUpdate(final ScenarioOrderUpdateEvent event) {
 		final Long memberId = event.memberId();
 
-		scenarioCacheService.evictUserScenarioCache(memberId);
+		try {
+			scenarioCacheService.evictUserScenarioCache(memberId);
+		} catch (Exception e) {
+			log.error("Failed to evict scenario cache after scenario order update - event: {}", event, e);
+		}
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -49,7 +61,11 @@ public class ScenarioCacheEvictListener {
 		final Long memberId = event.memberId();
 		final NotificationType notificationType = event.notificationType();
 
-		scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
+		try {
+			scenarioCacheService.evictUserScenarioCache(memberId, notificationType);
+		} catch (Exception e) {
+			log.error("Failed to evict scenario cache after scenario deletion - event: {}", event, e);
+		}
 	}
 
 }

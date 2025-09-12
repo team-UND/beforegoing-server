@@ -16,8 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class ScenarioCacheService {
 
 	private final RedisTemplate<String, Object> redisTemplate;
@@ -34,7 +34,7 @@ public class ScenarioCacheService {
 	public void evictUserScenarioCache(final Long memberId, final NotificationType notificationType) {
 		try {
 			String key = "scenarios::" + memberId + ":" + notificationType;
-			Boolean deleted = redisTemplate.delete(key);
+			redisTemplate.delete(key);
 
 		} catch (Exception e) {
 			log.error("Failed to evict specific scenario cache for member: {}, notificationType: {}",
@@ -61,10 +61,10 @@ public class ScenarioCacheService {
 
 			if (keys != null && !keys.isEmpty()) {
 				redisTemplate.delete(keys);
-				log.debug("Evicted {} scenario cache keys for {}", keys.size(), description);
 			}
 		} catch (Exception e) {
 			log.error("Failed to evict scenario cache for {}", description, e);
 		}
 	}
+
 }
