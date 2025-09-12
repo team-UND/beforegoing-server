@@ -1,5 +1,7 @@
 package com.und.server.notification.service;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -13,10 +15,8 @@ import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.entity.Notification;
 import com.und.server.notification.repository.NotificationRepository;
 import com.und.server.scenario.entity.Scenario;
-import com.und.server.scenario.event.NotificationEventPublisher;
+import com.und.server.scenario.event.publisher.ScenarioEventPublisher;
 import com.und.server.scenario.repository.ScenarioRepository;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class NotificationService {
 	private final NotificationRepository notificationRepository;
 	private final ScenarioRepository scenarioRepository;
 	private final NotificationConditionSelector notificationConditionSelector;
-	private final NotificationEventPublisher notificationEventPublisher;
+	private final ScenarioEventPublisher scenarioEventPublisher;
 
 
 	@Transactional(readOnly = true)
@@ -82,7 +82,7 @@ public class NotificationService {
 			})
 			.forEach(notification -> notification.updateActive(isActive));
 
-		notificationEventPublisher.publishActiveUpdateEvent(memberId, isActive);
+		scenarioEventPublisher.publishActiveUpdateEvent(memberId, isActive);
 	}
 
 
