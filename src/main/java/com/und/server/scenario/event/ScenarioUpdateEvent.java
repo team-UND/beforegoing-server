@@ -7,7 +7,7 @@ public record ScenarioUpdateEvent(
 
 	Long memberId,
 	Scenario updatedScenario,
-	Boolean isOldScenarioNotificationActive,
+	boolean isOldScenarioNotificationActive,
 	NotificationType newNotificationType
 
 ) { }

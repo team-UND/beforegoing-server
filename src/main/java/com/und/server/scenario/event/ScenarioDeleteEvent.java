@@ -6,7 +6,7 @@ public record ScenarioDeleteEvent(
 
 	Long memberId,
 	Long scenarioId,
-	Boolean isNotificationActive,
+	boolean isNotificationActive,
 	NotificationType notificationType
 
 ) { }
