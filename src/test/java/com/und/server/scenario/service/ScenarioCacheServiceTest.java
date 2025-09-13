@@ -41,7 +41,7 @@ class ScenarioCacheServiceTest {
 	void Given_CursorReturnsKeys_When_EvictAllScenarioCache_Then_DeleteCalled() throws Exception {
 		// mock cursor
 		Cursor<byte[]> cursor = mock(Cursor.class);
-		when(cursor.hasNext()).thenReturn(true, false); // 1개만 반환
+		when(cursor.hasNext()).thenReturn(true, false);
 		when(cursor.next()).thenReturn("scenarios::1:TIME".getBytes(StandardCharsets.UTF_8));
 
 		// mock RedisKeyCommands
