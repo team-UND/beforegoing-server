@@ -39,23 +39,25 @@ import com.und.server.notification.dto.request.NotificationRequest;
 import com.und.server.notification.dto.request.TimeNotificationRequest;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
-import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.service.NotificationService;
 import com.und.server.scenario.constants.MissionType;
+import com.und.server.scenario.dto.ScenarioResponseListWrapper;
 import com.und.server.scenario.dto.request.BasicMissionRequest;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
-import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
 import com.und.server.scenario.dto.response.ScenarioDetailResponse;
 import com.und.server.scenario.dto.response.ScenarioResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.event.publisher.ScenarioEventPublisher;
 import com.und.server.scenario.exception.ReorderRequiredException;
 import com.und.server.scenario.exception.ScenarioErrorResult;
+import com.und.server.scenario.repository.MissionRepository;
 import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
 import com.und.server.scenario.util.OrderCalculator;
+import com.und.server.scenario.util.ScenarioValidator;
 
 import jakarta.persistence.EntityManager;
 
@@ -76,6 +78,9 @@ class ScenarioServiceTest {
 	private ScenarioRepository scenarioRepository;
 
 	@Mock
+	private MissionRepository missionRepository;
+
+	@Mock
 	private MissionTypeGroupSorter missionTypeGroupSorter;
 
 	@Mock
@@ -85,10 +90,10 @@ class ScenarioServiceTest {
 	private EntityManager em;
 
 	@Mock
-	private com.und.server.scenario.util.ScenarioValidator scenarioValidator;
+	private ScenarioValidator scenarioValidator;
 
 	@Mock
-	private NotificationEventPublisher notificationEventPublisher;
+	private ScenarioEventPublisher notificationEventPublisher;
 
 	@Mock
 	private Clock clock;
@@ -146,14 +151,16 @@ class ScenarioServiceTest {
 			.when(scenarioRepository.findByMemberIdAndNotificationType(memberId, NotificationType.TIME))
 			.thenReturn(scenarioList);
 
-		List<ScenarioResponse> result = scenarioService.findScenariosByMemberId(memberId, NotificationType.TIME);
+		ScenarioResponseListWrapper result = scenarioService.findScenariosByMemberId(memberId, NotificationType.TIME);
 
 		//then
 		assertNotNull(result);
-		assertThat(result)
+		assertThat(result.scenarioResponses())
 			.hasSize(2)
-			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("시나리오A"))
-			.satisfies(r -> assertThat(r.get(1).scenarioName()).isEqualTo("시나리오B"));
+			.satisfies(r ->
+				assertThat(r.get(0).scenarioName()).isEqualTo("시나리오A"))
+			.satisfies(r ->
+				assertThat(r.get(1).scenarioName()).isEqualTo("시나리오B"));
 	}
 
 
@@ -208,7 +215,8 @@ class ScenarioServiceTest {
 		assertNotNull(response);
 		assertThat(response)
 			.satisfies(r -> assertThat(r.scenarioId()).isEqualTo(scenarioId))
-			.satisfies(r -> assertThat(r.notificationCondition()).isInstanceOf(TimeNotificationResponse.class))
+			.satisfies(r ->
+				assertThat(r.notificationCondition()).isInstanceOf(TimeNotificationResponse.class))
 			.satisfies(r -> {
 				TimeNotificationResponse detail = (TimeNotificationResponse) r.notificationCondition();
 				assertThat(detail.startHour()).isEqualTo(8);
@@ -239,7 +247,6 @@ class ScenarioServiceTest {
 		final Long memberId = 1L;
 		final Long scenarioId = 10L;
 
-		// 다른 사용자의 시나리오는 존재하지 않음 (권한 검증으로 인해)
 		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.empty());
 
@@ -248,50 +255,6 @@ class ScenarioServiceTest {
 			.isInstanceOf(ServerException.class)
 			.hasMessageContaining(ScenarioErrorResult.NOT_FOUND_SCENARIO.getMessage());
 	}
-
-
-	@Test
-	void Given_ValidMemberAndScenario_When_AddTodayMissionToScenario_Then_InvokeMissionService() {
-		Long memberId = 1L;
-		Long scenarioId = 10L;
-		LocalDate date = LocalDate.now();
-
-		Member member = Member.builder().id(memberId).build();
-
-		Scenario scenario = Scenario.builder()
-			.id(scenarioId)
-			.member(member)
-			.missions(new java.util.ArrayList<>())
-			.build();
-
-		TodayMissionRequest request = new TodayMissionRequest("Stretch");
-
-		Mockito.when(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, date))
-			.thenReturn(Optional.of(scenario));
-
-		scenarioService.addTodayMissionToScenario(memberId, scenarioId, request, date);
-
-		verify(missionService).addTodayMission(scenario, request, date);
-	}
-
-
-	@Test
-	void Given_OtherUserScenario_When_AddTodayMissionToScenario_Then_ThrowNotFoundException() {
-		Long requestMemberId = 1L;
-		Long scenarioId = 10L;
-		LocalDate date = LocalDate.now();
-
-		TodayMissionRequest request = new TodayMissionRequest("Stretch");
-
-		Mockito.when(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(requestMemberId, scenarioId, date))
-			.thenReturn(Optional.empty());
-
-		assertThatThrownBy(() ->
-			scenarioService.addTodayMissionToScenario(requestMemberId, scenarioId, request, date)
-		).isInstanceOf(ServerException.class)
-			.hasMessageContaining(ScenarioErrorResult.NOT_FOUND_SCENARIO.getMessage());
-	}
-
 
 	@Test
 	void Given_ValidRequest_When_AddScenario_Then_SaveScenarioAndAddMissions() {
@@ -364,7 +327,6 @@ class ScenarioServiceTest {
 		given(missionService.addBasicMission(any(Scenario.class), eq(missionList)))
 			.willReturn(savedMissions);
 
-		// Mock findScenariosByMemberId to return the created scenario
 		Scenario createdScenario = Scenario.builder()
 			.id(1L)
 			.scenarioName("Morning")
@@ -384,7 +346,8 @@ class ScenarioServiceTest {
 		verify(notificationService).addNotification(notifRequest, condition);
 		verify(missionService).addBasicMission(any(Scenario.class), eq(missionList));
 		verify(scenarioRepository).save(scenarioCaptor.capture());
-		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
+		verify(notificationEventPublisher).publishScenarioCreateEvent(eq(memberId), any(Scenario.class),
+			eq(NotificationType.TIME));
 
 		Scenario saved = scenarioCaptor.getValue();
 
@@ -398,9 +361,12 @@ class ScenarioServiceTest {
 		assertThat(result)
 			.isNotNull()
 			.hasSize(1)
-			.satisfies(r -> assertThat(r.get(0).scenarioId()).isEqualTo(1L))
-			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("Morning"))
-			.satisfies(r -> assertThat(r.get(0).memo()).isEqualTo("Routine"));
+			.satisfies(r ->
+				assertThat(r.get(0).scenarioId()).isEqualTo(1L))
+			.satisfies(r ->
+				assertThat(r.get(0).scenarioName()).isEqualTo("Morning"))
+			.satisfies(r ->
+				assertThat(r.get(0).memo()).isEqualTo("Routine"));
 	}
 
 
@@ -460,7 +426,6 @@ class ScenarioServiceTest {
 		given(missionService.addBasicMission(any(Scenario.class), eq(List.of())))
 			.willReturn(List.of());
 
-		// Mock findScenariosByMemberId to return the created scenario
 		Scenario createdScenario = Scenario.builder()
 			.id(1L)
 			.scenarioName("Morning")
@@ -477,7 +442,8 @@ class ScenarioServiceTest {
 
 		// then
 		verify(scenarioRepository).save(captor.capture());
-		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
+		verify(notificationEventPublisher).publishScenarioCreateEvent(eq(memberId), any(Scenario.class),
+			eq(NotificationType.TIME));
 
 		Scenario saved = captor.getValue();
 		assertThat(result)
@@ -487,32 +453,6 @@ class ScenarioServiceTest {
 			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("Morning"))
 			.satisfies(r -> assertThat(r.get(0).memo()).isEqualTo("Routine"));
 	}
-
-	@Test
-	void Given_PastDate_When_AddTodayMissionToScenario_Then_ThrowException() {
-		// given
-		Long memberId = 1L;
-		Long scenarioId = 10L;
-		LocalDate pastDate = LocalDate.now().minusDays(1);
-
-		Scenario scenario = Scenario.builder()
-			.id(scenarioId)
-			.build();
-
-		TodayMissionRequest request = new TodayMissionRequest("Past Mission");
-
-		given(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, pastDate))
-			.willReturn(Optional.of(scenario));
-		doThrow(new ServerException(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE))
-			.when(missionService).addTodayMission(scenario, request, pastDate);
-
-		// when & then
-		assertThatThrownBy(() ->
-			scenarioService.addTodayMissionToScenario(memberId, scenarioId, request, pastDate)
-		).isInstanceOf(ServerException.class)
-			.hasMessageContaining(ScenarioErrorResult.INVALID_TODAY_MISSION_DATE.getMessage());
-	}
-
 
 	@Test
 	void Given_ValidRequest_When_UpdateScenario_Then_UpdateScenarioAndNotification() {
@@ -526,7 +466,6 @@ class ScenarioServiceTest {
 			.isActive(true)
 			.notificationType(NotificationType.TIME)
 			.build();
-		// removed unused newNotification
 
 		Scenario oldScenario = Scenario.builder()
 			.id(scenarioId)
@@ -567,7 +506,6 @@ class ScenarioServiceTest {
 			return null;
 		}).when(notificationService).updateNotification(oldNotification, notifRequest, condition);
 
-		// Mock findScenariosByMemberId to return the updated scenario
 		Scenario updatedScenario = Scenario.builder()
 			.id(scenarioId)
 			.scenarioName("수정할 시나리오")
@@ -586,13 +524,15 @@ class ScenarioServiceTest {
 			.satisfies(s -> assertThat(s.getScenarioName()).isEqualTo("수정된 시나리오"))
 			.satisfies(s -> assertThat(s.getMemo()).isEqualTo("수정된 메모"))
 			.satisfies(
-				s -> assertThat(s.getNotification().getNotificationType()).isEqualTo(notifRequest.notificationType()))
+				s ->
+					assertThat(s.getNotification().getNotificationType()).isEqualTo(notifRequest.notificationType()))
 			.satisfies(s -> assertThat(s.getNotification().getNotificationMethodType())
 				.isEqualTo(notifRequest.notificationMethodType()))
 			.satisfies(s -> assertThat(s.getNotification().isActive()).isTrue());
 		verify(notificationService).updateNotification(oldNotification, notifRequest, condition);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
-		verify(notificationEventPublisher).publishUpdateEvent(eq(memberId), eq(oldScenario), eq(true));
+		verify(notificationEventPublisher).publishScenarioUpdateEvent(eq(memberId), eq(oldScenario), eq(true),
+			eq(NotificationType.TIME));
 
 		assertThat(result)
 			.isNotNull()
@@ -671,7 +611,7 @@ class ScenarioServiceTest {
 
 		ScenarioOrderUpdateRequest orderRequest = ScenarioOrderUpdateRequest.builder()
 			.prevOrder(1000)
-			.nextOrder(1001) // 너무 가까워서 ReorderRequiredException 발생
+			.nextOrder(1001)
 			.build();
 
 		Scenario scenario1 = Scenario.builder().id(1L).scenarioOrder(1000).build();
@@ -728,7 +668,8 @@ class ScenarioServiceTest {
 		verify(notificationService).addNotification(notificationRequest, null);
 		verify(scenarioRepository).save(any(Scenario.class));
 		verify(missionService).addBasicMission(any(Scenario.class), eq(List.of()));
-		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
+		verify(notificationEventPublisher).publishScenarioCreateEvent(eq(memberId), any(Scenario.class),
+			eq(NotificationType.TIME));
 	}
 
 
@@ -758,10 +699,10 @@ class ScenarioServiceTest {
 		scenarioService.deleteScenarioWithAllMissions(memberId, scenarioId);
 
 		// then
-		verify(missionService).deleteMissions(scenarioId);
 		verify(notificationService).deleteNotification(notification);
 		verify(scenarioRepository).delete(scenario);
-		verify(notificationEventPublisher).publishDeleteEvent(eq(memberId), eq(scenarioId), eq(true));
+		verify(notificationEventPublisher).publishScenarioDeleteEvent(eq(memberId), eq(scenarioId), eq(true),
+			eq(NotificationType.TIME));
 	}
 
 
@@ -869,7 +810,6 @@ class ScenarioServiceTest {
 		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(oldScenario));
 
-		// Mock findScenariosByMemberId to return the updated scenario
 		Scenario updatedScenario = Scenario.builder()
 			.id(scenarioId)
 			.scenarioName("수정할 시나리오")
@@ -887,16 +827,21 @@ class ScenarioServiceTest {
 		assertThat(oldScenario)
 			.satisfies(s -> assertThat(s.getScenarioName()).isEqualTo("수정된 시나리오"))
 			.satisfies(s -> assertThat(s.getMemo()).isEqualTo("수정된 메모"));
-		verify(notificationService).updateNotification(oldNotification, notificationRequest, null);
+		verify(notificationService).updateNotification(
+			oldNotification, notificationRequest, null);
 		verify(missionService).updateBasicMission(oldScenario, List.of());
-		verify(notificationEventPublisher).publishUpdateEvent(eq(memberId), eq(oldScenario), eq(false));
+		verify(notificationEventPublisher).publishScenarioUpdateEvent(eq(memberId), eq(oldScenario), eq(false),
+			eq(NotificationType.TIME));
 
 		assertThat(result)
 			.isNotNull()
 			.hasSize(1)
-			.satisfies(r -> assertThat(r.get(0).scenarioId()).isEqualTo(scenarioId))
-			.satisfies(r -> assertThat(r.get(0).scenarioName()).isEqualTo("수정할 시나리오"))
-			.satisfies(r -> assertThat(r.get(0).memo()).isEqualTo("수정할 메모"));
+			.satisfies(r ->
+				assertThat(r.get(0).scenarioId()).isEqualTo(scenarioId))
+			.satisfies(r ->
+				assertThat(r.get(0).scenarioName()).isEqualTo("수정할 시나리오"))
+			.satisfies(r ->
+				assertThat(r.get(0).memo()).isEqualTo("수정할 메모"));
 	}
 
 
@@ -1035,7 +980,6 @@ class ScenarioServiceTest {
 			.missions(List.of())
 			.build();
 
-		// mock - notificationInfo가 null인 경우
 		Mockito.when(scenarioRepository.findScenarioDetailFetchByIdAndMemberId(memberId, scenarioId))
 			.thenReturn(Optional.of(scenario));
 		Mockito.when(notificationService.findNotificationDetails(notification)).thenReturn(null);
@@ -1102,40 +1046,12 @@ class ScenarioServiceTest {
 
 		// then
 		verify(scenarioRepository).save(scenarioCaptor.capture());
-		verify(notificationEventPublisher).publishCreateEvent(eq(memberId), any(Scenario.class));
+		verify(notificationEventPublisher).publishScenarioCreateEvent(eq(memberId), any(Scenario.class),
+			eq(NotificationType.TIME));
 
 		Scenario saved = scenarioCaptor.getValue();
 		assertThat(saved.getScenarioOrder()).isEqualTo(OrderCalculator.START_ORDER);
 	}
-
-
-	@Test
-	void Given_FutureDate_When_AddTodayMissionToScenario_Then_InvokeMissionService() {
-		// given
-		Long memberId = 1L;
-		Long scenarioId = 10L;
-		LocalDate futureDate = LocalDate.now().plusDays(1);
-
-		Member member = Member.builder().id(memberId).build();
-
-		Scenario scenario = Scenario.builder()
-			.id(scenarioId)
-			.member(member)
-			.missions(new java.util.ArrayList<>())
-			.build();
-
-		TodayMissionRequest request = new TodayMissionRequest("Future Mission");
-
-		Mockito.when(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, futureDate))
-			.thenReturn(Optional.of(scenario));
-
-		// when
-		scenarioService.addTodayMissionToScenario(memberId, scenarioId, request, futureDate);
-
-		// then
-		verify(missionService).addTodayMission(scenario, request, futureDate);
-	}
-
 
 	@Test
 	void Given_EmptyScenarioList_When_FindScenariosByMemberId_Then_ReturnEmptyList() {
@@ -1147,11 +1063,11 @@ class ScenarioServiceTest {
 			.thenReturn(List.of());
 
 		// when
-		List<ScenarioResponse> result = scenarioService.findScenariosByMemberId(memberId, NotificationType.TIME);
+		ScenarioResponseListWrapper result = scenarioService.findScenariosByMemberId(memberId, NotificationType.TIME);
 
 		// then
 		assertNotNull(result);
-		assertThat(result).isEmpty();
+		assertThat(result.scenarioResponses()).isEmpty();
 	}
 
 }
