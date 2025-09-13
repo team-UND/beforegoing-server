@@ -24,9 +24,9 @@ import com.und.server.notification.dto.request.TimeNotificationRequest;
 import com.und.server.notification.dto.response.NotificationConditionResponse;
 import com.und.server.notification.dto.response.TimeNotificationResponse;
 import com.und.server.notification.entity.Notification;
-import com.und.server.notification.event.NotificationEventPublisher;
 import com.und.server.notification.repository.NotificationRepository;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.event.publisher.ScenarioEventPublisher;
 import com.und.server.scenario.repository.ScenarioRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +42,7 @@ class NotificationServiceTest {
 	private ScenarioRepository scenarioRepository;
 
 	@Mock
-	private NotificationEventPublisher notificationEventPublisher;
+	private ScenarioEventPublisher notificationEventPublisher;
 
 	@InjectMocks
 	private NotificationService notificationService;
@@ -540,7 +540,7 @@ class NotificationServiceTest {
 		// then
 		assertThat(notification1.isActive()).isFalse();
 		assertThat(notification2.isActive()).isFalse();
-		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+		verify(notificationEventPublisher).publishNotificationActiveUpdateEvent(memberId, isActive);
 	}
 
 
@@ -585,7 +585,7 @@ class NotificationServiceTest {
 		// then
 		assertThat(notification1.isActive()).isTrue();
 		assertThat(notification2.isActive()).isTrue();
-		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+		verify(notificationEventPublisher).publishNotificationActiveUpdateEvent(memberId, isActive);
 	}
 
 
@@ -630,7 +630,7 @@ class NotificationServiceTest {
 		// then
 		assertThat(activeNotification.isActive()).isFalse();
 		assertThat(inactiveNotification.isActive()).isFalse(); // Should remain false
-		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+		verify(notificationEventPublisher).publishNotificationActiveUpdateEvent(memberId, isActive);
 	}
 
 
@@ -647,7 +647,7 @@ class NotificationServiceTest {
 		notificationService.updateNotificationActiveStatus(memberId, isActive);
 
 		// then
-		verify(notificationEventPublisher, never()).publishActiveUpdateEvent(anyLong(), anyBoolean());
+		verify(notificationEventPublisher, never()).publishNotificationActiveUpdateEvent(anyLong(), anyBoolean());
 	}
 
 
@@ -674,7 +674,7 @@ class NotificationServiceTest {
 		notificationService.updateNotificationActiveStatus(memberId, isActive);
 
 		// then
-		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+		verify(notificationEventPublisher).publishNotificationActiveUpdateEvent(memberId, isActive);
 	}
 
 
@@ -705,7 +705,7 @@ class NotificationServiceTest {
 
 		// then
 		assertThat(notification.isActive()).isTrue();
-		verify(notificationEventPublisher).publishActiveUpdateEvent(memberId, isActive);
+		verify(notificationEventPublisher).publishNotificationActiveUpdateEvent(memberId, isActive);
 	}
 
 }
