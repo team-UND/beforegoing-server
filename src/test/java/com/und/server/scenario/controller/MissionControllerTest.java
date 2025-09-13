@@ -20,13 +20,9 @@ import com.und.server.scenario.dto.request.TodayMissionRequest;
 import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.service.MissionService;
-import com.und.server.scenario.service.ScenarioService;
 
 @ExtendWith(MockitoExtension.class)
 class MissionControllerTest {
-
-	@Mock
-	private ScenarioService scenarioService;
 
 	@Mock
 	private MissionService missionService;
@@ -77,7 +73,7 @@ class MissionControllerTest {
 			.missionType(MissionType.TODAY)
 			.build();
 
-		when(scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date))
+		when(missionService.addTodayMission(memberId, scenarioId, missionAddRequest, date))
 			.thenReturn(expectedResponse);
 
 		// when
@@ -87,7 +83,7 @@ class MissionControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isEqualTo(expectedResponse);
-		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+		verify(missionService).addTodayMission(memberId, scenarioId, missionAddRequest, date);
 	}
 
 
@@ -106,7 +102,7 @@ class MissionControllerTest {
 			.missionType(MissionType.TODAY)
 			.build();
 
-		when(scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date))
+		when(missionService.addTodayMission(memberId, scenarioId, missionAddRequest, date))
 			.thenReturn(expectedResponse);
 
 		// when
@@ -116,7 +112,7 @@ class MissionControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isEqualTo(expectedResponse);
-		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+		verify(missionService).addTodayMission(memberId, scenarioId, missionAddRequest, date);
 	}
 
 
@@ -135,7 +131,7 @@ class MissionControllerTest {
 			.missionType(MissionType.TODAY)
 			.build();
 
-		when(scenarioService.addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date))
+		when(missionService.addTodayMission(memberId, scenarioId, missionAddRequest, date))
 			.thenReturn(expectedResponse);
 
 		// when
@@ -145,7 +141,7 @@ class MissionControllerTest {
 		// then
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isEqualTo(expectedResponse);
-		verify(scenarioService).addTodayMissionToScenario(memberId, scenarioId, missionAddRequest, date);
+		verify(missionService).addTodayMission(memberId, scenarioId, missionAddRequest, date);
 	}
 
 
