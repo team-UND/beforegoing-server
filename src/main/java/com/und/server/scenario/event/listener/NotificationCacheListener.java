@@ -66,10 +66,10 @@ public class NotificationCacheListener {
 
 		} catch (NotificationCacheException e) {
 			log.error("Failed to process scenario update event due to cache error: {}", event, e);
-			notificationCacheService.deleteMemberAllCache(memberId);
+			deleteMemberAllCache(memberId);
 		} catch (Exception e) {
 			log.error("Failed to process scenario update event due to an unexpected error: {}", event, e);
-			notificationCacheService.deleteMemberAllCache(memberId);
+			deleteMemberAllCache(memberId);
 		}
 	}
 
@@ -87,7 +87,7 @@ public class NotificationCacheListener {
 			}
 		} catch (Exception e) {
 			log.error("Failed to process notification active update event due to an unexpected error: {}", event, e);
-			notificationCacheService.deleteMemberAllCache(memberId);
+			deleteMemberAllCache(memberId);
 		}
 	}
 
@@ -106,10 +106,10 @@ public class NotificationCacheListener {
 
 		} catch (NotificationCacheException e) {
 			log.error("Failed to process scenario delete event due to cache error: {}", event, e);
-			notificationCacheService.deleteMemberAllCache(memberId);
+			deleteMemberAllCache(memberId);
 		} catch (Exception e) {
 			log.error("Failed to process scenario delete event due to an unexpected error: {}", event, e);
-			notificationCacheService.deleteMemberAllCache(memberId);
+			deleteMemberAllCache(memberId);
 		}
 	}
 
