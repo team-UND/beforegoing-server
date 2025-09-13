@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,7 +12,9 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,9 +36,14 @@ import com.und.server.scenario.dto.response.MissionGroupResponse;
 import com.und.server.scenario.dto.response.MissionResponse;
 import com.und.server.scenario.entity.Mission;
 import com.und.server.scenario.entity.Scenario;
+import com.und.server.scenario.event.publisher.ScenarioEventPublisher;
 import com.und.server.scenario.exception.ScenarioErrorResult;
 import com.und.server.scenario.repository.MissionRepository;
+import com.und.server.scenario.repository.ScenarioRepository;
 import com.und.server.scenario.util.MissionTypeGroupSorter;
+import com.und.server.scenario.util.MissionValidator;
+import com.und.server.scenario.util.OrderCalculator;
+import com.und.server.scenario.util.ScenarioValidator;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -48,24 +56,37 @@ class MissionServiceTest {
 	private MissionTypeGroupSorter missionTypeGrouper;
 
 	@Mock
-	private com.und.server.scenario.util.ScenarioValidator scenarioValidator;
+	private ScenarioValidator scenarioValidator;
 
 	@Mock
-	private com.und.server.scenario.util.MissionValidator missionValidator;
+	private MissionValidator missionValidator;
 
 	@Mock
 	private Clock clock;
+
+	@Mock
+	private ScenarioRepository scenarioRepository;
+
+	@Mock
+	private OrderCalculator orderCalculator;
+
+	@Mock
+	private ScenarioEventPublisher scenarioEventPublisher;
 
 	@InjectMocks
 	private MissionService missionService;
 
 	@BeforeEach
 	void setUp() {
-		// Clock 설정
 		when(clock.withZone(ZoneId.of("Asia/Seoul"))).thenReturn(Clock.fixed(
 			LocalDate.of(2024, 1, 15).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
 			ZoneId.of("Asia/Seoul")
 		));
+
+		when(orderCalculator.generateMissionOrders(1)).thenReturn(List.of(100));
+		when(orderCalculator.generateMissionOrders(3)).thenReturn(Arrays.asList(100, 200, 300));
+		when(orderCalculator.generateMissionOrders(4)).thenReturn(Arrays.asList(100, 200, 300, 400));
+		when(orderCalculator.generateMissionOrders(5)).thenReturn(Arrays.asList(100, 200, 300, 400, 500));
 	}
 
 	@Test
@@ -99,8 +120,8 @@ class MissionServiceTest {
 			.build();
 
 		List<Mission> missionList = Arrays.asList(basicMission, todayMission);
-		List<Mission> groupedBasicMissions = Arrays.asList(basicMission);
-		List<Mission> groupedTodayMissions = Arrays.asList(todayMission);
+		List<Mission> groupedBasicMissions = Collections.singletonList(basicMission);
+		List<Mission> groupedTodayMissions = Collections.singletonList(todayMission);
 
 		when(missionRepository.findTodayAndFutureMissions(memberId, scenarioId, date)).thenReturn(
 			missionList);
@@ -168,18 +189,27 @@ class MissionServiceTest {
 	@Test
 	void Given_ScenarioAndTodayMissionRequest_When_AddTodayMission_Then_SaveMission() {
 		// given
-		Scenario scenario = Scenario.builder()
-			.id(1L)
-			.build();
-
+		Long memberId = 1L;
+		Long scenarioId = 1L;
 		TodayMissionRequest missionAddInfo = new TodayMissionRequest("오늘 미션");
 		LocalDate date = LocalDate.of(2024, 1, 15);
 
+		Scenario scenario = Scenario.builder()
+			.id(scenarioId)
+			.missions(new ArrayList<>())
+			.build();
+
+		when(scenarioRepository.findTodayScenarioFetchByIdAndMemberId(memberId, scenarioId, date))
+			.thenReturn(java.util.Optional.of(scenario));
+		when(missionTypeGrouper.groupAndSortByType(any(), eq(MissionType.TODAY)))
+			.thenReturn(new ArrayList<>());
+
 		// when
-		missionService.addTodayMission(scenario, missionAddInfo, date);
+		missionService.addTodayMission(memberId, scenarioId, missionAddInfo, date);
 
 		// then
 		verify(missionRepository).save(any(Mission.class));
+		verify(scenarioEventPublisher).publishMissionCreateEvent(memberId, scenarioId, date);
 	}
 
 
@@ -199,6 +229,9 @@ class MissionServiceTest {
 			.build();
 
 		List<BasicMissionRequest> missionInfoList = Arrays.asList(mission1, mission2);
+
+		// 테스트 내에서 직접 Mock 설정
+		when(orderCalculator.generateMissionOrders(2)).thenReturn(Arrays.asList(100, 200));
 
 		// when
 		missionService.addBasicMission(scenario, missionInfoList);
@@ -241,7 +274,7 @@ class MissionServiceTest {
 			.missionOrder(1)
 			.build();
 
-		List<Mission> oldMissionList = Arrays.asList(oldMission);
+		List<Mission> oldMissionList = Collections.singletonList(oldMission);
 
 		BasicMissionRequest newMission1 = BasicMissionRequest.builder()
 			.content("새 미션 1")
@@ -255,6 +288,7 @@ class MissionServiceTest {
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
+		when(orderCalculator.generateMissionOrders(2)).thenReturn(Arrays.asList(100, 200));
 
 		// when
 		missionService.updateBasicMission(oldScenario, missionInfoList);
@@ -269,7 +303,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missions(new java.util.ArrayList<>())
+			.missions(new ArrayList<>())
 			.build();
 
 		Mission oldMission = Mission.builder()
@@ -280,7 +314,7 @@ class MissionServiceTest {
 			.missionOrder(1)
 			.build();
 
-		List<Mission> oldMissionList = Arrays.asList(oldMission);
+		List<Mission> oldMissionList = Collections.singletonList(oldMission);
 		List<BasicMissionRequest> missionInfoList = List.of();
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
@@ -299,7 +333,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missions(new java.util.ArrayList<>())
+			.missions(new ArrayList<>())
 			.build();
 
 		Mission existingMission = Mission.builder()
@@ -310,7 +344,7 @@ class MissionServiceTest {
 			.missionOrder(1)
 			.build();
 
-		List<Mission> oldMissionList = Arrays.asList(existingMission);
+		List<Mission> oldMissionList = Collections.singletonList(existingMission);
 
 		BasicMissionRequest newMission = BasicMissionRequest.builder()
 			.content("새 미션")
@@ -325,6 +359,7 @@ class MissionServiceTest {
 
 		when(missionTypeGrouper.groupAndSortByType(oldScenario.getMissions(), MissionType.BASIC))
 			.thenReturn(oldMissionList);
+		when(orderCalculator.generateMissionOrders(2)).thenReturn(Arrays.asList(100, 200));
 
 		// when
 		missionService.updateBasicMission(oldScenario, missionInfoList);
@@ -372,7 +407,8 @@ class MissionServiceTest {
 		Long memberId = 1L;
 		Long missionId = 999L;
 
-		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(java.util.Optional.empty());
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId))
+			.thenReturn(java.util.Optional.empty());
 
 		// when & then
 		assertThatThrownBy(() -> missionService.deleteTodayMission(memberId, missionId))
@@ -460,7 +496,8 @@ class MissionServiceTest {
 		Boolean isChecked = true;
 		LocalDate date = LocalDate.of(2024, 1, 15);
 
-		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId)).thenReturn(java.util.Optional.empty());
+		when(missionRepository.findByIdAndScenarioMemberId(missionId, memberId))
+			.thenReturn(java.util.Optional.empty());
 
 		// when & then
 		assertThatThrownBy(() -> missionService.updateMissionCheck(memberId, missionId, isChecked, date))
@@ -655,7 +692,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missions(new java.util.ArrayList<>())
+			.missions(new ArrayList<>())
 			.build();
 
 		BasicMissionRequest newMissionRequest = BasicMissionRequest.builder()
@@ -680,7 +717,7 @@ class MissionServiceTest {
 		// given
 		Scenario oldScenario = Scenario.builder()
 			.id(1L)
-			.missions(new java.util.ArrayList<>())
+			.missions(new ArrayList<>())
 			.build();
 
 		Mission existingMission = Mission.builder()
@@ -690,7 +727,7 @@ class MissionServiceTest {
 			.build();
 
 		BasicMissionRequest nonExistentMissionRequest = BasicMissionRequest.builder()
-			.missionId(99L) // 존재하지 않는 ID
+			.missionId(99L)
 			.content("존재하지 않는 미션")
 			.build();
 
@@ -706,19 +743,6 @@ class MissionServiceTest {
 		// then
 		verify(missionRepository, org.mockito.Mockito.times(1)).saveAll(anyList());
 	}
-
-	@Test
-	void Given_ScenarioId_When_DeleteMissions_Then_DeleteAllMissions() {
-		// given
-		Long scenarioId = 1L;
-
-		// when
-		missionService.deleteMissions(scenarioId);
-
-		// then
-		verify(missionRepository).deleteByScenarioId(scenarioId);
-	}
-
 
 	@Test
 	void Given_EmptyMissions_When_FindMissionsByScenarioId_Then_ReturnEmptyResponse() {
@@ -788,7 +812,7 @@ class MissionServiceTest {
 			.missionType(MissionType.BASIC)
 			.build();
 
-		List<Mission> missions = new java.util.ArrayList<>();
+		List<Mission> missions = new ArrayList<>();
 		missions.add(existingMission);
 
 		Scenario scenario = Scenario.builder()
@@ -822,7 +846,7 @@ class MissionServiceTest {
 			.missionType(MissionType.BASIC)
 			.build();
 
-		List<Mission> missions = new java.util.ArrayList<>();
+		List<Mission> missions = new ArrayList<>();
 		missions.add(existingMission);
 
 		Scenario scenario = Scenario.builder()
@@ -831,7 +855,7 @@ class MissionServiceTest {
 			.build();
 
 		BasicMissionRequest nonExistentRequest = BasicMissionRequest.builder()
-			.missionId(999L) // 존재하지 않는 미션 ID
+			.missionId(999L)
 			.content("존재하지 않는 미션")
 			.build();
 
@@ -1095,7 +1119,6 @@ class MissionServiceTest {
 		verify(missionRepository).findTodayAndFutureMissions(memberId, scenarioId, futureDate);
 	}
 
-	// Mission entity 커버리지 향상을 위한 테스트
 	@Test
 	void Given_Mission_When_UpdateCheckStatus_Then_UpdateIsChecked() {
 		// given
@@ -1159,7 +1182,6 @@ class MissionServiceTest {
 		assertThat(childMission.getScenario()).isEqualTo(parentMission.getScenario());
 	}
 
-	// MissionResponse 커버리지 향상을 위한 테스트
 	@Test
 	void Given_Mission_When_From_Then_CreateMissionResponse() {
 		// given
@@ -1229,8 +1251,10 @@ class MissionServiceTest {
 		// then
 		assertThat(responseList)
 			.hasSize(2)
-			.satisfies(list -> assertThat(list.get(0).missionId()).isEqualTo(mission1.getId()))
-			.satisfies(list -> assertThat(list.get(1).missionId()).isEqualTo(mission2.getId()));
+			.satisfies(list ->
+				assertThat(list.get(0).missionId()).isEqualTo(mission1.getId()))
+			.satisfies(list ->
+				assertThat(list.get(1).missionId()).isEqualTo(mission2.getId()));
 	}
 
 	@Test
@@ -1257,7 +1281,6 @@ class MissionServiceTest {
 		assertThat(responseList).isEmpty();
 	}
 
-	// MissionGroupResponse 커버리지 향상을 위한 테스트
 	@Test
 	void Given_MissionLists_When_From_Then_CreateMissionGroupResponse() {
 		// given
@@ -1344,9 +1367,11 @@ class MissionServiceTest {
 		assertThat(response)
 			.satisfies(r -> assertThat(r.scenarioId()).isEqualTo(scenarioId))
 			.satisfies(r -> assertThat(r.basicMissions()).hasSize(1))
-			.satisfies(r -> assertThat(r.basicMissions().get(0).missionId()).isEqualTo(futureBasicResponse.missionId()))
+			.satisfies(r -> assertThat(r.basicMissions().get(0).missionId())
+				.isEqualTo(futureBasicResponse.missionId()))
 			.satisfies(r -> assertThat(r.todayMissions()).hasSize(1))
-			.satisfies(r -> assertThat(r.todayMissions().get(0).missionId()).isEqualTo(todayMission.getId()));
+			.satisfies(r -> assertThat(r.todayMissions().get(0).missionId())
+				.isEqualTo(todayMission.getId()));
 	}
 
 }
