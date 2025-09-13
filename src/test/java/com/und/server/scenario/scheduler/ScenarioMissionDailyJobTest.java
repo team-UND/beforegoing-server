@@ -17,11 +17,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.und.server.scenario.repository.MissionRepository;
+import com.und.server.scenario.service.MissionCacheService;
 
 @ExtendWith(MockitoExtension.class)
 class ScenarioMissionDailyJobTest {
@@ -29,7 +29,9 @@ class ScenarioMissionDailyJobTest {
 	@Mock
 	private MissionRepository missionRepository;
 
-	@InjectMocks
+	@Mock
+	private MissionCacheService missionCacheService;
+
 	private ScenarioMissionDailyJob job;
 
 	private Clock fixedClock;
@@ -41,7 +43,7 @@ class ScenarioMissionDailyJobTest {
 			LocalDate.of(2025, 9, 1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant(),
 			ZoneId.of("Asia/Seoul")
 		);
-		job = new ScenarioMissionDailyJob(missionRepository, fixedClock);
+		job = new ScenarioMissionDailyJob(missionCacheService, missionRepository, fixedClock);
 	}
 
 
