@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.und.server.notification.constants.NotificationType;
 import com.und.server.notification.dto.request.NotificationRequest;
+import com.und.server.scenario.dto.ScenarioResponseListWrapper;
 import com.und.server.scenario.dto.request.ScenarioDetailRequest;
 import com.und.server.scenario.dto.request.ScenarioOrderUpdateRequest;
 import com.und.server.scenario.dto.response.OrderUpdateResponse;
@@ -51,9 +52,10 @@ class ScenarioControllerTest {
 			.build();
 
 		List<ScenarioResponse> expectedScenarios = Arrays.asList(scenario1, scenario2);
+		ScenarioResponseListWrapper wrapper = ScenarioResponseListWrapper.from(expectedScenarios);
 
 		when(scenarioService.findScenariosByMemberId(memberId, notifType))
-			.thenReturn(expectedScenarios);
+			.thenReturn(wrapper);
 
 		// when
 		ResponseEntity<List<ScenarioResponse>> response = scenarioController.getScenarios(memberId, notifType);
