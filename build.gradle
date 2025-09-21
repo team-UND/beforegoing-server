@@ -64,6 +64,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	runtimeOnly 'com.mysql:mysql-connector-j:9.3.0'
+	implementation 'software.amazon.jdbc:aws-advanced-jdbc-wrapper:2.6.4'
+	implementation('software.amazon.awssdk:rds:2.33.13') {
+		exclude group: 'commons-logging', module: 'commons-logging'
+	}
 	implementation 'org.flywaydb:flyway-core:11.8.2'
 	implementation 'org.flywaydb:flyway-mysql:11.8.2'
 	runtimeOnly 'com.h2database:h2'
