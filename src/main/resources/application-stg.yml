@@ -10,7 +10,7 @@ spring:
 # RDB
   datasource:
     driver-class-name: software.amazon.jdbc.Driver
-    url: jdbc:aws-wrapper:mysql://${SPRING_DATASOURCE_HOSTNAME}:${SPRING_DATASOURCE_PORT}/${SPRING_DATASOURCE_DATABASE_NAME}?wrapperPlugins=iam&iamRegion=ap-northeast-2&sslMode=REQUIRED&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:aws-wrapper:mysql://${SPRING_DATASOURCE_HOSTNAME}:${SPRING_DATASOURCE_PORT}/${SPRING_DATASOURCE_DATABASE_NAME}?wrapperPlugins=iam&iamRegion=${SPRING_DATASOURCE_REGION}&sslMode=REQUIRED&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8
     username: ${SPRING_DATASOURCE_USERNAME}
     hikari:
       max-lifetime: 720000
