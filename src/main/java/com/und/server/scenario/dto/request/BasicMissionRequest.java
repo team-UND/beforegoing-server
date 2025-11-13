@@ -19,7 +19,7 @@ public record BasicMissionRequest(
 
 	@Schema(description = "Mission content", example = "Lock door")
 	@NotBlank(message = "Content must not be blank")
-	@Size(max = 14, message = "Content must be at most 10 characters")
+	@Size(max = 14, message = "Content must be at most 14 characters")
 	String content
 
 ) {
