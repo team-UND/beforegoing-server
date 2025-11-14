@@ -40,7 +40,7 @@ public class Mission extends BaseTimeEntity {
 	@JoinColumn(name = "scenario_id", nullable = false)
 	private Scenario scenario;
 
-	@Column(nullable = false, length = 10)
+	@Column(nullable = false, length = 14)
 	private String content;
 
 	@Column(nullable = false)

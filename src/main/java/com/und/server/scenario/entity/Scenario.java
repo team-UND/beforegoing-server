@@ -45,7 +45,7 @@ public class Scenario extends BaseTimeEntity {
 	@Column(nullable = false, length = 10)
 	private String scenarioName;
 
-	@Column(length = 15)
+	@Column(length = 14)
 	private String memo;
 
 	@Column(nullable = false)
