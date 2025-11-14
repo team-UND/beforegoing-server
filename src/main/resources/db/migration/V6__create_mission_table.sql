@@ -1,7 +1,7 @@
 CREATE TABLE mission (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     scenario_id BIGINT NOT NULL,
-    content VARCHAR(10) NOT NULL,
+    content VARCHAR(255) NOT NULL,
     is_checked BOOLEAN NOT NULL,
     mission_order INT,
     use_date DATE,
