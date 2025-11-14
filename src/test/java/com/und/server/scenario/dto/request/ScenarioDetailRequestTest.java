@@ -234,7 +234,7 @@ class ScenarioDetailRequestTest {
 		// then
 		assertThat(violations).isNotEmpty();
 		boolean hasMemoError = violations.stream()
-			.anyMatch(v -> v.getMessage().contains("Memo must be at most 15 characters"));
+			.anyMatch(v -> v.getMessage().contains("Memo must be at most 14 characters"));
 		assertThat(hasMemoError).isTrue();
 	}
 
