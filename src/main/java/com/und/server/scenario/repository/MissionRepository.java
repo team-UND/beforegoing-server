@@ -60,19 +60,19 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 	int deleteTodayChildBasics(LocalDate today);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
-	@Query("""
-		UPDATE Mission p
-			SET p.isChecked = COALESCE(
-				(SELECT c.isChecked
-				FROM Mission c
-				WHERE c.parentMissionId = p.id
-				AND c.useDate = :today
-				AND c.missionType = 'BASIC'
-				), false
-			)
-			WHERE p.useDate IS NULL
-				AND p.missionType = 'BASIC'
-		""")
+	@Query(value = """
+		UPDATE mission p
+		LEFT JOIN (
+			SELECT c.parent_mission_id, c.is_checked
+			FROM mission c
+			WHERE c.use_date = :today
+				AND c.mission_type = 'BASIC'
+				AND c.parent_mission_id IS NOT NULL
+		) c ON c.parent_mission_id = p.id
+		SET p.is_checked = COALESCE(c.is_checked, 0)
+		WHERE p.use_date IS NULL
+			AND p.mission_type = 'BASIC'
+		""", nativeQuery = true)
 	int bulkResetBasicIsChecked(LocalDate today);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)

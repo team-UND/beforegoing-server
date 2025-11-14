@@ -327,7 +327,7 @@ class ScenarioDetailRequestTest {
 
 		ScenarioDetailRequest request = ScenarioDetailRequest.builder()
 			.scenarioName("1234567890")
-			.memo("123456789012345")
+			.memo("1234567890123")
 			.basicMissions(List.of())
 			.notification(notification)
 			.notificationCondition(null)

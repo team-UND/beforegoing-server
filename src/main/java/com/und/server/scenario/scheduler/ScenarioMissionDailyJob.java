@@ -36,11 +36,20 @@ public class ScenarioMissionDailyJob {
 		LocalDate yesterday = today.minusDays(DAYS_TO_SUBTRACT);
 
 		try {
+			log.info("[MISSION DAILY] Starting daily mission job for date: {}", yesterday);
+
 			int cloned = missionRepository.bulkCloneBasicToYesterday(yesterday);
+			log.info("[MISSION DAILY] Step 1 completed - bulkCloneBasicToYesterday: cloned={}", cloned);
+
 			int reset = missionRepository.bulkResetBasicIsChecked(today);
+			log.info("[MISSION DAILY] Step 2 completed - bulkResetBasicIsChecked: reset={}", reset);
+
 			int deleteChildBasic = missionRepository.deleteTodayChildBasics(today);
+			log.info("[MISSION DAILY] Step 3 completed - deleteTodayChildBasics: deleteChildBasic={}",
+				deleteChildBasic);
 
 			missionCacheService.evictAllMissionCache();
+			log.info("[MISSION DAILY] Step 4 completed - evictAllMissionCache");
 
 			log.info("[MISSION DAILY] Daily Mission Job: cloned={}, reset={} deleteChildBasic={}",
 				cloned, reset, deleteChildBasic);

@@ -26,7 +26,7 @@ public record ScenarioDetailRequest(
 	String scenarioName,
 
 	@Schema(description = "Scenario memo", example = "Item to carry")
-	@Size(max = 15, message = "Memo must be at most 15 characters")
+	@Size(max = 14, message = "Memo must be at most 15 characters")
 	String memo,
 
 	@ArraySchema(
