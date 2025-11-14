@@ -1,8 +1,8 @@
 CREATE TABLE scenario (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     member_id BIGINT NOT NULL,
-    scenario_name VARCHAR(10) NOT NULL,
-    memo VARCHAR(15),
+    scenario_name VARCHAR(255) NOT NULL,
+    memo VARCHAR(255),
     scenario_order INT NOT NULL,
     notification_id BIGINT NOT NULL,
     created_at DATETIME NOT NULL,

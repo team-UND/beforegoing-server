@@ -1,5 +1,0 @@
--- Scenario.memo: VARCHAR(15) -> VARCHAR(14)
-ALTER TABLE scenario ALTER COLUMN memo VARCHAR(14);
-
--- Mission.content: VARCHAR(10) -> VARCHAR(14)
-ALTER TABLE mission ALTER COLUMN content VARCHAR(14) NOT NULL;
