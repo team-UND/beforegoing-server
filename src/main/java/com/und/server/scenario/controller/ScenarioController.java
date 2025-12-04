@@ -27,9 +27,7 @@ import com.und.server.scenario.service.ScenarioService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
@@ -100,7 +98,6 @@ public class ScenarioController implements ScenarioApiDocs {
 		@PathVariable final Long scenarioId,
 		@RequestBody @Valid final ScenarioOrderUpdateRequest scenarioOrderUpdateRequest
 	) {
-		log.info("[API_ACCESS_TEST] scenarioOrderUpdateRequest={}", scenarioOrderUpdateRequest);
 		final OrderUpdateResponse orderUpdateResponse =
 			scenarioService.updateScenarioOrder(memberId, scenarioId, scenarioOrderUpdateRequest);
 
