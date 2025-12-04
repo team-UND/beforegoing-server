@@ -72,9 +72,9 @@ class MissionValidatorTest {
 	void Given_BasicMissionListAtMaxCount_When_ValidateMaxBasicMissionCount_Then_ThrowException() {
 		// given
 		List<Mission> missionList = new ArrayList<>();
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 21; i++) {
 			missionList.add(Mission.builder().build());
-		} // 20개 (최대값)
+		}
 
 		// when & then
 		assertThatThrownBy(() -> missionValidator.validateMaxBasicMissionCount(missionList))
@@ -98,9 +98,9 @@ class MissionValidatorTest {
 	void Given_TodayMissionListAtMaxCount_When_ValidateMaxTodayMissionCount_Then_ThrowException() {
 		// given
 		List<Mission> missionList = new ArrayList<>();
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 21; i++) {
 			missionList.add(Mission.builder().build());
-		} // 20개 (최대값)
+		}
 
 		// when & then
 		assertThatThrownBy(() -> missionValidator.validateMaxTodayMissionCount(missionList))
