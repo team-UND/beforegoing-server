@@ -20,13 +20,13 @@ public class MissionValidator {
 	private static final int TODAY_MISSION_MAX_COUNT = 20;
 
 	public void validateMaxBasicMissionCount(final List<Mission> missions) {
-		if (missions.size() >= BASIC_MISSION_MAX_COUNT) {
+		if (missions.size() > BASIC_MISSION_MAX_COUNT) {
 			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
 		}
 	}
 
 	public void validateMaxTodayMissionCount(final List<Mission> missions) {
-		if (missions.size() >= TODAY_MISSION_MAX_COUNT) {
+		if (missions.size() > TODAY_MISSION_MAX_COUNT) {
 			throw new ServerException(ScenarioErrorResult.MAX_MISSION_COUNT_EXCEEDED);
 		}
 	}
