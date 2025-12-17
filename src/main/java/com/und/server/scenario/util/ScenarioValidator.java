@@ -24,7 +24,7 @@ public class ScenarioValidator {
 	}
 
 	public void validateMaxScenarioCount(final List<Integer> orderList) {
-		if (orderList.size() >= SCENARIO_MAX_COUNT) {
+		if (orderList.size() > SCENARIO_MAX_COUNT) {
 			throw new ServerException(ScenarioErrorResult.MAX_SCENARIO_COUNT_EXCEEDED);
 		}
 	}
