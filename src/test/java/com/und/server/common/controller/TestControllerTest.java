@@ -78,7 +78,8 @@ class TestControllerTest {
 			"access-token",
 			3600,
 			"refresh-token",
-			7200
+			7200,
+			false
 		);
 		doReturn(expectedResponse).when(authService).issueTokensForTest(request);
 
@@ -112,7 +113,8 @@ class TestControllerTest {
 			"new-access-token",
 			3600,
 			"new-refresh-token",
-			7200
+			7200,
+			true
 		);
 
 		doReturn(expectedResponse).when(authService).issueTokensForTest(request);

@@ -10,6 +10,7 @@ import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.service.RefreshTokenService;
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.dto.MemberCreationResult;
 import com.und.server.member.dto.request.NicknameRequest;
 import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.entity.Member;
@@ -32,12 +33,13 @@ public class MemberService {
 	}
 
 	@Transactional
-	public Member findOrCreateMember(final Provider provider, final String providerId) {
+	public MemberCreationResult findOrCreateMember(final Provider provider, final String providerId) {
 		validateProviderIsNotNull(provider);
 		validateProviderIdIsNotNull(providerId);
 
 		return findMemberByProviderId(provider, providerId)
-			.orElseGet(() -> createMember(provider, providerId));
+			.map(member -> new MemberCreationResult(member, false))
+			.orElseGet(() -> new MemberCreationResult(createMember(provider, providerId), true));
 	}
 
 	public Member findMemberById(final Long memberId) {

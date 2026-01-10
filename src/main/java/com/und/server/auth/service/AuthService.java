@@ -20,7 +20,7 @@ import com.und.server.auth.oauth.Provider;
 import com.und.server.common.dto.request.TestAuthRequest;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
-import com.und.server.member.entity.Member;
+import com.und.server.member.dto.MemberCreationResult;
 import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;
 
@@ -44,9 +44,9 @@ public class AuthService {
 	public AuthResponse issueTokensForTest(final TestAuthRequest request) {
 		final Provider provider = convertToProvider(request.provider());
 		final String providerId = request.providerId();
-		final Member member = memberService.findOrCreateMember(provider, providerId);
+		final MemberCreationResult result = memberService.findOrCreateMember(provider, providerId);
 
-		return issueTokens(member.getId());
+		return issueTokens(result.member().getId(), result.isNewMember());
 	}
 
 	@Transactional
@@ -66,9 +66,9 @@ public class AuthService {
 
 		verifyIdTokenNonce(provider, idToken);
 		final String providerId = getProviderIdFromIdToken(provider, idToken);
-		final Member member = memberService.findOrCreateMember(provider, providerId);
+		final MemberCreationResult result = memberService.findOrCreateMember(provider, providerId);
 
-		return issueTokens(member.getId());
+		return issueTokens(result.member().getId(), result.isNewMember());
 	}
 
 	@Transactional
@@ -92,7 +92,7 @@ public class AuthService {
 
 		refreshTokenService.verifyRefreshToken(memberId, providedRefreshToken);
 
-		return issueTokens(memberId);
+		return issueTokens(memberId, false);
 	}
 
 	@Transactional
@@ -120,7 +120,7 @@ public class AuthService {
 		return oidcProviderFactory.getProviderId(provider, idToken, oidcPublicKeys);
 	}
 
-	private AuthResponse issueTokens(final Long memberId) {
+	private AuthResponse issueTokens(final Long memberId, final boolean isNewMember) {
 		final String accessToken = jwtProvider.generateAccessToken(memberId);
 		final String refreshToken = refreshTokenService.generateRefreshToken();
 		refreshTokenService.saveRefreshToken(memberId, refreshToken);
@@ -130,7 +130,8 @@ public class AuthService {
 			accessToken,
 			jwtProperties.accessTokenExpireTime(),
 			refreshToken,
-			jwtProperties.refreshTokenExpireTime());
+			jwtProperties.refreshTokenExpireTime(),
+			isNewMember);
 	}
 
 	private Long getMemberIdForReissue(final String accessToken) {

@@ -22,6 +22,7 @@ import com.und.server.auth.exception.AuthErrorResult;
 import com.und.server.auth.oauth.Provider;
 import com.und.server.auth.service.RefreshTokenService;
 import com.und.server.common.exception.ServerException;
+import com.und.server.member.dto.MemberCreationResult;
 import com.und.server.member.dto.request.NicknameRequest;
 import com.und.server.member.dto.response.MemberResponse;
 import com.und.server.member.entity.Member;
@@ -58,12 +59,13 @@ class MemberServiceTest {
 		doReturn(Optional.of(existingMember)).when(memberRepository).findByKakaoId(providerId);
 
 		// when
-		final Member foundMember = memberService.findOrCreateMember(kakaoProvider, providerId);
+		final MemberCreationResult result = memberService.findOrCreateMember(kakaoProvider, providerId);
 
 		// then
 		verify(memberRepository).findByKakaoId(providerId);
 		verify(memberRepository, never()).save(any(Member.class));
-		assertThat(foundMember).isEqualTo(existingMember);
+		assertThat(result.member()).isEqualTo(existingMember);
+		assertThat(result.isNewMember()).isFalse();
 	}
 
 	@Test
@@ -81,12 +83,13 @@ class MemberServiceTest {
 		doReturn(newMember).when(memberRepository).save(any(Member.class));
 
 		// when
-		final Member createdMember = memberService.findOrCreateMember(kakaoProvider, providerId);
+		final MemberCreationResult result = memberService.findOrCreateMember(kakaoProvider, providerId);
 
 		// then
 		verify(memberRepository).findByKakaoId(providerId);
 		verify(memberRepository).save(any(Member.class));
-		assertThat(createdMember).isEqualTo(newMember);
+		assertThat(result.member()).isEqualTo(newMember);
+		assertThat(result.isNewMember()).isTrue();
 	}
 
 	@Test
@@ -103,12 +106,13 @@ class MemberServiceTest {
 		doReturn(Optional.of(existingMember)).when(memberRepository).findByAppleId(providerId);
 
 		// when
-		final Member foundMember = memberService.findOrCreateMember(appleProvider, providerId);
+		final MemberCreationResult result = memberService.findOrCreateMember(appleProvider, providerId);
 
 		// then
 		verify(memberRepository).findByAppleId(providerId);
 		verify(memberRepository, never()).save(any(Member.class));
-		assertThat(foundMember).isEqualTo(existingMember);
+		assertThat(result.member()).isEqualTo(existingMember);
+		assertThat(result.isNewMember()).isFalse();
 	}
 
 	@Test
@@ -126,12 +130,13 @@ class MemberServiceTest {
 		doReturn(newMember).when(memberRepository).save(any(Member.class));
 
 		// when
-		final Member createdMember = memberService.findOrCreateMember(appleProvider, providerId);
+		final MemberCreationResult result = memberService.findOrCreateMember(appleProvider, providerId);
 
 		// then
 		verify(memberRepository).findByAppleId(providerId);
 		verify(memberRepository).save(any(Member.class));
-		assertThat(createdMember).isEqualTo(newMember);
+		assertThat(result.member()).isEqualTo(newMember);
+		assertThat(result.isNewMember()).isTrue();
 	}
 
 	@Test
