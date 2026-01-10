@@ -17,5 +17,8 @@ public record AuthResponse(
 	String refreshToken,
 
 	@Schema(description = "Refresh Token expiration time in seconds", example = "604800")
-	Integer refreshTokenExpiresIn
+	Integer refreshTokenExpiresIn,
+
+	@Schema(description = "True if the member is newly registered, false if already registered", example = "true")
+	Boolean isNewMember
 ) { }

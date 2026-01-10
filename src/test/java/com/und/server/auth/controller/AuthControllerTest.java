@@ -252,7 +252,8 @@ class AuthControllerTest {
 			"dummy.access.token",
 			10000,
 			"dummy.refresh.token",
-			20000
+			20000,
+			true
 		);
 
 		doReturn(authResponse).when(authService).login(authRequest);
@@ -278,6 +279,7 @@ class AuthControllerTest {
 		assertThat(response.accessTokenExpiresIn()).isEqualTo(10000);
 		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
 		assertThat(response.refreshTokenExpiresIn()).isEqualTo(20000);
+		assertThat(response.isNewMember()).isTrue();
 	}
 
 	@Test
@@ -291,7 +293,8 @@ class AuthControllerTest {
 			"dummy.access.token",
 			10000,
 			"dummy.refresh.token",
-			20000
+			20000,
+			true
 		);
 
 		doReturn(authResponse).when(authService).login(authRequest);
@@ -315,6 +318,7 @@ class AuthControllerTest {
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("dummy.access.token");
 		assertThat(response.refreshToken()).isEqualTo("dummy.refresh.token");
+		assertThat(response.isNewMember()).isTrue();
 	}
 
 	@Test
@@ -372,7 +376,8 @@ class AuthControllerTest {
 			"new.access.token",
 			10000,
 			"new.refresh.token",
-			7200
+			7200,
+			false
 		);
 
 		doReturn(authResponse).when(authService).reissueTokens(refreshTokenRequest);
@@ -396,6 +401,7 @@ class AuthControllerTest {
 		assertThat(response.tokenType()).isEqualTo("Bearer");
 		assertThat(response.accessToken()).isEqualTo("new.access.token");
 		assertThat(response.refreshToken()).isEqualTo("new.refresh.token");
+		assertThat(response.isNewMember()).isFalse();
 	}
 
 	@Test

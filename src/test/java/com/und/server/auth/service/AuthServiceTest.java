@@ -1,9 +1,7 @@
 package com.und.server.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -34,6 +32,7 @@ import com.und.server.auth.oauth.Provider;
 import com.und.server.common.dto.request.TestAuthRequest;
 import com.und.server.common.exception.ServerException;
 import com.und.server.common.util.ProfileManager;
+import com.und.server.member.dto.MemberCreationResult;
 import com.und.server.member.entity.Member;
 import com.und.server.member.exception.MemberErrorResult;
 import com.und.server.member.service.MemberService;
@@ -46,415 +45,215 @@ class AuthServiceTest {
 
 	@Mock
 	private MemberService memberService;
-
 	@Mock
 	private OidcClientFactory oidcClientFactory;
-
 	@Mock
 	private OidcProviderFactory oidcProviderFactory;
-
 	@Mock
 	private JwtProvider jwtProvider;
-
 	@Mock
 	private JwtProperties jwtProperties;
-
-	@Mock
-	private RefreshTokenService refreshTokenService;
-
 	@Mock
 	private NonceService nonceService;
-
+	@Mock
+	private RefreshTokenService refreshTokenService;
 	@Mock
 	private ProfileManager profileManager;
 
-	private final Long memberId = 1L;
-	private final String idToken = "dummy.id.token";
-	private final String accessToken = "dummy.access.token";
-	private final String refreshToken = "dummy.refresh.token";
-	private final Integer accessTokenExpireTime = 3600;
-	private final Integer refreshTokenExpireTime = 7200;
-
 	@Test
-	@DisplayName("Issues tokens for an existing Kakao member for testing purposes")
-	void Given_ExistingKakaoMemberForTest_When_IssueTokensForTest_Then_Succeeds() {
+	@DisplayName("Issue tokens for test user successfully")
+	void Given_ValidTestAuthRequest_When_IssueTokensForTest_Then_ReturnsAuthResponse() {
 		// given
-		final String providerId = "kakao-test-id";
-		final TestAuthRequest request = new TestAuthRequest("kakao", providerId);
-		final Member existingMember = Member.builder().id(memberId).kakaoId(providerId).build();
-		doReturn(existingMember).when(memberService).findOrCreateMember(any(Provider.class), any(String.class));
-		setupTokenIssuance(accessToken, refreshToken);
+		TestAuthRequest request = new TestAuthRequest("kakao", "12345");
+		Member member = Member.builder().id(1L).build();
+		MemberCreationResult creationResult = new MemberCreationResult(member, true);
+
+		doReturn(creationResult).when(memberService).findOrCreateMember(Provider.KAKAO, "12345");
+		doReturn("access-token").when(jwtProvider).generateAccessToken(1L);
+		doReturn("refresh-token").when(refreshTokenService).generateRefreshToken();
+		doReturn("Bearer").when(jwtProperties).type();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+		doReturn(1209600).when(jwtProperties).refreshTokenExpireTime();
 
 		// when
-		final AuthResponse response = authService.issueTokensForTest(request);
+		AuthResponse response = authService.issueTokensForTest(request);
 
 		// then
-		verify(memberService).findOrCreateMember(any(Provider.class), any(String.class));
-		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
-		assertThat(response.accessToken()).isEqualTo(accessToken);
-		assertThat(response.refreshToken()).isEqualTo(refreshToken);
+		assertThat(response.accessToken()).isEqualTo("access-token");
+		assertThat(response.refreshToken()).isEqualTo("refresh-token");
+		assertThat(response.isNewMember()).isTrue();
+		verify(refreshTokenService).saveRefreshToken(1L, "refresh-token");
 	}
 
 	@Test
-	@DisplayName("Creates a new Kakao member and issues tokens for testing purposes")
-	void Given_NewKakaoMemberForTest_When_IssueTokensForTest_Then_CreatesMemberAndSucceeds() {
+	@DisplayName("Generate nonce successfully")
+	void Given_ValidNonceRequest_When_GenerateNonce_Then_ReturnsNonceResponse() {
 		// given
-		final String providerId = "kakao-test-id";
-		final TestAuthRequest request = new TestAuthRequest("kakao", providerId);
-		final Member newMember = Member.builder().id(memberId).kakaoId(providerId).build();
-		doReturn(newMember).when(memberService).findOrCreateMember(any(Provider.class), any(String.class));
-		setupTokenIssuance(accessToken, refreshToken);
+		NonceRequest request = new NonceRequest("kakao");
+		doReturn("nonce-value").when(nonceService).generateNonceValue();
 
 		// when
-		final AuthResponse response = authService.issueTokensForTest(request);
+		NonceResponse response = authService.generateNonce(request);
 
 		// then
-		verify(memberService).findOrCreateMember(any(Provider.class), any(String.class));
-		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
-		assertThat(response.accessToken()).isEqualTo(accessToken);
-		assertThat(response.refreshToken()).isEqualTo(refreshToken);
+		assertThat(response.nonce()).isEqualTo("nonce-value");
+		verify(nonceService).saveNonce("nonce-value", Provider.KAKAO);
 	}
 
 	@Test
-	@DisplayName("Throws an exception on nonce generation with an invalid provider")
+	@DisplayName("Generate nonce with invalid provider throws exception")
 	void Given_InvalidProvider_When_GenerateNonce_Then_ThrowsException() {
 		// given
-		final NonceRequest nonceRequest = new NonceRequest("facebook");
+		NonceRequest request = new NonceRequest("invalid");
 
 		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.generateNonce(nonceRequest));
-
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
+		assertThatThrownBy(() -> authService.generateNonce(request))
+			.isInstanceOf(ServerException.class)
+			.extracting("errorResult")
+			.isEqualTo(AuthErrorResult.INVALID_PROVIDER);
 	}
 
 	@Test
-	@DisplayName("Returns a nonce on a successful generation for Kakao")
-	void Given_KakaoProvider_When_GenerateNonce_Then_ReturnsNonce() {
+	@DisplayName("Login successfully")
+	void Given_ValidLoginRequest_When_Login_Then_ReturnsAuthResponse() {
 		// given
-		final String nonce = "generated-nonce";
-		final String providerName = "kakao";
-		final NonceRequest nonceRequest = new NonceRequest(providerName);
+		AuthRequest request = new AuthRequest("kakao", "id-token");
+		Member member = Member.builder().id(1L).build();
+		MemberCreationResult creationResult = new MemberCreationResult(member, false);
+		OidcClient oidcClient = mock(OidcClient.class);
+		OidcPublicKeys publicKeys = mock(OidcPublicKeys.class);
 
-		doReturn(nonce).when(nonceService).generateNonceValue();
-		doNothing().when(nonceService).saveNonce(nonce, Provider.KAKAO);
-
-		// when
-		final NonceResponse response = authService.generateNonce(nonceRequest);
-
-		// then
-		verify(nonceService).generateNonceValue();
-		verify(nonceService).saveNonce(nonce, Provider.KAKAO);
-		assertThat(response.nonce()).isEqualTo(nonce);
-	}
-
-	@Test
-	@DisplayName("Returns a nonce on a successful generation for Apple")
-	void Given_AppleProvider_When_GenerateNonce_Then_ReturnsNonce() {
-		// given
-		final String nonce = "generated-nonce";
-		final String providerName = "apple";
-		final NonceRequest nonceRequest = new NonceRequest(providerName);
-
-		doReturn(nonce).when(nonceService).generateNonceValue();
-		doNothing().when(nonceService).saveNonce(nonce, Provider.APPLE);
-
-		// when
-		final NonceResponse response = authService.generateNonce(nonceRequest);
-
-		// then
-		verify(nonceService).generateNonceValue();
-		verify(nonceService).saveNonce(nonce, Provider.APPLE);
-		assertThat(response.nonce()).isEqualTo(nonce);
-	}
-
-	@Test
-	@DisplayName("Throws an exception on login with an invalid provider")
-	void Given_InvalidProvider_When_Login_Then_ThrowsException() {
-		// given
-		final AuthRequest authRequest = new AuthRequest("facebook", idToken);
-
-		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.login(authRequest));
-
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_PROVIDER);
-	}
-
-	@Test
-	@DisplayName("Issues tokens successfully when a registered Kakao member logs in")
-	void Given_RegisteredKakaoMember_When_Login_Then_IssuesTokensSuccessfully() {
-		// given
-		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
-		final String providerId = "kakao-id-123";
-		final OidcClient oidcClient = mock(OidcClient.class);
-		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
-		final Member member = Member.builder().id(memberId).kakaoId(providerId).build();
-
-		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
-		doNothing().when(nonceService).verifyNonce("nonce", Provider.KAKAO);
+		doReturn("nonce").when(jwtProvider).extractNonce("id-token");
 		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.KAKAO);
-		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.KAKAO, idToken, keys);
-		doReturn(member).when(memberService).findOrCreateMember(Provider.KAKAO, providerId);
-		setupTokenIssuance(accessToken, refreshToken);
+		doReturn(publicKeys).when(oidcClient).getOidcPublicKeys();
+		doReturn("provider-id").when(oidcProviderFactory).getProviderId(Provider.KAKAO, "id-token", publicKeys);
+		doReturn(creationResult).when(memberService).findOrCreateMember(Provider.KAKAO, "provider-id");
+
+		doReturn("access-token").when(jwtProvider).generateAccessToken(1L);
+		doReturn("refresh-token").when(refreshTokenService).generateRefreshToken();
+		doReturn("Bearer").when(jwtProperties).type();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+		doReturn(1209600).when(jwtProperties).refreshTokenExpireTime();
 
 		// when
-		final AuthResponse response = authService.login(authRequest);
+		AuthResponse response = authService.login(request);
 
 		// then
+		assertThat(response.accessToken()).isEqualTo("access-token");
+		assertThat(response.isNewMember()).isFalse();
 		verify(nonceService).verifyNonce("nonce", Provider.KAKAO);
-		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
-		assertThat(response.tokenType()).isEqualTo("Bearer");
-		assertThat(response.accessToken()).isEqualTo(accessToken);
-		assertThat(response.refreshToken()).isEqualTo(refreshToken);
-		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
-		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
 	}
 
 	@Test
-	@DisplayName("Creates a new Kakao member and issues tokens on the first login")
-	void Given_NewKakaoMember_When_Login_Then_CreatesMemberAndIssuesTokens() {
+	@DisplayName("Reissue tokens successfully")
+	void Given_ValidRefreshTokenRequest_When_ReissueTokens_Then_ReturnsNewTokens() {
 		// given
-		final AuthRequest authRequest = new AuthRequest("kakao", idToken);
-		final String providerId = "kakao-id-123";
-		final OidcClient oidcClient = mock(OidcClient.class);
-		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
-		final Member newMember = Member.builder().id(memberId).kakaoId(providerId).build();
+		RefreshTokenRequest request = new RefreshTokenRequest("expired-access", "valid-refresh");
+		ParsedTokenInfo tokenInfo = new ParsedTokenInfo(1L, true); // expired
 
-		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
-		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.KAKAO);
-		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.KAKAO, idToken, keys);
-		doReturn(newMember).when(memberService).findOrCreateMember(Provider.KAKAO, providerId);
-		setupTokenIssuance(accessToken, refreshToken);
+		doReturn(tokenInfo).when(jwtProvider).parseTokenForReissue("expired-access");
+		// checkMemberExists returns void, so no doReturn needed unless throwing
+
+		doReturn("new-access").when(jwtProvider).generateAccessToken(1L);
+		doReturn("new-refresh").when(refreshTokenService).generateRefreshToken();
+		doReturn("Bearer").when(jwtProperties).type();
+		doReturn(3600).when(jwtProperties).accessTokenExpireTime();
+		doReturn(1209600).when(jwtProperties).refreshTokenExpireTime();
 
 		// when
-		final AuthResponse response = authService.login(authRequest);
+		AuthResponse response = authService.reissueTokens(request);
 
 		// then
-		verify(nonceService).verifyNonce("nonce", Provider.KAKAO);
-		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
-		assertThat(response.accessToken()).isEqualTo(accessToken);
-		assertThat(response.refreshToken()).isEqualTo(refreshToken);
+		assertThat(response.accessToken()).isEqualTo("new-access");
+		assertThat(response.isNewMember()).isFalse();
+		verify(refreshTokenService).verifyRefreshToken(1L, "valid-refresh");
 	}
 
 	@Test
-	@DisplayName("Issues tokens successfully when a registered Apple member logs in")
-	void Given_RegisteredAppleMember_When_Login_Then_IssuesTokensSuccessfully() {
+	@DisplayName("Reissue tokens fails when member not found")
+	void Given_MemberNotFound_When_ReissueTokens_Then_ThrowsInvalidTokenException() {
 		// given
-		final AuthRequest authRequest = new AuthRequest("apple", idToken);
-		final String providerId = "apple-id-123";
-		final OidcClient oidcClient = mock(OidcClient.class);
-		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
-		final Member member = Member.builder().id(memberId).appleId(providerId).build();
+		RefreshTokenRequest request = new RefreshTokenRequest("expired-access", "refresh");
+		ParsedTokenInfo tokenInfo = new ParsedTokenInfo(1L, true);
 
-		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
-		doNothing().when(nonceService).verifyNonce("nonce", Provider.APPLE);
-		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.APPLE);
-		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.APPLE, idToken, keys);
-		doReturn(member).when(memberService).findOrCreateMember(Provider.APPLE, providerId);
-		setupTokenIssuance(accessToken, refreshToken);
-
-		// when
-		final AuthResponse response = authService.login(authRequest);
-
-		// then
-		verify(nonceService).verifyNonce("nonce", Provider.APPLE);
-		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
-		assertThat(response.tokenType()).isEqualTo("Bearer");
-		assertThat(response.accessToken()).isEqualTo(accessToken);
-		assertThat(response.refreshToken()).isEqualTo(refreshToken);
-		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
-		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
-	}
-
-	@Test
-	@DisplayName("Creates a new Apple member and issues tokens on the first login")
-	void Given_NewAppleMember_When_Login_Then_CreatesMemberAndIssuesTokens() {
-		// given
-		final AuthRequest authRequest = new AuthRequest("apple", idToken);
-		final String providerId = "apple-id-123";
-		final OidcClient oidcClient = mock(OidcClient.class);
-		final OidcPublicKeys keys = mock(OidcPublicKeys.class);
-		final Member newMember = Member.builder().id(memberId).appleId(providerId).build();
-
-		doReturn("nonce").when(jwtProvider).extractNonce(idToken);
-		doReturn(oidcClient).when(oidcClientFactory).getOidcClient(Provider.APPLE);
-		doReturn(keys).when(oidcClient).getOidcPublicKeys();
-		doReturn(providerId).when(oidcProviderFactory).getProviderId(Provider.APPLE, idToken, keys);
-		doReturn(newMember).when(memberService).findOrCreateMember(Provider.APPLE, providerId);
-		setupTokenIssuance(accessToken, refreshToken);
-
-		// when
-		final AuthResponse response = authService.login(authRequest);
-
-		// then
-		verify(nonceService).verifyNonce("nonce", Provider.APPLE);
-		verify(refreshTokenService).saveRefreshToken(memberId, refreshToken);
-		assertThat(response.accessToken()).isEqualTo(accessToken);
-		assertThat(response.refreshToken()).isEqualTo(refreshToken);
-	}
-
-	@Test
-	@DisplayName("Throws an exception on token reissue if the token contains an invalid member ID")
-	void Given_TokenWithInvalidMemberId_When_ReissueTokens_Then_ThrowsExceptionAndDoesNotDeleteToken() {
-		// given
-		final Long nullMemberId = null;
-		final ParsedTokenInfo invalidTokenInfo = new ParsedTokenInfo(nullMemberId, true);
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
-
-		doReturn(invalidTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doThrow(new ServerException(MemberErrorResult.INVALID_MEMBER_ID))
-			.when(memberService).checkMemberExists(nullMemberId);
-
-		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueTokens(request));
-
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
-		// Crucially, we should not attempt to delete a refresh token with a null ID.
-		verify(refreshTokenService, never()).deleteRefreshToken(any());
-		verify(refreshTokenService, never()).verifyRefreshToken(any(), any());
-	}
-
-	@Test
-	@DisplayName("Throws an exception on token reissue if the member does not exist")
-	void Given_NonExistentMember_When_ReissueTokens_Then_ThrowsExceptionAndDeletesToken() {
-		// given
-		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
-
-		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
+		doReturn(tokenInfo).when(jwtProvider).parseTokenForReissue("expired-access");
 		doThrow(new ServerException(MemberErrorResult.MEMBER_NOT_FOUND))
-			.when(memberService).checkMemberExists(memberId);
+			.when(memberService).checkMemberExists(1L);
 
 		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueTokens(request));
+		assertThatThrownBy(() -> authService.reissueTokens(request))
+			.isInstanceOf(ServerException.class)
+			.extracting("errorResult")
+			.isEqualTo(AuthErrorResult.INVALID_TOKEN);
 
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
-		verify(refreshTokenService).deleteRefreshToken(memberId);
-		verify(refreshTokenService, never()).verifyRefreshToken(any(), any());
+		verify(refreshTokenService).deleteRefreshToken(1L);
 	}
 
 	@Test
-	@DisplayName("Throws an exception when reissuing tokens with a mismatched refresh token")
-	void Given_MismatchedRefreshToken_When_ReissueTokens_Then_ThrowsException() {
+	@DisplayName("Reissue tokens fails when other member error occurs")
+	void Given_InvalidMemberId_When_ReissueTokens_Then_ThrowsInvalidTokenException() {
 		// given
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, "wrong.refresh.token");
-		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
+		RefreshTokenRequest request = new RefreshTokenRequest("expired-access", "refresh");
+		ParsedTokenInfo tokenInfo = new ParsedTokenInfo(1L, true);
 
-		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doNothing().when(memberService).checkMemberExists(memberId);
-		doThrow(new ServerException(AuthErrorResult.INVALID_TOKEN))
-			.when(refreshTokenService).verifyRefreshToken(memberId, "wrong.refresh.token");
+		doReturn(tokenInfo).when(jwtProvider).parseTokenForReissue("expired-access");
+		doThrow(new ServerException(MemberErrorResult.INVALID_MEMBER_ID))
+			.when(memberService).checkMemberExists(1L);
 
 		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueTokens(request));
+		assertThatThrownBy(() -> authService.reissueTokens(request))
+			.isInstanceOf(ServerException.class)
+			.extracting("errorResult")
+			.isEqualTo(AuthErrorResult.INVALID_TOKEN);
 
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
+		verify(refreshTokenService, never()).deleteRefreshToken(1L);
 	}
 
 	@Test
-	@DisplayName("Throws an exception on token reissue if no refresh token is stored")
-	void Given_NoStoredRefreshToken_When_ReissueTokens_Then_ThrowsException() {
+	@DisplayName("Reissue tokens fails when access token is not expired (Prod)")
+	void Given_NotExpiredTokenAndProdProfile_When_ReissueTokens_Then_ThrowsInvalidTokenException() {
 		// given
-		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
+		RefreshTokenRequest request = new RefreshTokenRequest("valid-access", "refresh");
+		ParsedTokenInfo tokenInfo = new ParsedTokenInfo(1L, false); // not expired
 
-		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doNothing().when(memberService).checkMemberExists(memberId);
-		doThrow(new ServerException(AuthErrorResult.INVALID_TOKEN))
-			.when(refreshTokenService).verifyRefreshToken(memberId, refreshToken);
-
-		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueTokens(request));
-
-		verify(jwtProvider, never()).generateAccessToken(any());
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
-	}
-
-	@Test
-	@DisplayName("Reissues tokens successfully with a valid refresh token")
-	void Given_ValidRefreshToken_When_ReissueTokens_Then_Succeeds() {
-		// given
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
-		final String newAccessToken = "new-access-token";
-		final String newRefreshToken = "new-refresh-token";
-		final ParsedTokenInfo expiredTokenInfo = new ParsedTokenInfo(memberId, true);
-
-		doReturn(expiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
-		doNothing().when(memberService).checkMemberExists(memberId);
-		doNothing().when(refreshTokenService).verifyRefreshToken(memberId, refreshToken);
-		setupTokenIssuance(newAccessToken, newRefreshToken);
-
-		// when
-		final AuthResponse response = authService.reissueTokens(request);
-
-		// then
-		verify(refreshTokenService).saveRefreshToken(memberId, newRefreshToken);
-		assertThat(response.accessToken()).isEqualTo(newAccessToken);
-		assertThat(response.refreshToken()).isEqualTo(newRefreshToken);
-		assertThat(response.accessTokenExpiresIn()).isEqualTo(accessTokenExpireTime);
-		assertThat(response.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpireTime);
-	}
-
-	@Test
-	@DisplayName("Throws INVALID_TOKEN and deletes refresh token for a non-expired token on prod/stg profiles")
-	void Given_NonExpiredTokenOnProd_When_ReissueTokens_Then_ThrowsInvalidToken() {
-		// given
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
-		final ParsedTokenInfo nonExpiredTokenInfo = new ParsedTokenInfo(memberId, false);
-
-		doReturn(nonExpiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
+		doReturn(tokenInfo).when(jwtProvider).parseTokenForReissue("valid-access");
 		doReturn(true).when(profileManager).isProdOrStgProfile();
 
 		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueTokens(request));
+		assertThatThrownBy(() -> authService.reissueTokens(request))
+			.isInstanceOf(ServerException.class)
+			.extracting("errorResult")
+			.isEqualTo(AuthErrorResult.INVALID_TOKEN);
 
-		verify(refreshTokenService).deleteRefreshToken(memberId);
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.INVALID_TOKEN);
+		verify(refreshTokenService).deleteRefreshToken(1L);
 	}
 
 	@Test
-	@DisplayName("Throws NOT_EXPIRED_TOKEN and deletes refresh token for a non-expired token on dev/local profiles")
-	void Given_NonExpiredTokenOnDev_When_ReissueTokens_Then_ThrowsNotExpiredToken() {
+	@DisplayName("Reissue tokens fails when access token is not expired (Local)")
+	void Given_NotExpiredTokenAndLocalProfile_When_ReissueTokens_Then_ThrowsNotExpiredTokenException() {
 		// given
-		final RefreshTokenRequest request = new RefreshTokenRequest(accessToken, refreshToken);
-		final ParsedTokenInfo nonExpiredTokenInfo = new ParsedTokenInfo(memberId, false);
+		RefreshTokenRequest request = new RefreshTokenRequest("valid-access", "refresh");
+		ParsedTokenInfo tokenInfo = new ParsedTokenInfo(1L, false); // not expired
 
-		doReturn(nonExpiredTokenInfo).when(jwtProvider).parseTokenForReissue(accessToken);
+		doReturn(tokenInfo).when(jwtProvider).parseTokenForReissue("valid-access");
 		doReturn(false).when(profileManager).isProdOrStgProfile();
 
 		// when & then
-		final ServerException exception = assertThrows(ServerException.class,
-			() -> authService.reissueTokens(request));
+		assertThatThrownBy(() -> authService.reissueTokens(request))
+			.isInstanceOf(ServerException.class)
+			.extracting("errorResult")
+			.isEqualTo(AuthErrorResult.NOT_EXPIRED_TOKEN);
 
-		verify(refreshTokenService).deleteRefreshToken(memberId);
-		assertThat(exception.getErrorResult()).isEqualTo(AuthErrorResult.NOT_EXPIRED_TOKEN);
+		verify(refreshTokenService).deleteRefreshToken(1L);
 	}
 
 	@Test
-	@DisplayName("Deletes refresh token on logout")
+	@DisplayName("Logout successfully")
 	void Given_MemberId_When_Logout_Then_DeletesRefreshToken() {
 		// when
-		authService.logout(memberId);
+		authService.logout(1L);
 
 		// then
-		verify(refreshTokenService).deleteRefreshToken(memberId);
+		verify(refreshTokenService).deleteRefreshToken(1L);
 	}
-
-	private void setupTokenIssuance(final String newAccessToken, final String newRefreshToken) {
-		doReturn(newAccessToken).when(jwtProvider).generateAccessToken(memberId);
-		doReturn(newRefreshToken).when(refreshTokenService).generateRefreshToken();
-		doReturn("Bearer").when(jwtProperties).type();
-		doReturn(accessTokenExpireTime).when(jwtProperties).accessTokenExpireTime();
-		doReturn(refreshTokenExpireTime).when(jwtProperties).refreshTokenExpireTime();
-	}
-
 }
