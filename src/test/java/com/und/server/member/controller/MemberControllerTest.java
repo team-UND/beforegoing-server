@@ -1,11 +1,14 @@
 package com.und.server.member.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +31,7 @@ import com.und.server.common.exception.GlobalExceptionHandler;
 import com.und.server.common.exception.ServerException;
 import com.und.server.member.dto.request.NicknameRequest;
 import com.und.server.member.dto.response.MemberResponse;
+import com.und.server.member.entity.Member;
 import com.und.server.member.service.MemberService;
 
 @ExtendWith(MockitoExtension.class)
@@ -129,6 +133,59 @@ class MemberControllerTest {
 		resultActions.andExpect(status().isOk())
 			.andExpect(jsonPath("$.id").value(memberId))
 			.andExpect(jsonPath("$.nickname").value(newNickname));
+	}
+
+	@Test
+	@DisplayName("Fails to get member and returns unauthorized when user is not authenticated")
+	void Given_UnauthenticatedUser_When_GetMember_Then_ReturnsUnauthorized() throws Exception {
+		// given
+		final String url = "/v1/member";
+		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
+
+		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
+		doThrow(new ServerException(errorResult))
+			.when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get(url)
+		);
+
+		// then
+		resultActions.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value(errorResult.name()))
+			.andExpect(jsonPath("$.message").value(errorResult.getMessage()));
+	}
+
+	@Test
+	@DisplayName("Succeeds in getting member nickname for an authenticated user")
+	void Given_AuthenticatedUser_When_GetMember_Then_ReturnsOkWithNickname() throws Exception {
+		// given
+		final String url = "/v1/member";
+		final Long memberId = 1L;
+		final String nickname = "Chori";
+		final Member member = Member.builder()
+			.id(memberId)
+			.nickname(nickname)
+			.build();
+
+		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
+		doReturn(memberId).when(authMemberArgumentResolver).resolveArgument(any(), any(), any(), any());
+		doReturn(member).when(memberService).findMemberById(memberId);
+
+		// when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get(url)
+		);
+
+		// then
+		final String responseContent = resultActions
+			.andExpect(status().isOk())
+			.andReturn()
+			.getResponse()
+			.getContentAsString(StandardCharsets.UTF_8);
+		assertThat(responseContent).isEqualTo(nickname);
+		verify(memberService).findMemberById(memberId);
 	}
 
 	@Test
