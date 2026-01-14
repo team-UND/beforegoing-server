@@ -27,8 +27,8 @@ public class MemberController {
 
 	private final MemberService memberService;
 
-	@GetMapping("/member")
-	public ResponseEntity<String> getMember(
+	@GetMapping("/member/nickname")
+	public ResponseEntity<String> getNickname(
 		@Parameter(hidden = true) @AuthMember final Long memberId
 	) {
 		final Member member = memberService.findMemberById(memberId);

@@ -139,7 +139,7 @@ class MemberControllerTest {
 	@DisplayName("Fails to get member and returns unauthorized when user is not authenticated")
 	void Given_UnauthenticatedUser_When_GetMember_Then_ReturnsUnauthorized() throws Exception {
 		// given
-		final String url = "/v1/member";
+		final String url = "/v1/member/nickname";
 		final AuthErrorResult errorResult = AuthErrorResult.UNAUTHORIZED_ACCESS;
 
 		doReturn(true).when(authMemberArgumentResolver).supportsParameter(any());
@@ -161,7 +161,7 @@ class MemberControllerTest {
 	@DisplayName("Succeeds in getting member nickname for an authenticated user")
 	void Given_AuthenticatedUser_When_GetMember_Then_ReturnsOkWithNickname() throws Exception {
 		// given
-		final String url = "/v1/member";
+		final String url = "/v1/member/nickname";
 		final Long memberId = 1L;
 		final String nickname = "Chori";
 		final Member member = Member.builder()
